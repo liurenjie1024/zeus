@@ -43,5 +43,6 @@
     <module>sqlline</module>
     <module>data</module>
     <module>gis</module>
+    <module>storage-zeus</module>
   </modules>
 </project>
