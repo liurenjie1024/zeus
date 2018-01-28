@@ -1,0 +1,43 @@
+syntax="proto3";
+
+option java_package = "io.github.zeus.rpc";
+option java_multiple_files = true;
+
+message ZeusDBSchema {
+    string name = 1;
+    int32 id = 2;
+    repeated ZeusTableSchema tables = 3;
+}
+
+message ZeusTableSchema {
+    string name = 1;
+    int32 id = 2;
+    repeated ZeusColumnSchema fields = 3;
+}
+
+enum FieldType {
+    STRING = 0;
+    FLOAT = 1;
+    INT32 = 2;
+    INT64 = 3;
+    BOOL = 4;
+    TIMESTAMP = 5;
+}
+
+message ZeusColumnSchema {
+    string name = 1;
+    int32 id = 2;
+    FieldType field_type = 3;
+}
+
+message GetSchemaRequest {
+    string db_name = 1;
+}
+
+message GetSchemaResponse {
+    ZeusDBSchema db_schema = 1;
+}
+
+service ZeusMetaService {
+    rpc GetDBSchema(GetSchemaRequest) returns (GetSchemaResponse){}
+}
