@@ -1,9 +1,13 @@
 package io.github.zeus.client;
 
+import io.github.zeus.rpc.ColumnValue;
 import io.github.zeus.rpc.GetSchemaRequest;
+import io.github.zeus.rpc.PlanNode;
+import io.github.zeus.rpc.PlanNodeType;
 import io.github.zeus.rpc.QueryPlan;
 import io.github.zeus.rpc.QueryRequest;
 import io.github.zeus.rpc.QueryResult;
+import io.github.zeus.rpc.ScanNode;
 import io.github.zeus.rpc.ZeusDBSchema;
 import io.github.zeus.rpc.ZeusDataServiceGrpc.ZeusDataServiceBlockingStub;
 import io.github.zeus.rpc.ZeusMetaServiceGrpc.ZeusMetaServiceBlockingStub;
@@ -50,5 +54,26 @@ public class ZeusClient implements AutoCloseable {
   public void close() throws Exception {
     metaChannel.shutdownNow();
     dataChannel.shutdownNow();
+  }
+
+  public static void main(String[] args) {
+    ZeusClient client = ZeusClientBuilder.newBuilder(null, 0, "127.0.0.1", 7788)
+      .build();
+
+    PlanNode node = PlanNode.newBuilder()
+      .setPlanNodeType(PlanNodeType.SCAN_NODE)
+      .setScanNode(ScanNode.newBuilder().addColumns("test").build())
+      .build();
+
+    QueryPlan plan = QueryPlan.newBuilder()
+      .setPlanId(1)
+      .addNodes(node)
+      .build();
+
+    QueryResult result = client.query(plan);
+    result.getRowsList().stream()
+      .flatMap(row -> row.getColumnsList().stream())
+      .map(ColumnValue::getStringValue)
+      .forEach(System.out::println);
   }
 }

@@ -2,6 +2,7 @@ package io.github.zeus.client;
 
 import io.github.zeus.rpc.ZeusDataServiceGrpc;
 import io.github.zeus.rpc.ZeusMetaServiceGrpc;
+import io.github.zeus.rpc.ZeusMetaServiceGrpc.ZeusMetaServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
@@ -27,13 +28,14 @@ public class ZeusClientBuilder {
   }
 
   public ZeusClient build() {
-    ManagedChannel metaChannel = ManagedChannelBuilder.forAddress(metaHost, metaPort)
-      .usePlaintext(false)
-      .build();
+//    ManagedChannel metaChannel = ManagedChannelBuilder.forAddress(metaHost, metaPort)
+//      .usePlaintext(false)
+//      .build();
+    ManagedChannel metaChannel = null;
     ManagedChannel dataChannel = ManagedChannelBuilder.forAddress(dataHost, dataPort)
       .usePlaintext(false)
       .build();
-    return new ZeusClient(metaChannel, ZeusMetaServiceGrpc.newBlockingStub(metaChannel),
+    return new ZeusClient(metaChannel, null,
       dataChannel, ZeusDataServiceGrpc.newBlockingStub(dataChannel));
   }
 }

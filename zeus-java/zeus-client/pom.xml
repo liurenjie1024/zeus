@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>
-        <grpc.version>1.9.0</grpc.version>
+        <grpc.version>1.7.0</grpc.version>
     </properties>
 
     <dependencies>
@@ -34,6 +34,35 @@
             <version>1.7.21</version>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>mediav-proxy</id>
+            <name>All Mediav Proxy Repositories</name>
+            <url>https://maven.corp.mediav.com/nexus/content/groups/maven2-proxy</url>
+        </repository>
+        <repository>
+            <id>mediav-releases</id>
+            <name>Releases Repository</name>
+            <url>https://maven.corp.mediav.com/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>mediav-snapshots</id>
+            <name>Snapshots Repository</name>
+            <url>https://maven.corp.mediav.com/nexus/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+            <id>mediav-thirdparty</id>
+            <name>Third Party Repository</name>
+            <url>https://maven.corp.mediav.com/nexus/content/repositories/thirdparty</url>
+        </repository>
+        <repository>
+            <id>cloudera</id>
+            <name>Cloudera Repository</name>
+            <url>http://repository.cloudera.com/artifactory/libs-release</url>
+        </repository>
+
+    </repositories>
 
     <build>
         <extensions>

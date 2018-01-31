@@ -8,6 +8,8 @@ RUST_OUT_DIR=zeus-server/src/rpc
 PROTOC_RUST_PLUGIN=/Users/liurenjie/.cargo/bin/protoc-gen-rust
 GRPC_RUST_PLUGIN=/Users/liurenjie/.cargo/bin/grpc_rust_plugin
 
+all: RUST_BUILD JAVA_BUILD
+
 RUST_GRPC: $(PROTO_DEFS)
 	echo "Building rust grpc"
 	$(PROTOC) --rust_out=$(RUST_OUT_DIR) \
@@ -23,8 +25,6 @@ RUST_BUILD: RUST_GRPC
 JAVA_BUILD:
 	echo "Building java"
 	cd zeus-java && mvn clean install
-
-all: RUST_BUILD JAVA_BUILD
 
 .PHONY: clean
 

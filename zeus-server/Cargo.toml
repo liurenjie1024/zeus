@@ -8,3 +8,10 @@ grpcio = "0.2.0"
 protobuf="1.4"
 log = "0.3"
 futures = "0.1"
+quick-error="1.2.1"
+
+[lib]
+name="zeus"
+
+[[bin]]
+name="zeus-server"
