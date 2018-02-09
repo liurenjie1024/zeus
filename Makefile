@@ -5,8 +5,8 @@ PROTO_DEFS=$(PROTO_DIR)/zeus_data.proto \
 	$(PROTO_DIR)/zeus_meta.proto
 
 RUST_OUT_DIR=zeus-server/src/rpc
-PROTOC_RUST_PLUGIN=/Users/liurenjie/.cargo/bin/protoc-gen-rust
-GRPC_RUST_PLUGIN=/Users/liurenjie/.cargo/bin/grpc_rust_plugin
+PROTOC_RUST_PLUGIN=`which protoc-gen-rust`
+GRPC_RUST_PLUGIN=`which grpc_rust_plugin`
 
 all: RUST_BUILD JAVA_BUILD
 

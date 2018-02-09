@@ -29,6 +29,6 @@ impl AppendableSegment {
 }
 
 pub struct ImmutableSegment {
-    columns: HashMap<i32, Box<Column>>,
+    columns: HashMap<i32, Box<Column<Owned = Self>>>,
     row_num: usize
 }
