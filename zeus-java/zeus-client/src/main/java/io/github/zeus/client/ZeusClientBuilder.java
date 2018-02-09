@@ -33,7 +33,7 @@ public class ZeusClientBuilder {
 //      .build();
     ManagedChannel metaChannel = null;
     ManagedChannel dataChannel = ManagedChannelBuilder.forAddress(dataHost, dataPort)
-      .usePlaintext(false)
+      .usePlaintext(true)
       .build();
     return new ZeusClient(metaChannel, null,
       dataChannel, ZeusDataServiceGrpc.newBlockingStub(dataChannel));

@@ -57,6 +57,7 @@ public class ZeusClient implements AutoCloseable {
   }
 
   public static void main(String[] args) {
+    System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
     ZeusClient client = ZeusClientBuilder.newBuilder(null, 0, "127.0.0.1", 7788)
       .build();
 

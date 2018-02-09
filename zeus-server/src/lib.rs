@@ -9,4 +9,5 @@ pub mod db;
 pub mod rpc;
 pub mod util;
 pub mod server;
+pub mod exec;
 

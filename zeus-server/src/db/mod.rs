@@ -1,8 +1,9 @@
-mod column;
-mod schema;
-mod table;
-mod db;
-mod segment;
+pub mod column;
+pub mod schema;
+pub mod table;
+pub mod db;
+pub mod segment;
+pub mod data_type;
 
 pub struct DBConfig {
     // pending appendable segment num per table

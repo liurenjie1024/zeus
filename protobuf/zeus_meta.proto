@@ -7,6 +7,7 @@ message ZeusDBSchema {
     string name = 1;
     int32 id = 2;
     repeated ZeusTableSchema tables = 3;
+    uint32 version = 4;
 }
 
 message ZeusTableSchema {
@@ -17,10 +18,10 @@ message ZeusTableSchema {
 
 enum FieldType {
     STRING = 0;
-    FLOAT = 1;
-    INT32 = 2;
-    INT64 = 3;
-    BOOL = 4;
+    BOOL = 1;
+    FLOAT = 2;
+    INT32 = 3;
+    INT64 = 4;
     TIMESTAMP = 5;
 }
 
