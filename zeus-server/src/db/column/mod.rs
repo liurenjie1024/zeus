@@ -11,7 +11,7 @@ pub type IntColumn = column_vector::ColumnVector<i32>;
 pub type LongColumn = column_vector::ColumnVector<i64>;
 pub type TimestampColumn = column_vector::ColumnVector<u64>;
 
-pub trait Column: ToOwned<Owned=Box<Column>> {
+pub trait Column {
     fn size(&self) -> usize;
     fn field_type(&self) -> FieldType;
 }

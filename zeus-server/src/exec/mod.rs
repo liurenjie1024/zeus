@@ -9,7 +9,6 @@ use util::error::Result;
 
 pub struct ColumnWithName {
     name: String,
-    column: Cow<Box<Column>>
 }
 
 pub struct Block {
@@ -22,7 +21,6 @@ pub struct ExecContext {
 
 trait ExecNode {
     fn open(&mut self, context: &mut ExecContext) -> Result<()>;
-    fn next(&mut self) -> Cow<Block>;
     fn close(&mut self) -> Result<()>;
 }
 
