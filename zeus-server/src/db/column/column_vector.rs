@@ -21,10 +21,10 @@ impl<T: Clone> Column for ColumnVector<T> {
 }
 
 impl<T: Clone> ToOwned for ColumnVector<T> {
-    type Owned = Self;
+    type Owned = Box<Column>;
 
     fn to_owned(&self) -> Self::Owned {
-        ColumnVector {
+        box ColumnVector {
             field_type: self.field_type,
             data: self.data.clone()
         }

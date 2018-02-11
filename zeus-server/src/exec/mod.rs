@@ -9,7 +9,7 @@ use util::error::Result;
 
 pub struct ColumnWithName {
     name: String,
-    column: Box<Column<Owned = Self>>
+    column: Cow<Box<Column>>
 }
 
 pub struct Block {

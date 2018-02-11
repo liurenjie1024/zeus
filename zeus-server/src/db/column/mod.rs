@@ -1,5 +1,5 @@
-use std::vec::Vec;
 use std::borrow::ToOwned;
+use std::boxed::Box;
 
 use rpc::zeus_meta::FieldType;
 
@@ -11,7 +11,7 @@ pub type IntColumn = column_vector::ColumnVector<i32>;
 pub type LongColumn = column_vector::ColumnVector<i64>;
 pub type TimestampColumn = column_vector::ColumnVector<u64>;
 
-pub trait Column: ToOwned {
+pub trait Column: ToOwned<Owned=Box<Column>> {
     fn size(&self) -> usize;
     fn field_type(&self) -> FieldType;
 }
