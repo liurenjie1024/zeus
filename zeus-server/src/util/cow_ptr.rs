@@ -9,7 +9,7 @@ pub trait ToBoxedOwned {
 }
 
 pub enum CowPtr<T>
-    where T: ToBoxedOwned + 'static {
+    where T: ToBoxedOwned + 'static + ?Sized {
     Borrowed(Arc<T>),
     Owned(Box<T>),
 }
