@@ -5,6 +5,7 @@ use rpc::zeus_meta::FieldType;
 use util::cow_ptr::ToBoxedOwned;
 
 pub mod column_vector;
+pub mod column_string;
 
 pub type BoolColumn = column_vector::ColumnVector<bool>;
 pub type FloatColumn = column_vector::ColumnVector<f32>;
