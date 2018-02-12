@@ -10,6 +10,7 @@ log = "0.4.1"
 futures = "0.1"
 quick-error="1.2.1"
 log4rs="0.8.0"
+prometheus = "0.3.12"
 
 [lib]
 name="zeus"

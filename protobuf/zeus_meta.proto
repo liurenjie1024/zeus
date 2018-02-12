@@ -23,6 +23,7 @@ enum FieldType {
     INT32 = 3;
     INT64 = 4;
     TIMESTAMP = 5;
+    BYTE = 6;
 }
 
 message ZeusColumnSchema {
