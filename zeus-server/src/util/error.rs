@@ -1,6 +1,7 @@
 use ::grpcio::Error as GrpcError;
 use protobuf::error::ProtobufError;
 use std::result;
+use serde_json::error::Error as SerdeJsonError;
 
 quick_error! {
 #[derive(Debug)]
@@ -12,6 +13,9 @@ pub enum Error {
         from()
     }
     PBError(err: ProtobufError) {
+        from()
+    }
+    JsonSerdeError(err: SerdeJsonError) {
         from()
     }
 }

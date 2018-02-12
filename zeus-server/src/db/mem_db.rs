@@ -4,6 +4,8 @@ use std::path::PathBuf;
 use std::io::BufReader;
 
 use protobuf::core::parse_from_reader;
+use serde::ser::Serialize;
+use serde::de::Deserialize;
 
 use rpc::zeus_meta::ZeusDBSchema;
 use db::column::Column;
@@ -11,10 +13,28 @@ use db::DBConfig;
 use util::error::Result;
 
 static SCHEMA_FILE_NAME: &'static str = "schema.pb";
+static MEAT_FILE_NAME: &'static str = "meta.json";
 static DATA_FILE_SUFFIX: &'static str = ".data";
+
+struct ColumnMeta {
+    /// start offset in table data file
+    start: usize,
+    /// end offset in table data file
+    end: usize
+}
+
+struct TableMeta {
+    column_meta: HashMap<i32, ColumnMeta>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct DBMeta {
+    table_meta: HashMap<i32, TableMeta>
+}
 
 struct MemDB {
     schema: ZeusDBSchema,
+    db_meta: DBMeta,
     tables: HashMap<i32, Box<MemTable>>
 }
 
@@ -34,10 +54,17 @@ impl MemDB {
         let mut schema_reader = BufReader::from(schema_file);
         let schema = parse_from_reader::<ZeusDBSchema>(&schema_reader)?;
 
+        let mut meta_file_path = PathBuf::from(config.path);
+        meta_file_path.push(MEAT_FILE_NAME);
+        let meta_file = File::open(meta_file_path)?;
+        let mut meta_reader = BufReader::from(meta_file);
+        let meta = serde_json::from_reader::<DBMeta>(meta_reader)?;
+
 
     }
 
-    fn load_table(config: &DBConfig, db_schema: &ZeusDBSchema, table_id: i32) -> Result<Box<MemTable>> {
+    fn load_table(config: &DBConfig, db_schema: &ZeusDBSchema, table_id: i32)
+        -> Result<Box<MemTable>> {
 
     }
 }
