@@ -5,11 +5,12 @@ pub mod db;
 pub mod segment;
 pub mod data_type;
 mod mem_db;
+mod native_db;
 
 use std::clone::Clone;
 use std::boxed::Box;
 use std::vec::Vec;
-use std::clone::Clone;
+use std::fmt::Display;
 use std::path::Path;
 
 use util::error::Result;
