@@ -1,17 +1,20 @@
 mod native_file_segment;
 
-use rpc::zeus_meta::ZeusDBSchema;
 use std::collections::HashMap;
 use std::collections::LinkedList;
 use std::sync::Arc;
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::BufReader;
+
+use rpc::zeus_meta::ZeusDBSchema;
+use protobuf::core::parse_from_reader;
+
 use db::DBConfig;
 use util::error::Result;
 use self::native_file_segment::NativeFileSegment;
 
-const SCHEMA_FILE: &'static str = "schema.pb";
+const SCHEMA_FILE_NAME: &'static str = "schema.pb";
 const TABLE_PLAYLIST_FILE: &'static str = "table.pl";
 
 struct NativeDB {
@@ -22,7 +25,26 @@ struct NativeDB {
 
 impl NativeDB {
     pub fn new(config: &DBConfig) -> Result<NativeDB> {
-        
+        info!("Trying to load database from {}", config.path);
+
+        let mut schema_file_path = PathBuf::from(config.path);
+        schema_file_path.push(SCHEMA_FILE_NAME);
+        let schema_file = File::open(schema_file_path)?;
+        let mut schema_reader = BufReader::from(schema_file);
+        let schema = parse_from_reader::<ZeusDBSchema>(&schema_reader)?;
+        info!("Read db schema!");
+
+        let mut tables = HashMap::new();
+        for table in schema.get_tables() {
+            let native_table = NativeTable::new(config, table.get_id())?;
+            tables.insert(table.get_id(), Arc::new(native_table));
+        }
+
+        Ok(NativeDB {
+            schema: schema,
+            config: config.clone(),
+            tables: talbes
+        })
     }
 }
 
