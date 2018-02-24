@@ -41,11 +41,11 @@ pub struct DAGExecutor {
 
 impl DAGExecutor {
     pub fn from(query_plan: &QueryPlan) -> DAGExecutor {
-
+        unimplemented!()
     }
 
     pub fn execute(self: &mut DAGExecutor) -> Result<QueryResult> {
-
+        unimplemented!()
     }
 }
 

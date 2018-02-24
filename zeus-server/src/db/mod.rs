@@ -1,10 +1,5 @@
 pub mod column;
-pub mod schema;
-pub mod table;
-pub mod db;
-pub mod segment;
 pub mod data_type;
-mod mem_db;
 mod native_db;
 
 use std::clone::Clone;
@@ -13,10 +8,14 @@ use std::vec::Vec;
 use std::fmt::Display;
 use std::path::Path;
 
+use db::column::Column;
 use util::error::Result;
+use util::cow_ptr::CowPtr;
+use exec::Block;
+use self::native_db::NativeDB;
 
 
-#[derive(Copy, Clone, Debug, Display)]
+#[derive(Clone, Debug)]
 pub struct DBConfig {
     // pending appendable segment num per table
     pub max_pending_segment_num: usize,
@@ -44,6 +43,7 @@ pub trait DB {
 }
 
 pub fn open(config: &DBConfig) -> Result<Box<DB>> {
+    Ok(Box::new(NativeDB::new(config)?))
 }
 
 pub type DBResult = Result<i32>;

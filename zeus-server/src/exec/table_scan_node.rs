@@ -6,6 +6,8 @@ use util::cow_ptr::CowPtr;
 use util::error::Result;
 use db::column::Column;
 use super::ExecNode;
+use super::ExecContext;
+use super::Block;
 use db::BlockInputStream;
 
 pub struct TableScanNode {

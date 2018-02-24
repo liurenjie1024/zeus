@@ -10,6 +10,7 @@ impl FieldTypeInfo for FieldType {
         match *self {
             FieldType::STRING => None,
             FieldType::BOOL => Some(1),
+            FieldType::BYTE => Some(1),
             FieldType::FLOAT => Some(4),
             FieldType::INT32 => Some(4),
             FieldType::INT64 => Some(8),
@@ -21,6 +22,7 @@ impl FieldTypeInfo for FieldType {
         match *self {
             FieldType::STRING => false,
             FieldType::BOOL => true,
+            FieldType::BYTE => true,
             FieldType::FLOAT => true,
             FieldType::INT32 => true,
             FieldType::INT64 => true,
