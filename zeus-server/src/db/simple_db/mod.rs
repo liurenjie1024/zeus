@@ -1,4 +1,4 @@
-mod native_file_segment;
+mod simple_file_segment;
 
 use std::collections::HashMap;
 use std::collections::LinkedList;
@@ -16,19 +16,19 @@ use db::DBConfig;
 use util::error::Result;
 use db::ScanContext;
 use db::BlockInputStream;
-use self::native_file_segment::NativeFileSegment;
+use self::simple_file_segment::SimpleFileSegment;
 
 const SCHEMA_FILE_NAME: &'static str = "schema.pb";
 const TABLE_PLAYLIST_FILE: &'static str = "table.pl";
 
-pub struct NativeDB {
+pub struct SimpleDB {
     schema: ZeusDBSchema,
     config: DBConfig,
     tables: HashMap<i32, Arc<NativeTable>>
 }
 
-impl NativeDB {
-    pub fn new(config: &DBConfig) -> Result<NativeDB> {
+impl SimpleDB {
+    pub fn new(config: &DBConfig) -> Result<SimpleDB> {
         info!("Trying to load database from {}", config.path);
 
         let mut schema_file_path = PathBuf::from(config.path.clone());
@@ -44,7 +44,7 @@ impl NativeDB {
             tables.insert(table.get_id(), Arc::new(native_table));
         }
 
-        Ok(NativeDB {
+        Ok(SimpleDB {
             schema,
             config: config.clone(),
             tables
@@ -52,7 +52,7 @@ impl NativeDB {
     }
 }
 
-impl DB for NativeDB {
+impl DB for SimpleDB {
     fn scan(&self, scan_context: &ScanContext) -> Result<Box<BlockInputStream>> {
         unimplemented!()
     }
@@ -64,7 +64,7 @@ impl DB for NativeDB {
 
 struct  NativeTable {
     table_id: i32,
-    file_segments: LinkedList<NativeFileSegment>
+    file_segments: LinkedList<SimpleFileSegment>
 }
 
 impl NativeTable {
@@ -91,7 +91,7 @@ impl NativeTable {
             seg_path.push(table_id.to_string());
             seg_path.push(line);
 
-            let seg = NativeFileSegment {
+            let seg = SimpleFileSegment {
                 path: seg_path.to_str().unwrap().to_string()
             };
 

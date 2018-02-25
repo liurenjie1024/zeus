@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_package="io.github.zeus.format.simple";
+option java_multiple_files=true;
+
+message ColumnHandle {
+    int64 start = 1;
+    int64 end = 2; // exclusive
+}
+
+message BlockHandle {
+    int64 start = 1;
+    int64 end = 2; // exclusive
+    map<int32, ColumnHandle> columns = 3;
+}
+
+message BlockHandles {
+    repeated BlockHandle handles = 1;
+}

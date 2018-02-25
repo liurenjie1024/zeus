@@ -1,6 +1,6 @@
 pub mod column;
 pub mod data_type;
-mod native_db;
+mod simple_db;
 
 use std::clone::Clone;
 use std::boxed::Box;
@@ -12,7 +12,7 @@ use db::column::Column;
 use util::error::Result;
 use util::cow_ptr::CowPtr;
 use exec::Block;
-use self::native_db::NativeDB;
+use self::simple_db::SimpleDB;
 
 
 #[derive(Clone, Debug)]
@@ -43,7 +43,7 @@ pub trait DB {
 }
 
 pub fn open(config: &DBConfig) -> Result<Box<DB>> {
-    Ok(Box::new(NativeDB::new(config)?))
+    Ok(Box::new(SimpleDB::new(config)?))
 }
 
 pub type DBResult = Result<i32>;
