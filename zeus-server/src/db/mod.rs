@@ -31,6 +31,7 @@ pub trait BlockInputStream {
     fn close(&mut self) -> Result<()>;
 }
 
+#[derive(Clone, Debug)]
 pub struct ScanContext {
     pub db_id: i32,
     pub table_id: i32,
@@ -40,6 +41,11 @@ pub struct ScanContext {
 pub trait DB {
     fn scan(&self, scan_context: &ScanContext) -> Result<Box<BlockInputStream>>;
     fn close(&mut self) -> Result<()>;
+}
+
+#[derive(Debug)]
+pub enum ErrorKind {
+    InvalidHeader
 }
 
 pub fn open(config: &DBConfig) -> Result<Box<DB>> {

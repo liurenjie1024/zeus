@@ -1,4 +1,5 @@
 mod simple_file_segment;
+mod simple_column_factory;
 
 use std::collections::HashMap;
 use std::collections::LinkedList;

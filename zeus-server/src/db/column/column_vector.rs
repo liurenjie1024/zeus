@@ -6,6 +6,7 @@ use std::any::Any;
 use super::Column;
 use rpc::zeus_meta::FieldType;
 use util::cow_ptr::ToBoxedOwned;
+use util::error::Result;
 
 pub struct ColumnVector<T> {
     field_type: FieldType,
@@ -27,6 +28,15 @@ impl<T: Clone + 'static> ToBoxedOwned for ColumnVector<T> {
         Box::new(ColumnVector {
             field_type: self.field_type,
             data: self.data.clone()
+        })
+    }
+}
+
+impl<T> ColumnVector<T> {
+    pub fn create(field_type: FieldType, data: Vec<T>) -> Result<ColumnVector<T>> {
+        Ok(ColumnVector {
+            field_type,
+            data
         })
     }
 }

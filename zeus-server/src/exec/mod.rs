@@ -24,6 +24,13 @@ pub struct Block {
     eof: bool
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ExecPhase {
+    UnInited,
+    Opened,
+    Executed,
+    Closed
+}
 
 pub struct ExecContext {
 }

@@ -3,6 +3,7 @@ use protobuf::error::ProtobufError;
 use std::result;
 use serde_json::error::Error as SerdeJsonError;
 use std::io::Error as StdIoError;
+use db::ErrorKind as DBErrorKind;
 
 quick_error! {
 #[derive(Debug)]
@@ -18,6 +19,8 @@ pub enum Error {
     }
     JsonSerdeError(err: SerdeJsonError) {
         from()
+    }
+    DBError(inner: DBErrorKind) {
     }
 }
 }
