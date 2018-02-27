@@ -1,9 +1,10 @@
 use std::vec::Vec;
+use std::any::Any;
 
 use rpc::zeus_meta::FieldType;
 use db::column::Column;
+use util::error::Result;
 use util::cow_ptr::ToBoxedOwned;
-use std::any::Any;
 
 pub struct ColumnString {
     offsets: Vec<usize>,
@@ -29,3 +30,11 @@ impl ToBoxedOwned for ColumnString {
     }
 }
 
+impl ColumnString {
+    pub fn new(offsets: Vec<usize>, chars: Vec<u8>) -> Result<ColumnString> {
+        Ok(ColumnString {
+            offsets,
+            chars
+        })
+    }
+}

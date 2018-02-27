@@ -6,14 +6,14 @@ option java_multiple_files = true;
 message ZeusDBSchema {
     string name = 1;
     int32 id = 2;
-    repeated ZeusTableSchema tables = 3;
+    map<int32, ZeusTableSchema> tables = 3;
     uint32 version = 4;
 }
 
 message ZeusTableSchema {
     string name = 1;
     int32 id = 2;
-    repeated ZeusColumnSchema fields = 3;
+    map<int32, ZeusColumnSchema> fields = 3;
 }
 
 enum FieldType {

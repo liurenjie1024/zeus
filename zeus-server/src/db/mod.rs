@@ -45,7 +45,8 @@ pub trait DB {
 
 #[derive(Debug)]
 pub enum ErrorKind {
-    InvalidHeader
+    InvalidHeader,
+    InvalidFieldType
 }
 
 pub fn open(config: &DBConfig) -> Result<Box<DB>> {

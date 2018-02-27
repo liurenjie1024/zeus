@@ -14,6 +14,7 @@ pub type FloatColumn = column_vector::ColumnVector<f32>;
 pub type IntColumn = column_vector::ColumnVector<i32>;
 pub type LongColumn = column_vector::ColumnVector<i64>;
 pub type TimestampColumn = column_vector::ColumnVector<u64>;
+pub type StringColumn = column_string::ColumnString;
 
 pub trait Column: ToBoxedOwned {
     fn size(&self) -> usize;

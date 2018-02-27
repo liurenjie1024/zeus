@@ -23,9 +23,14 @@ const SCHEMA_FILE_NAME: &'static str = "schema.pb";
 const TABLE_PLAYLIST_FILE: &'static str = "table.pl";
 
 pub struct SimpleDB {
-    schema: ZeusDBSchema,
-    config: DBConfig,
-    tables: HashMap<i32, Arc<NativeTable>>
+    schema: Arc<ZeusDBSchema>,
+    config: Arc<DBConfig>,
+    tables: HashMap<i32, Arc<SimpleTable>>
+}
+
+pub struct SimpleDBContext {
+    pub schema: Arc<ZeusDBSchema>,
+    pub config: Arc<DBConfig>
 }
 
 impl SimpleDB {
@@ -40,16 +45,23 @@ impl SimpleDB {
         info!("Read db schema!");
 
         let mut tables = HashMap::new();
-        for table in schema.get_tables() {
-            let native_table = NativeTable::new(config, table.get_id())?;
-            tables.insert(table.get_id(), Arc::new(native_table));
+        for table_id in schema.get_tables().keys() {
+            let native_table = SimpleTable::new(config, *table_id)?;
+            tables.insert(*table_id, Arc::new(native_table));
         }
 
         Ok(SimpleDB {
-            schema,
-            config: config.clone(),
+            schema: Arc::new(schema),
+            config: Arc::new(config.clone()),
             tables
         })
+    }
+
+    fn get_context(&self) -> SimpleDBContext {
+        SimpleDBContext {
+            schema: self.schema.clone(),
+            config: self.config.clone()
+        }
     }
 }
 
@@ -63,13 +75,13 @@ impl DB for SimpleDB {
     }
 }
 
-struct  NativeTable {
+struct SimpleTable {
     table_id: i32,
     file_segments: LinkedList<SimpleFileSegment>
 }
 
-impl NativeTable {
-    pub fn new(config: &DBConfig, table_id: i32) -> Result<NativeTable> {
+impl SimpleTable {
+    pub fn new(config: &DBConfig, table_id: i32) -> Result<SimpleTable> {
         let mut playlist_path = PathBuf::from(config.path.clone());
         playlist_path.push(table_id.to_string());
         playlist_path.push(TABLE_PLAYLIST_FILE);
@@ -93,6 +105,7 @@ impl NativeTable {
             seg_path.push(line);
 
             let seg = SimpleFileSegment {
+                table_id: table_id,
                 path: seg_path.to_str().unwrap().to_string()
             };
 
@@ -102,7 +115,7 @@ impl NativeTable {
         }
 
 
-        Ok(NativeTable {
+        Ok(SimpleTable {
             table_id: table_id,
             file_segments: segments
         })

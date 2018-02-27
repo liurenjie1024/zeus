@@ -6,20 +6,26 @@ use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
 use std::collections::HashSet;
+use std::collections::HashMap;
 
 use bytes::{ByteOrder, BigEndian};
 use protobuf::parse_from_bytes;
 
 use db::ScanContext;
+use db::simple_db::SimpleDBContext;
 use db::BlockInputStream;
+use db::column::ColumnFactory;
 use exec::Block;
 use exec::ExecPhase;
 use rpc::zeus_simple_format::{BlockHandles, BlockHandle};
+use rpc::zeus_meta::FieldType;
 use util::error::Result;
 use util::error::Error;
 use db::ErrorKind as DBErrorKind;
+use super::simple_column_factory::create_column_factory;
 
 pub struct SimpleFileSegment {
+    pub table_id: i32,
     pub path: String
 }
 
@@ -29,7 +35,8 @@ struct FileSegmentBlockInputStream {
     path: String,
     file: File,
     blocks: BlockHandles,
-    column_ids: HashSet<i32>
+    column_types: HashMap<i32, FieldType>,
+    column_factories: HashMap<i32, Box<ColumnFactory>>
 }
 
 impl SimpleFileSegment {
@@ -44,9 +51,18 @@ impl SimpleFileSegment {
         }
     }
 
-    pub fn scan(&self, context: &ScanContext) -> Result<Box<BlockInputStream>> {
+    pub fn scan(&self, context: &ScanContext, db_context: &SimpleDBContext) -> Result<Box<BlockInputStream>> {
         let file = File::open(&self.path)?;
         let blocks = BlockHandles::new();
+
+        let mut column_types: HashMap<i32, FieldType> = HashMap::new();
+
+        let table_schema = db_context.schema.get_tables().get(&context.table_id).unwrap();
+        for column_id in &context.column_ids {
+            let column_schema = table_schema.get_fields().get(column_id).unwrap();
+            column_types.insert(*column_id, column_schema.get_field_type());
+        }
+
         let column_ids = context.column_ids.clone();
 
         Ok(Box::new(FileSegmentBlockInputStream {
@@ -55,7 +71,8 @@ impl SimpleFileSegment {
             path: self.path.clone(),
             file,
             blocks,
-            column_ids: column_ids.into_iter().collect()
+            column_types,
+            column_factories: HashMap::new()
         }))
     }
 }
@@ -86,6 +103,11 @@ impl BlockInputStream for FileSegmentBlockInputStream {
         let block_handles = parse_from_bytes::<BlockHandles>(&block_handles_buf)?;
 
         self.blocks = block_handles;
+
+        for (column_id, column_type) in self.column_types.iter() {
+            self.column_factories.insert(*column_id, create_column_factory(*column_type, self.blocks.get_block_column_size() as usize));
+        }
+
         self.phase = ExecPhase::Opened;
         Ok(())
     }
@@ -106,6 +128,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 //
 //        panic!("not implemented!")
         unimplemented!()
+
     }
 
     fn close(&mut self) -> Result<()> {
