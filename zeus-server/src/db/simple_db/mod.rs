@@ -116,7 +116,7 @@ impl SimpleTable {
 
 
         Ok(SimpleTable {
-            table_id: table_id,
+            table_id,
             file_segments: segments
         })
     }

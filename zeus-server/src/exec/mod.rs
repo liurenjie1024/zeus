@@ -14,14 +14,14 @@ use rpc::zeus_data::QueryResult;
 
 
 pub struct ColumnWithInfo {
-    name: String,
-    id: Option<i32>,
-    column: CowPtr<Column>
+    pub name: String,
+    pub id: Option<i32>,
+    pub column: CowPtr<Column>
 }
 
 pub struct Block {
-    columns: Vec<ColumnWithInfo>,
-    eof: bool
+    pub columns: Vec<ColumnWithInfo>,
+    pub eof: bool
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
