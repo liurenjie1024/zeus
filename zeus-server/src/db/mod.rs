@@ -38,6 +38,7 @@ pub struct ScanContext {
 
 pub trait DB {
     fn scan(&self, scan_context: &ScanContext) -> Result<Box<BlockInputStream>>;
+
     fn close(&mut self) -> Result<()>;
 }
 

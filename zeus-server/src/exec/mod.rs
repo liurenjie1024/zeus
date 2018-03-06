@@ -10,7 +10,10 @@ use db::column::Column;
 use util::cow_ptr::CowPtr;
 use util::error::Result;
 use rpc::zeus_data::QueryPlan;
+use rpc::zeus_data::PlanNode;
+use rpc::zeus_data::PlanNodeType;
 use rpc::zeus_data::QueryResult;
+use server::ServerContext;
 
 
 pub struct ColumnWithInfo {
@@ -47,8 +50,25 @@ pub struct DAGExecutor {
 }
 
 impl DAGExecutor {
-    pub fn from(query_plan: &QueryPlan) -> DAGExecutor {
+    pub fn from(query_plan: &QueryPlan, server_context: &ServerContext) -> DAGExecutor {
         unimplemented!()
+    }
+
+    fn build_plan(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
+        -> Result<(Box<ExecNode>, usize)> {
+
+    }
+
+    fn build_plan_node(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
+        -> Result<Box<ExecNode>> {
+        assert!(cur < query_plan.get_nodes().len());
+
+        let plan_node: &PlanNode = query_plan.get_nodes().get(cur).unwrap();
+        match plan_node.get_plan_node_type() {
+            PlanNodeType::SCAN_NODE =>
+
+        }
+
     }
 
     pub fn execute(self: &mut DAGExecutor) -> Result<QueryResult> {

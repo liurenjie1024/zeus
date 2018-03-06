@@ -2,6 +2,12 @@ pub mod server;
 mod data_service;
 mod meta_service;
 
+use std::sync::Arc;
+
+use db::DB;
+use util::error::Result;
+
+
 pub const MAX_GRPC_RECV_MSG_SIZE: usize = 10*1024*1024;
 pub const MAX_GRPC_SEND_MSG_SIZE: usize = 10*1024*1024;
 
@@ -15,3 +21,12 @@ pub struct Config {
 
     pub query_concurrency: usize
 }
+
+pub struct ServerContext {}
+
+impl ServerContext {
+    pub fn get_db(&self, db_id: i32) -> Result<Arc<DB>> {
+        unimplemented!();
+    }
+}
+

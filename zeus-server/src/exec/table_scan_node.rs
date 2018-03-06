@@ -9,11 +9,20 @@ use super::ExecNode;
 use super::ExecContext;
 use super::Block;
 use db::BlockInputStream;
+use rpc::zeus_data::ScanNode;
+use server::ServerContext;
 
 pub struct TableScanNode {
     db_id: i32,
     table_id: i32,
-    input_stream: BlockInputStream
+    input_stream: Box<BlockInputStream>
+}
+
+impl TableScanNode {
+    pub fn new(scan_node: &ScanNode, server_context: &ServerContext)
+        -> Result<Box<ExecNode>> {
+
+    }
 }
 
 impl ExecNode for TableScanNode {
