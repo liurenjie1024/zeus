@@ -1,5 +1,6 @@
 pub mod column;
 pub mod data_type;
+pub mod block_input_stream;
 mod simple_db;
 
 use std::clone::Clone;
@@ -14,6 +15,8 @@ use util::cow_ptr::CowPtr;
 use exec::Block;
 use self::simple_db::SimpleDB;
 
+pub use self::block_input_stream::BlockInputStream;
+
 
 #[derive(Clone, Debug)]
 pub struct DBConfig {
@@ -25,11 +28,6 @@ pub struct DBConfig {
     pub path: String
 }
 
-pub trait BlockInputStream {
-    fn open(&mut self) -> Result<()>;
-    fn next(&mut self) -> Result<Block>;
-    fn close(&mut self) -> Result<()>;
-}
 
 #[derive(Clone, Debug)]
 pub struct ScanContext {
@@ -47,6 +45,7 @@ pub trait DB {
 pub enum ErrorKind {
     InvalidHeader,
     InvalidFieldType,
+    TableNotFound,
     EOF
 }
 

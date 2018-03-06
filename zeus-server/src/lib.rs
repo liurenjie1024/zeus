@@ -1,3 +1,5 @@
+#![feature(iterator_try_fold)]
+
 extern crate protobuf;
 extern crate grpcio;
 extern crate futures;
