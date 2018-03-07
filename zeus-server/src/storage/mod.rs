@@ -1,10 +1,10 @@
 pub mod column;
 pub mod data_type;
 pub mod block_input_stream;
-mod storage_manager;
-mod storage_factory;
-mod catalog;
-mod storage;
+pub mod storage_manager;
+pub mod storage_factory;
+pub mod catalog;
+pub mod storage;
 mod simple_storage;
 
 
@@ -25,7 +25,6 @@ use rpc::zeus_meta::ZeusTableSchema;
 
 pub use self::block_input_stream::BlockInputStream;
 pub use self::storage_manager::StorageManager;
-pub use self::storage_manager::StorageManagerConfig;
 pub use self::storage::Storage;
 pub use self::storage::ScanContext;
 pub use self::catalog::CatalogManager;

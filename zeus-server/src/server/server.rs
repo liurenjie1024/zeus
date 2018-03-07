@@ -10,25 +10,42 @@ use ::grpcio::ServerBuilder;
 
 
 use util::error::Result;
-use super::Config;
+use server::config::ZeusConfig;
+use server::config::ServerConfig;
 use super::data_service::DataService;
+use storage::StorageManager;
+use storage::CatalogManager;
 use rpc::zeus_data_grpc::create_zeus_data_service;
+use server::ServerContext;
+use storage::catalog::load as load_catalog_manager;
 
 pub struct ZeusServer {
-    env: Arc<Environment>,
-    server: GrpcServer
+    server: GrpcServer,
+    context: ServerContext
 }
 
 impl ZeusServer {
-    pub fn new(config: Arc<Config>) -> Result<ZeusServer> {
+    pub fn new(config: Arc<ZeusConfig>) -> Result<ZeusServer> {
+
+        let catalog_manager = load_catalog_manager(&*config)?;
+        let storage_manager = Arc::new(StorageManager::load(&*config)?);
+
+
+        Ok(ZeusServer {
+            server: ZeusServer::create_grpc_server(&config.server_config)?,
+            context: ServerContext::new(storage_manager, catalog_manager)
+        })
+    }
+
+    fn create_grpc_server(config: &ServerConfig) -> Result<GrpcServer> {
         let env = Arc::new(
             EnvBuilder::new()
                 .cq_count(config.grpc_concurrency)
                 .name_prefix("grpc-cq")
                 .build()
         );
-
         let data_service = DataService::new();
+
 
         let socket_addr = SocketAddr::from_str(&config.server_addr).unwrap();
         let ip_str = format!("{}", socket_addr.ip());
@@ -46,10 +63,7 @@ impl ZeusServer {
             .build()
             .unwrap();
 
-        Ok(ZeusServer {
-            env: env.clone(),
-            server: grpc_server
-        })
+        Ok(grpc_server)
     }
 
     pub fn start(&mut self) -> Result<()> {
@@ -61,5 +75,4 @@ impl ZeusServer {
         self.server.shutdown();
         Ok(())
     }
-
 }

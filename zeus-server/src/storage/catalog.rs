@@ -1,6 +1,9 @@
-use rpc::zeus_meta::FieldType;
-
 use std::sync::Arc;
+
+use rpc::zeus_meta::FieldType;
+use util::error::Result;
+use server::config::ZeusConfig;
+
 
 pub trait ColumnSchema {
     fn get_id(&self) -> i32;
@@ -16,4 +19,8 @@ pub trait TableSchema {
 
 pub trait CatalogManager:  Send + Sync {
     fn get_table_schema(&self, db_id: i32, table_id:i32) -> Option<Arc<TableSchema>>;
+}
+
+pub fn load(config: &ZeusConfig) -> Result<Arc<CatalogManager>> {
+    unimplemented!()
 }

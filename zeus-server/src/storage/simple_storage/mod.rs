@@ -12,7 +12,7 @@ use std::io::BufRead;
 use rpc::zeus_meta::ZeusDBSchema;
 use protobuf::core::parse_from_reader;
 
-use storage::StorageManagerConfig;
+use server::config::StorageConfig;
 use util::error::Result;
 use util::error::Error::DBError;
 use storage::Storage;
@@ -33,7 +33,7 @@ unsafe impl Send for SimpleTable {}
 unsafe impl Sync for SimpleTable {}
 
 impl SimpleTable {
-    pub fn new(config: &StorageManagerConfig, table_id: i32) -> Result<SimpleTable> {
+    pub fn new(config: &StorageConfig, table_id: i32) -> Result<SimpleTable> {
         let mut playlist_path = PathBuf::from(config.path.clone());
         playlist_path.push(table_id.to_string());
         playlist_path.push(TABLE_PLAYLIST_FILE);
