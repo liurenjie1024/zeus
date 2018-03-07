@@ -8,8 +8,11 @@ use ::grpcio::RpcContext;
 use ::grpcio::UnarySink;
 use ::futures::future::Future;
 
+use server::ServerContext;
+
 #[derive(Clone)]
 pub struct DataService {
+    server_context: ServerContext
 }
 
 impl DataService {

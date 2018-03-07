@@ -19,4 +19,5 @@ pub mod rpc;
 pub mod util;
 pub mod server;
 pub mod exec;
+pub mod scheduler;
 
