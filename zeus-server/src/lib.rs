@@ -14,7 +14,7 @@ extern crate serde_json;
 extern crate serde_derive;
 extern crate bytes;
 
-pub mod db;
+pub mod storage;
 pub mod rpc;
 pub mod util;
 pub mod server;

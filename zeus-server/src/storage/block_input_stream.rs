@@ -2,7 +2,7 @@ use std::vec::Vec;
 
 use util::error::Result;
 use util::error::Error::DBError;
-use db::ErrorKind as DBErrorKind;
+use storage::ErrorKind as DBErrorKind;
 use exec::Block;
 
 pub trait BlockInputStream {

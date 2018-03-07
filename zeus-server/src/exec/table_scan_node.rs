@@ -4,11 +4,11 @@ use std::iter::Iterator;
 
 use util::cow_ptr::CowPtr;
 use util::error::Result;
-use db::column::Column;
+use storage::column::Column;
 use super::ExecNode;
 use super::ExecContext;
 use super::Block;
-use db::BlockInputStream;
+use storage::BlockInputStream;
 use rpc::zeus_data::ScanNode;
 use server::ServerContext;
 
@@ -21,7 +21,7 @@ pub struct TableScanNode {
 impl TableScanNode {
     pub fn new(scan_node: &ScanNode, server_context: &ServerContext)
         -> Result<Box<ExecNode>> {
-
+        unimplemented!()
     }
 }
 

@@ -4,7 +4,6 @@ mod meta_service;
 
 use std::sync::Arc;
 
-use db::DB;
 use util::error::Result;
 
 
@@ -23,10 +22,4 @@ pub struct Config {
 }
 
 pub struct ServerContext {}
-
-impl ServerContext {
-    pub fn get_db(&self, db_id: i32) -> Result<Arc<DB>> {
-        unimplemented!();
-    }
-}
 

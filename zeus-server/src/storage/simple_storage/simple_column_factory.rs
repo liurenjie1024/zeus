@@ -5,12 +5,12 @@ use std::mem::size_of;
 
 use bytes::{Buf, BigEndian};
 
-use db::column::ColumnFactory;
-use db::column::Column;
-use db::column::{BoolColumn, ByteColumn, IntColumn, FloatColumn, LongColumn, TimestampColumn};
-use db::column::StringColumn;
+use storage::column::ColumnFactory;
+use storage::column::Column;
+use storage::column::{BoolColumn, ByteColumn, IntColumn, FloatColumn, LongColumn, TimestampColumn};
+use storage::column::StringColumn;
 use rpc::zeus_meta::FieldType;
-use db::ErrorKind;
+use storage::ErrorKind;
 use util::error::Result;
 use util::error::Error;
 

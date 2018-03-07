@@ -1,12 +1,11 @@
 pub mod table_scan_node;
-pub mod scanner;
 
 use std::boxed::Box;
 use std::vec::Vec;
 use std::borrow::Cow;
 use std::clone::Clone;
 
-use db::column::Column;
+use storage::column::Column;
 use util::cow_ptr::CowPtr;
 use util::error::Result;
 use rpc::zeus_data::QueryPlan;
@@ -56,18 +55,19 @@ impl DAGExecutor {
 
     fn build_plan(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
         -> Result<(Box<ExecNode>, usize)> {
-
+        unimplemented!()
     }
 
     fn build_plan_node(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
         -> Result<Box<ExecNode>> {
-        assert!(cur < query_plan.get_nodes().len());
-
-        let plan_node: &PlanNode = query_plan.get_nodes().get(cur).unwrap();
-        match plan_node.get_plan_node_type() {
-            PlanNodeType::SCAN_NODE =>
-
-        }
+//        assert!(cur < query_plan.get_nodes().len());
+        unimplemented!()
+//
+//        let plan_node: &PlanNode = query_plan.get_nodes().get(cur).unwrap();
+//        match plan_node.get_plan_node_type() {
+//            PlanNodeType::SCAN_NODE =>
+//
+//        }
 
     }
 

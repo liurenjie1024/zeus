@@ -26,7 +26,7 @@ enum PlanNodeType {
 message ScanNode {
     int32 db_id = 1;
     int32 table_id = 2;
-    repeated string columns = 3;
+    repeated int32 columns = 3;
 }
 
 

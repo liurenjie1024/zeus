@@ -2,7 +2,7 @@ use std::vec::Vec;
 use std::any::Any;
 
 use rpc::zeus_meta::FieldType;
-use db::column::Column;
+use storage::column::Column;
 use util::error::Result;
 use util::cow_ptr::ToBoxedOwned;
 

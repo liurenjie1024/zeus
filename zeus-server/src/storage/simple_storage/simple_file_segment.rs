@@ -11,10 +11,9 @@ use std::collections::HashMap;
 use bytes::{ByteOrder, BigEndian};
 use protobuf::parse_from_bytes;
 
-use db::ScanContext;
-use db::simple_db::SimpleDBContext;
-use db::BlockInputStream;
-use db::column::ColumnFactory;
+use storage::storage::ScanContext;
+use storage::BlockInputStream;
+use storage::column::ColumnFactory;
 use exec::Block;
 use exec::ColumnWithInfo;
 use exec::ExecPhase;
@@ -23,7 +22,7 @@ use rpc::zeus_meta::FieldType;
 use util::error::Result;
 use util::error::Error;
 use util::cow_ptr::CowPtr;
-use db::ErrorKind as DBErrorKind;
+use storage::ErrorKind as DBErrorKind;
 use super::simple_column_factory::create_column_factory;
 
 pub struct SimpleFileSegment {
@@ -54,21 +53,24 @@ impl SimpleFileSegment {
         }
     }
 
-    pub fn scan(&self, context: &ScanContext, db_context: &SimpleDBContext) -> Result<Box<BlockInputStream>> {
+    pub fn scan(&self, context: &ScanContext) -> Result<Box<BlockInputStream>> {
         let file = File::open(&self.path)?;
         let blocks = BlockHandles::new();
+
+        let scan_node = context.scan_node;
 
         let mut column_types: HashMap<i32, FieldType> = HashMap::new();
         let mut column_names: HashMap<i32, String> = HashMap::new();
 
-        let table_schema = db_context.schema.get_tables().get(&context.table_id).unwrap();
-        for column_id in &context.column_ids {
-            let column_schema = table_schema.get_fields().get(column_id).unwrap();
-            column_types.insert(*column_id, column_schema.get_field_type());
-            column_names.insert(*column_id, column_schema.get_name().to_string());
+        let table_schema = context.catalog_manager.get_table_schema(scan_node.db_id,
+                                                                    scan_node.table_id).unwrap();
+        for column_id in &scan_node.columns {
+            let column_schema = table_schema.get_column_schema(*column_id).unwrap();
+            column_types.insert(*column_id, column_schema.get_type());
+            column_names.insert(*column_id, column_schema.get_name());
         }
 
-        let column_ids = context.column_ids.clone();
+        let column_ids = scan_node.columns.clone();
 
         Ok(Box::new(FileSegmentBlockInputStream {
             phase: ExecPhase::UnInited,
