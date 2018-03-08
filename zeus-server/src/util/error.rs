@@ -1,9 +1,15 @@
+use std::convert::Into;
+use std::result;
+
+
 use ::grpcio::Error as GrpcError;
 use protobuf::error::ProtobufError;
-use std::result;
 use serde_json::error::Error as SerdeJsonError;
 use std::io::Error as StdIoError;
 use storage::ErrorKind as DBErrorKind;
+use scheduler::ErrorKind as SchedulerErrorKind;
+use rpc::zeus_data::StatusCode;
+
 
 quick_error! {
 #[derive(Debug)]
@@ -22,8 +28,17 @@ pub enum Error {
     }
     DBError(inner: DBErrorKind) {
     }
+    SchedulerError(inner: SchedulerErrorKind) {
+
+    }
 }
 }
 
 
 pub type Result<T> = result::Result<T, Error>;
+
+impl Into<StatusCode> for Error {
+    fn into(self) -> StatusCode {
+        unimplemented!()
+    }
+}

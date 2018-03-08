@@ -18,7 +18,7 @@ use storage::CatalogManager;
 use rpc::zeus_data_grpc::create_zeus_data_service;
 use server::ServerContext;
 use storage::catalog::load as load_catalog_manager;
-
+use scheduler::build as build_scheduler;
 pub struct ZeusServer {
     server: GrpcServer,
     context: ServerContext
@@ -29,22 +29,24 @@ impl ZeusServer {
 
         let catalog_manager = load_catalog_manager(&*config)?;
         let storage_manager = Arc::new(StorageManager::load(&*config)?);
+        let query_scheudler = build_scheduler("query", &*config)?;
 
+        let context = ServerContext::new(storage_manager, catalog_manager, query_scheudler);
 
         Ok(ZeusServer {
-            server: ZeusServer::create_grpc_server(&config.server_config)?,
-            context: ServerContext::new(storage_manager, catalog_manager)
+            server: ZeusServer::create_grpc_server(&config.server_config, context.clone())?,
+            context
         })
     }
 
-    fn create_grpc_server(config: &ServerConfig) -> Result<GrpcServer> {
+    fn create_grpc_server(config: &ServerConfig, context: ServerContext) -> Result<GrpcServer> {
         let env = Arc::new(
             EnvBuilder::new()
                 .cq_count(config.grpc_concurrency)
                 .name_prefix("grpc-cq")
                 .build()
         );
-        let data_service = DataService::new();
+        let data_service = DataService::new(context.clone());
 
 
         let socket_addr = SocketAddr::from_str(&config.server_addr).unwrap();

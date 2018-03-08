@@ -1,16 +1,24 @@
+use std::sync::Arc;
+
 use futures::BoxFuture;
 use futures::IntoFuture;
 
+use server::config::ZeusConfig;
 use util::error::Result;
 
-pub trait Executor: Sync + Send {
-    fn submit<F, R>(&self, f: F) -> BoxFuture<R::Item, R::Error>
-    where
-        F: FnOnce() -> R + Send + 'static,
-        R: IntoFuture + 'static,
-        R::Future: Send + 'static,
-        R::Item: Send + 'static,
-        R::Error: Send + 'static;
+#[derive(Debug)]
+pub enum ErrorKind {
+}
 
-    fn shutdown() -> Result<usize>;
+pub trait Runnable: Send + 'static {
+    fn run(&mut self);
+}
+
+pub trait ExecutorService: Sync + Send {
+    fn submit(&self, task: Box<Runnable>) -> Result<()>;
+    fn shutdown(&self) -> Result<usize>;
+}
+
+pub fn build(name: &str, config: &ZeusConfig) -> Result<Arc<ExecutorService>> {
+    unimplemented!()
 }

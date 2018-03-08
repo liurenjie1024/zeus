@@ -21,7 +21,7 @@ pub trait Column: ToBoxedOwned {
     fn field_type(&self) -> FieldType;
 }
 
-pub trait ColumnFactory {
+pub trait ColumnFactory: Send + 'static {
     fn create_column(&mut self, raw_data: &[u8]) -> Result<Box<Column>> ;
 }
 

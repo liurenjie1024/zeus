@@ -1,6 +1,5 @@
 extern crate zeus;
 
-use zeus::server::Config;
 use zeus::server::server::ZeusServer;
 use std::sync::Arc;
 use std::io;

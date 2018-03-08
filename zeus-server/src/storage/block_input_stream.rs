@@ -5,7 +5,7 @@ use util::error::Error::DBError;
 use storage::ErrorKind as DBErrorKind;
 use exec::Block;
 
-pub trait BlockInputStream {
+pub trait BlockInputStream: Send + 'static {
     fn open(&mut self) -> Result<()>;
     fn next(&mut self) -> Result<Block>;
     fn close(&mut self) -> Result<()>;

@@ -5,15 +5,18 @@ use std::vec::Vec;
 use std::borrow::Cow;
 use std::clone::Clone;
 
+use futures::sync::oneshot::Sender;
+
 use storage::column::Column;
 use util::cow_ptr::CowPtr;
 use util::error::Result;
-use rpc::zeus_data::QueryPlan;
+use rpc::zeus_data::QueryRequest;
+use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::PlanNode;
 use rpc::zeus_data::PlanNodeType;
-use rpc::zeus_data::QueryResult;
 use server::ServerContext;
-
+use scheduler::Runnable;
+use server::data_service::Rows;
 
 pub struct ColumnWithInfo {
     pub name: String,
@@ -37,7 +40,7 @@ pub enum ExecPhase {
 pub struct ExecContext {
 }
 
-trait ExecNode {
+trait ExecNode: Send + 'static {
     fn open(&mut self, context: &mut ExecContext) -> Result<()>;
     fn next(&mut self) -> Result<Block>;
     fn close(&mut self) -> Result<()>;
@@ -45,36 +48,44 @@ trait ExecNode {
 
 
 pub struct DAGExecutor {
-    root: Box<ExecNode>
+    root: Box<ExecNode>,
+    sender: Sender<QueryRequest>
 }
+
+unsafe impl Send for DAGExecutor {}
 
 impl DAGExecutor {
-    pub fn from(query_plan: &QueryPlan, server_context: &ServerContext) -> DAGExecutor {
+    pub fn from(query_request: QueryRequest,
+                sender: Sender<Result<Rows>>,
+                server_context: ServerContext) -> DAGExecutor {
         unimplemented!()
     }
 
-    fn build_plan(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
-        -> Result<(Box<ExecNode>, usize)> {
-        unimplemented!()
-    }
-
-    fn build_plan_node(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
-        -> Result<Box<ExecNode>> {
-//        assert!(cur < query_plan.get_nodes().len());
-        unimplemented!()
+//    fn build_plan(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
+//        -> Result<(Box<ExecNode>, usize)> {
+//        unimplemented!()
+//    }
 //
-//        let plan_node: &PlanNode = query_plan.get_nodes().get(cur).unwrap();
-//        match plan_node.get_plan_node_type() {
-//            PlanNodeType::SCAN_NODE =>
-//
-//        }
+//    fn build_plan_node(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
+//        -> Result<Box<ExecNode>> {
+////        assert!(cur < query_plan.get_nodes().len());
+//        unimplemented!()
+////
+////        let plan_node: &PlanNode = query_plan.get_nodes().get(cur).unwrap();
+////        match plan_node.get_plan_node_type() {
+////            PlanNodeType::SCAN_NODE =>
+////
+////        }
+//    }
+}
 
-    }
-
-    pub fn execute(self: &mut DAGExecutor) -> Result<QueryResult> {
+impl Runnable for DAGExecutor {
+    fn run(&mut self) {
         unimplemented!()
     }
 }
+
+
 
 
 

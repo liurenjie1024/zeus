@@ -1,33 +1,35 @@
 pub mod server;
 pub mod config;
-mod data_service;
+pub mod data_service;
 mod meta_service;
 
 use std::sync::Arc;
 
 use storage::StorageManager;
 use storage::CatalogManager;
+use scheduler::ExecutorService;
 use util::error::Result;
 
 
 pub const MAX_GRPC_RECV_MSG_SIZE: usize = 10*1024*1024;
 pub const MAX_GRPC_SEND_MSG_SIZE: usize = 10*1024*1024;
 
-pub struct Config {
-}
-
 /// A container for runtime components.
 #[derive(Clone)]
 pub struct ServerContext {
     storage_manager: Arc<StorageManager>,
-    catalog_manager: Arc<CatalogManager>
+    catalog_manager: Arc<CatalogManager>,
+    query_scheduler: Arc<ExecutorService>
 }
 
 impl ServerContext {
-    pub fn new(storage_manager: Arc<StorageManager>, catalog_manager: Arc<CatalogManager>) -> ServerContext {
+    pub fn new(storage_manager: Arc<StorageManager>,
+               catalog_manager: Arc<CatalogManager>,
+               query_scheduler: Arc<ExecutorService>) -> ServerContext {
         ServerContext {
             storage_manager,
-            catalog_manager
+            catalog_manager,
+            query_scheduler
         }
     }
 

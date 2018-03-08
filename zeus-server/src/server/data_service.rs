@@ -1,14 +1,26 @@
+use std::vec::Vec;
+
+use futures::sync::oneshot::channel;
+
 use rpc::zeus_data_grpc::ZeusDataService;
 use rpc::zeus_data::QueryRequest;
 use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::RowResult;
 use rpc::zeus_data::ColumnValue;
+use rpc::zeus_data::StatusCode;
+use exec::DAGExecutor;
+use util::error::Result;
 
 use ::grpcio::RpcContext;
 use ::grpcio::UnarySink;
+use ::protobuf::RepeatedField;
 use ::futures::future::Future;
 
+
 use server::ServerContext;
+
+pub type Rows = Vec<RowResult>;
+
 
 #[derive(Clone)]
 pub struct DataService {
@@ -16,27 +28,41 @@ pub struct DataService {
 }
 
 impl DataService {
-    pub fn new() -> DataService {
+    pub fn new(server_context: ServerContext) -> DataService {
         DataService {
-
+            server_context
         }
     }
 }
 
 impl ZeusDataService for DataService {
     fn query(&self, ctx: RpcContext, req: QueryRequest, sink: UnarySink<QueryResult>) {
-        println!("request!");
-        let mut result = QueryResult::new();
-        let mut row = RowResult::new();
-        let mut column = ColumnValue::new();
-        column.set_string_value("ok".to_string());
-        row.mut_columns().push(column);
-        result.mut_rows().push(row);
+        let plan_id = req.get_plan().get_plan_id();
+        debug!("Begin to query, plan id is: {}", plan_id);
 
+        let (sender, receiver) = channel();
 
-        let future = sink.success(result)
-            .map(|_| ())
-            .map_err(|_| ());
+        let task = Box::new(DAGExecutor::from(req, sender, self.server_context.clone()));
+
+        self.server_context.query_scheduler.submit(task);
+
+        let future = receiver.map(|res|{
+            let mut result = QueryResult::new();
+
+            match res {
+                Ok(rows) => {
+                    result.set_code(StatusCode::OK);
+                    result.set_rows(RepeatedField::from_vec(rows));
+                },
+                Err(err) => {
+                    result.set_code(err.into())
+                }
+            };
+
+            sink.success(result);
+        }).map_err(move|err| {
+            error!("Failed to execute plan: {}.", plan_id);
+        });
 
         ctx.spawn(future);
     }

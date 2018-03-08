@@ -15,8 +15,13 @@ message RowResult {
     repeated ColumnValue columns = 1;
 }
 
+enum StatusCode {
+    OK = 0;
+}
+
 message QueryResult {
-    repeated RowResult rows = 1;
+    StatusCode code = 1;
+    repeated RowResult rows = 2;
 }
 
 enum PlanNodeType {
