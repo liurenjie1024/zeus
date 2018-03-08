@@ -1,6 +1,7 @@
 use std::convert::Into;
 use std::result;
 
+use futures::sync::oneshot::Canceled;
 
 use ::grpcio::Error as GrpcError;
 use protobuf::error::ProtobufError;
@@ -29,7 +30,9 @@ pub enum Error {
     DBError(inner: DBErrorKind) {
     }
     SchedulerError(inner: SchedulerErrorKind) {
-
+    }
+    ServerError {
+        from(Canceled)
     }
 }
 }

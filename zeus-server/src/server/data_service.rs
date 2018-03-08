@@ -10,6 +10,7 @@ use rpc::zeus_data::ColumnValue;
 use rpc::zeus_data::StatusCode;
 use exec::DAGExecutor;
 use util::error::Result;
+use util::error::Error;
 
 use ::grpcio::RpcContext;
 use ::grpcio::UnarySink;
@@ -46,23 +47,27 @@ impl ZeusDataService for DataService {
 
         self.server_context.query_scheduler.submit(task);
 
-        let future = receiver.map(|res|{
-            let mut result = QueryResult::new();
+        let future = receiver
+            .map_err(|e| Error::from(e))
+            .map(|res| {
+                let mut result = QueryResult::new();
 
-            match res {
-                Ok(rows) => {
-                    result.set_code(StatusCode::OK);
-                    result.set_rows(RepeatedField::from_vec(rows));
-                },
-                Err(err) => {
-                    result.set_code(err.into())
+                match res {
+                    Ok(rows) => {
+                        result.set_code(StatusCode::OK);
+                        result.set_rows(RepeatedField::from_vec(rows));
+                    }
+                    Err(err) => {
+                        result.set_code(err.into())
+                    }
                 }
-            };
+                result
+            })
+            .and_then(|res| sink.success(res).map_err(|e1| Error::from(e1)))
+            .map_err(move |e| {
+                error!("Query failed, plan id: {}, error: {:?}", plan_id, e);
+            });
 
-            sink.success(result);
-        }).map_err(move|err| {
-            error!("Failed to execute plan: {}.", plan_id);
-        });
 
         ctx.spawn(future);
     }
