@@ -1,4 +1,5 @@
 #![feature(iterator_try_fold)]
+#![feature(fnbox)]
 
 extern crate protobuf;
 extern crate grpcio;
@@ -13,6 +14,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 extern crate bytes;
+extern crate futures_cpupool;
 
 pub mod storage;
 pub mod rpc;

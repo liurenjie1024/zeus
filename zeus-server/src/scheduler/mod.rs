@@ -1,24 +1,42 @@
+mod cpupool_scheduler;
+
 use std::sync::Arc;
+use std::boxed::FnBox;
 
 use futures::BoxFuture;
 use futures::IntoFuture;
 
 use server::config::ZeusConfig;
+use self::cpupool_scheduler::CpuPoolScheduler;
 use util::error::Result;
 
 #[derive(Debug)]
 pub enum ErrorKind {
 }
 
-pub trait Runnable: Send + 'static {
-    fn run(&mut self);
+pub type Callable = Box<(FnBox() -> ()) + Send + 'static>;
+
+pub struct Task {
+    body: Callable
+}
+
+impl Task {
+    pub fn new(body: Callable) -> Task {
+        Task {
+            body
+        }
+    }
+
+    pub fn run(self) {
+        (self.body)()
+    }
 }
 
 pub trait ExecutorService: Sync + Send {
-    fn submit(&self, task: Box<Runnable>) -> Result<()>;
+    fn submit(&self, task: Task) -> Result<()>;
     fn shutdown(&self) -> Result<usize>;
 }
 
 pub fn build(name: &str, config: &ZeusConfig) -> Result<Arc<ExecutorService>> {
-    unimplemented!()
+    Ok(Arc::new(CpuPoolScheduler::new(name, config)))
 }

@@ -43,7 +43,8 @@ impl ZeusDataService for DataService {
 
         let (sender, receiver) = channel();
 
-        let task = Box::new(DAGExecutor::from(req, sender, self.server_context.clone()));
+        let dag = DAGExecutor::from(req, sender, self.server_context.clone());
+        let task = dag.into();
 
         self.server_context.query_scheduler.submit(task);
 

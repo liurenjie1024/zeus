@@ -4,6 +4,7 @@ use std::boxed::Box;
 use std::vec::Vec;
 use std::borrow::Cow;
 use std::clone::Clone;
+use std::convert::Into;
 
 use futures::sync::oneshot::Sender;
 
@@ -14,8 +15,8 @@ use rpc::zeus_data::QueryRequest;
 use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::PlanNode;
 use rpc::zeus_data::PlanNodeType;
+use scheduler::Task;
 use server::ServerContext;
-use scheduler::Runnable;
 use server::data_service::Rows;
 
 pub struct ColumnWithInfo {
@@ -79,11 +80,20 @@ impl DAGExecutor {
 //    }
 }
 
-impl Runnable for DAGExecutor {
-    fn run(&mut self) {
+impl DAGExecutor {
+    fn run(self) {
         unimplemented!()
     }
 }
+
+impl Into<Task> for DAGExecutor {
+    fn into(self) -> Task {
+        let task_body = Box::new(move || { self.run() }) ;
+        Task::new(task_body)
+    }
+}
+
+
 
 
 

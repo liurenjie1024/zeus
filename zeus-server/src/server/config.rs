@@ -1,5 +1,6 @@
 use util::error::Result;
 
+#[derive(Default)]
 pub struct ServerConfig {
     pub server_addr: String,
     pub grpc_concurrency: usize,
@@ -11,14 +12,22 @@ pub struct ServerConfig {
     pub query_concurrency: usize
 }
 
+#[derive(Default)]
 pub struct StorageConfig {
     /// Root dir storage
     pub path: String
 }
 
+#[derive(Default)]
+pub struct QuerySchedulerConfig {
+    pub worker_size: usize,
+}
+
+#[derive(Default)]
 pub struct ZeusConfig {
     pub server_config: ServerConfig,
-    pub storage_config: StorageConfig
+    pub storage_config: StorageConfig,
+    pub query_config: QuerySchedulerConfig
 }
 
 impl ZeusConfig {
