@@ -1,7 +1,9 @@
 use std::borrow::ToOwned;
 use std::boxed::Box;
+use std::iter::Iterator;
 
 use rpc::zeus_meta::FieldType;
+use rpc::zeus_data::ColumnValue;
 use util::cow_ptr::ToBoxedOwned;
 use util::error::Result;
 
@@ -16,13 +18,16 @@ pub type LongColumn = column_vector::ColumnVector<i64>;
 pub type TimestampColumn = column_vector::ColumnVector<u64>;
 pub type StringColumn = column_string::ColumnString;
 
-pub trait Column: ToBoxedOwned {
-    fn size(&self) -> usize;
-    fn field_type(&self) -> FieldType;
+pub type ColumnValueIter = Box<Iterator<Item=ColumnValue>>;
+
+pub trait Column: ToBoxedOwned + 'static {
+  fn size(&self) -> usize;
+  fn field_type(&self) -> FieldType;
+  fn iter(&self) -> ColumnValueIter;
 }
 
 pub trait ColumnFactory: Send + 'static {
-    fn create_column(&mut self, raw_data: &[u8]) -> Result<Box<Column>> ;
+  fn create_column(&mut self, raw_data: &[u8]) -> Result<Box<Column>>;
 }
 
 

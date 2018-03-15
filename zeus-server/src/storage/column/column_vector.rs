@@ -1,10 +1,12 @@
 use std::vec::Vec;
 use std::borrow::ToOwned;
 use std::boxed::Box;
+use std::iter::Iterator;
 use std::any::Any;
 
 use super::Column;
 use rpc::zeus_meta::FieldType;
+use rpc::zeus_data::ColumnValue;
 use util::cow_ptr::ToBoxedOwned;
 use util::error::Result;
 
@@ -20,6 +22,9 @@ impl<T: Clone + 'static> Column for ColumnVector<T> {
 
     fn field_type(&self) -> FieldType {
         self.field_type
+    }
+    fn iter(&self) -> Box<Iterator<Item=ColumnValue>> {
+        unimplemented!()
     }
 }
 
