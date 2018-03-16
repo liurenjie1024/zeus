@@ -3,14 +3,13 @@ use std::result;
 
 use futures::sync::oneshot::Canceled;
 
-use ::grpcio::Error as GrpcError;
+use grpcio::Error as GrpcError;
 use protobuf::error::ProtobufError;
 use serde_json::error::Error as SerdeJsonError;
 use std::io::Error as StdIoError;
 use storage::ErrorKind as DBErrorKind;
 use scheduler::ErrorKind as SchedulerErrorKind;
 use rpc::zeus_data::StatusCode;
-
 
 quick_error! {
 #[derive(Debug)]
@@ -36,7 +35,6 @@ pub enum Error {
   }
 }
 }
-
 
 pub type Result<T> = result::Result<T, Error>;
 

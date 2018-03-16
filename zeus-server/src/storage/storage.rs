@@ -10,7 +10,9 @@ pub struct ScanContext<'a> {
   pub catalog_manager: Arc<CatalogManager>,
 }
 
-
 pub trait Storage: Send + Sync {
-  fn scan(&self, scan_context: &ScanContext) -> Result<Box<BlockInputStream>>;
+  fn scan(
+    &self,
+    scan_context: &ScanContext,
+  ) -> Result<Box<BlockInputStream>>;
 }

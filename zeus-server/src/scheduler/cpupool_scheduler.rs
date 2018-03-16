@@ -8,87 +8,91 @@ use server::config::ZeusConfig;
 use util::error::Result;
 
 pub struct CpuPoolScheduler {
-    cpu_pool: CpuPool
+  cpu_pool: CpuPool,
 }
 
 impl CpuPoolScheduler {
-    pub fn new(name: &str, config: &ZeusConfig) -> CpuPoolScheduler {
-        let cpu_pool = CpuPoolBuilder::new()
-            .pool_size(config.query_config.worker_size)
-            .name_prefix(name)
-            .create();
+  pub fn new(
+    name: &str,
+    config: &ZeusConfig,
+  ) -> CpuPoolScheduler
+  {
+    let cpu_pool =
+      CpuPoolBuilder::new().pool_size(config.query_config.worker_size).name_prefix(name).create();
 
-        CpuPoolScheduler {
-            cpu_pool
-        }
+    CpuPoolScheduler {
+      cpu_pool,
     }
+  }
 }
 
-
 impl ExecutorService for CpuPoolScheduler {
-    fn submit(&self, task: Task) -> Result<()> {
-        info!("Submitted a task to query scheduler!");
-        self.cpu_pool.spawn_fn(move || {
-            task.run();
-            ok::<(), ()>(())
-        }).forget();
-        Ok(())
-    }
+  fn submit(
+    &self,
+    task: Task,
+  ) -> Result<()>
+  {
+    info!("Submitted a task to query scheduler!");
+    self
+      .cpu_pool
+      .spawn_fn(move || {
+        task.run();
+        ok::<(), ()>(())
+      })
+      .forget();
+    Ok(())
+  }
 
-    fn shutdown(&self) -> Result<usize> {
-        info!("Query scheduler is closed!");
-        Ok(0)
-    }
+  fn shutdown(&self) -> Result<usize> {
+    info!("Query scheduler is closed!");
+    Ok(0)
+  }
 }
 
 mod tests {
-    use std::sync::Arc;
+  use std::sync::Arc;
 
-    use futures::Future;
-    use futures::sync::oneshot::Receiver;
-    use futures::sync::oneshot::Sender;
-    use futures::sync::oneshot::channel;
+  use futures::Future;
+  use futures::sync::oneshot::Receiver;
+  use futures::sync::oneshot::Sender;
+  use futures::sync::oneshot::channel;
 
-    use scheduler::Task;
-    use server::config::ZeusConfig;
-    use scheduler::ExecutorService;
-    use scheduler::cpupool_scheduler::CpuPoolScheduler;
+  use scheduler::Task;
+  use server::config::ZeusConfig;
+  use scheduler::ExecutorService;
+  use scheduler::cpupool_scheduler::CpuPoolScheduler;
 
-    struct BarrierCount {
-        pub num: u32,
-        pub sink: Sender<u32>
+  struct BarrierCount {
+    pub num: u32,
+    pub sink: Sender<u32>,
+  }
+
+  impl BarrierCount {
+    fn run(self) {
+      self.sink.send(self.num);
     }
+  }
 
+  #[test]
+  fn test_sumbit_task() {
+    let mut config = ZeusConfig::default();
+    config.query_config.worker_size = 4;
 
-    impl BarrierCount {
-        fn run(self) {
-            self.sink.send(self.num);
-        }
-    }
+    let scheduler = CpuPoolScheduler::new("test-runner", &config);
 
+    let (sender, receiver) = channel();
 
-    #[test]
-    fn test_sumbit_task() {
-        let mut config = ZeusConfig::default();
-        config.query_config.worker_size = 4;
+    let counter = BarrierCount {
+      num: 5,
+      sink: sender,
+    };
 
-        let scheduler = CpuPoolScheduler::new("test-runner", &config);
+    let runner = Box::new(move || counter.run());
 
-        let (sender, receiver) = channel();
+    scheduler.submit(Task::new(runner));
 
-        let counter = BarrierCount {
-            num: 5,
-            sink: sender
-        };
+    let r = receiver.wait().unwrap();
 
-        let runner = Box::new( move || counter.run() );
-
-        scheduler.submit(Task::new(runner));
-
-        let r = receiver.wait().unwrap();
-
-        assert_eq!(5, r);
-    }
+    assert_eq!(5, r);
+  }
 }
-
-

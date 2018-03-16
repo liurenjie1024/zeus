@@ -12,32 +12,36 @@ use exec::DAGExecutor;
 use util::error::Result;
 use util::error::Error;
 
-use ::grpcio::RpcContext;
-use ::grpcio::UnarySink;
-use ::protobuf::RepeatedField;
-use ::futures::future::Future;
-
+use grpcio::RpcContext;
+use grpcio::UnarySink;
+use protobuf::RepeatedField;
+use futures::future::Future;
 
 use server::ServerContext;
 
 pub type Rows = Vec<RowResult>;
 
-
 #[derive(Clone)]
 pub struct DataService {
-  server_context: ServerContext
+  server_context: ServerContext,
 }
 
 impl DataService {
   pub fn new(server_context: ServerContext) -> DataService {
     DataService {
-      server_context
+      server_context,
     }
   }
 }
 
 impl ZeusDataService for DataService {
-  fn query(&self, ctx: RpcContext, req: QueryRequest, sink: UnarySink<QueryResult>) {
+  fn query(
+    &self,
+    ctx: RpcContext,
+    req: QueryRequest,
+    sink: UnarySink<QueryResult>,
+  )
+  {
     let plan_id = req.get_plan().get_plan_id();
     debug!("Begin to query, plan id is: {}", plan_id);
 
@@ -56,10 +60,8 @@ impl ZeusDataService for DataService {
           Ok(rows) => {
             result.set_code(StatusCode::OK);
             result.set_rows(RepeatedField::from_vec(rows));
-          }
-          Err(err) => {
-            result.set_code(err.into())
-          }
+          },
+          Err(err) => result.set_code(err.into()),
         }
         result
       })
@@ -67,7 +69,6 @@ impl ZeusDataService for DataService {
       .map_err(move |e| {
         error!("Query failed, plan id: {}, error: {:?}", plan_id, e);
       });
-
 
     ctx.spawn(future);
   }

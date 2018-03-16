@@ -14,29 +14,36 @@ use util::error::Result;
 pub enum ErrorKind {
 }
 
-pub type Callable = Box<(FnBox() -> ()) + Send + 'static>;
+pub type Callable = Box<FnBox() -> () + Send + 'static>;
 
 pub struct Task {
-    body: Callable
+  body: Callable,
 }
 
 impl Task {
-    pub fn new(body: Callable) -> Task {
-        Task {
-            body
-        }
+  pub fn new(body: Callable) -> Task {
+    Task {
+      body,
     }
+  }
 
-    pub fn run(self) {
-        (self.body)()
-    }
+  pub fn run(self) {
+    (self.body)()
+  }
 }
 
 pub trait ExecutorService: Sync + Send {
-    fn submit(&self, task: Task) -> Result<()>;
-    fn shutdown(&self) -> Result<usize>;
+  fn submit(
+    &self,
+    task: Task,
+  ) -> Result<()>;
+  fn shutdown(&self) -> Result<usize>;
 }
 
-pub fn build(name: &str, config: &ZeusConfig) -> Result<Arc<ExecutorService>> {
-    Ok(Arc::new(CpuPoolScheduler::new(name, config)))
+pub fn build(
+  name: &str,
+  config: &ZeusConfig,
+) -> Result<Arc<ExecutorService>>
+{
+  Ok(Arc::new(CpuPoolScheduler::new(name, config)))
 }

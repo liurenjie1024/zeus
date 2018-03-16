@@ -1,12 +1,11 @@
+pub mod block_input_stream;
+pub mod catalog;
 pub mod column;
 pub mod data_type;
-pub mod block_input_stream;
-pub mod storage_manager;
-pub mod storage_factory;
-pub mod catalog;
-pub mod storage;
 mod simple_storage;
-
+pub mod storage;
+pub mod storage_factory;
+pub mod storage_manager;
 
 use std::clone::Clone;
 use std::boxed::Box;
@@ -29,17 +28,12 @@ pub use self::storage::Storage;
 pub use self::storage::ScanContext;
 pub use self::catalog::CatalogManager;
 
-
-
-
 #[derive(Debug)]
 pub enum ErrorKind {
-    InvalidHeader,
-    InvalidFieldType,
-    TableNotFound,
-    EOF
+  InvalidHeader,
+  InvalidFieldType,
+  TableNotFound,
+  EOF,
 }
 
 pub type StorageResult = Result<i32>;
-
-

@@ -6,7 +6,11 @@ use storage::Storage;
 struct StorageFactory {}
 
 impl StorageFactory {
-    pub fn create_storage(table_id: i32, storage_type: &str) -> Result<Arc<Storage>> {
-        unimplemented!()
-    }
+  pub fn create_storage(
+    table_id: i32,
+    storage_type: &str,
+  ) -> Result<Arc<Storage>>
+  {
+    unimplemented!()
+  }
 }
