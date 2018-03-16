@@ -16,10 +16,12 @@ use rpc::zeus_data::QueryRequest;
 use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::PlanNode;
 use rpc::zeus_data::PlanNodeType;
+use rpc::zeus_data::QueryPlan;
 use scheduler::Task;
 use storage::column::ColumnValueIter;
 use server::ServerContext;
 use server::data_service::Rows;
+use exec::table_scan_node::TableScanNode;
 
 pub struct ColumnWithInfo {
   pub name: String,
@@ -57,28 +59,47 @@ pub struct DAGExecutor {
 unsafe impl Send for DAGExecutor {}
 
 impl DAGExecutor {
-  pub fn from(query_request: QueryRequest,
-              sender: Sender<Result<Rows>>,
-              server_context: ServerContext) -> DAGExecutor {
-    unimplemented!()
+  pub fn task(query_request: QueryRequest,
+             sender: Sender<Result<Rows>>,
+             server_context: ServerContext) -> Task {
+    let task_body = box move || {
+      let root_result = DAGExecutor::build_plan(query_request.get_plan().get_root(), &server_context);
+
+      match root_result {
+        Ok(root) => {
+          let dag = DAGExecutor {
+            root,
+            sender,
+          };
+          dag.run();
+        },
+        Err(e) => {
+          sender.send(Err(e));
+        }
+      }
+    };
+
+    Task::new(task_body)
   }
 
-//    fn build_plan(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
-//        -> Result<(Box<ExecNode>, usize)> {
-//        unimplemented!()
-//    }
-//
-//    fn build_plan_node(query_plan: &QueryPlan, cur: usize, server_context: &ServerContext)
-//        -> Result<Box<ExecNode>> {
-////        assert!(cur < query_plan.get_nodes().len());
-//        unimplemented!()
-////
-////        let plan_node: &PlanNode = query_plan.get_nodes().get(cur).unwrap();
-////        match plan_node.get_plan_node_type() {
-////            PlanNodeType::SCAN_NODE =>
-////
-////        }
-//    }
+  fn build_plan(root: &PlanNode, server_context: &ServerContext)
+                -> Result<Box<ExecNode>> {
+    if root.get_children().len() == 0 {
+      DAGExecutor::build_plan_node(root, server_context)
+    } else {
+      //TODO: Remove this.
+      unreachable!()
+    }
+  }
+
+  fn build_plan_node(leaf_node: &PlanNode, server_context: &ServerContext)
+                     -> Result<Box<ExecNode>> {
+    Ok(match leaf_node.get_plan_node_type() {
+      PlanNodeType::SCAN_NODE => {
+        TableScanNode::new(leaf_node.get_scan_node(), server_context)?
+      }
+    })
+  }
 }
 
 impl DAGExecutor {
@@ -135,14 +156,6 @@ impl DAGExecutor {
     Ok(rows)
   }
 }
-
-impl Into<Task> for DAGExecutor {
-  fn into(self) -> Task {
-    let task_body = Box::new(move || { self.run() });
-    Task::new(task_body)
-  }
-}
-
 
 
 

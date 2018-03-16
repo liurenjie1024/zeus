@@ -15,25 +15,25 @@ use rpc::zeus_data::StatusCode;
 quick_error! {
 #[derive(Debug)]
 pub enum Error {
-    Grpc(grpc_error: GrpcError) {
-        from()
-    }
-    IoError(err: StdIoError) {
-        from()
-    }
-    PBError(err: ProtobufError) {
-        from()
-    }
-    JsonSerdeError(err: SerdeJsonError) {
-        from()
-    }
-    DBError(inner: DBErrorKind) {
-    }
-    SchedulerError(inner: SchedulerErrorKind) {
-    }
-    ServerError {
-        from(Canceled)
-    }
+  Grpc(grpc_error: GrpcError) {
+    from()
+  }
+  IoError(err: StdIoError) {
+    from()
+  }
+  PBError(err: ProtobufError) {
+    from()
+  }
+  JsonSerdeError(err: SerdeJsonError) {
+    from()
+  }
+  DBError(inner: DBErrorKind) {
+  }
+  SchedulerError(inner: SchedulerErrorKind) {
+  }
+  ServerError {
+    from(Canceled)
+  }
 }
 }
 
@@ -41,7 +41,7 @@ pub enum Error {
 pub type Result<T> = result::Result<T, Error>;
 
 impl Into<StatusCode> for Error {
-    fn into(self) -> StatusCode {
-        unimplemented!()
-    }
+  fn into(self) -> StatusCode {
+    unimplemented!()
+  }
 }

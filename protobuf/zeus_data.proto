@@ -37,7 +37,7 @@ message ScanNode {
 
 message PlanNode {
     int32 node_id = 1;
-    int32 children_num = 2;
+    repeated PlanNode children = 2;
     PlanNodeType plan_node_type = 3;
 
     ScanNode scan_node = 4;
@@ -45,7 +45,7 @@ message PlanNode {
 
 message QueryPlan {
     int32 plan_id = 1;
-    repeated PlanNode nodes = 2;
+    PlanNode root = 2;
 }
 
 message QueryRequest {

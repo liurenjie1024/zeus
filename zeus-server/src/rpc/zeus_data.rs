@@ -1043,7 +1043,7 @@ impl ::protobuf::reflect::ProtobufValue for ScanNode {
 pub struct PlanNode {
     // message fields
     pub node_id: i32,
-    pub children_num: i32,
+    pub children: ::protobuf::RepeatedField<PlanNode>,
     pub plan_node_type: PlanNodeType,
     pub scan_node: ::protobuf::SingularPtrField<ScanNode>,
     // special fields
@@ -1092,27 +1092,37 @@ impl PlanNode {
         &mut self.node_id
     }
 
-    // int32 children_num = 2;
+    // repeated .PlanNode children = 2;
 
-    pub fn clear_children_num(&mut self) {
-        self.children_num = 0;
+    pub fn clear_children(&mut self) {
+        self.children.clear();
     }
 
     // Param is passed by value, moved
-    pub fn set_children_num(&mut self, v: i32) {
-        self.children_num = v;
+    pub fn set_children(&mut self, v: ::protobuf::RepeatedField<PlanNode>) {
+        self.children = v;
     }
 
-    pub fn get_children_num(&self) -> i32 {
-        self.children_num
+    // Mutable pointer to the field.
+    pub fn mut_children(&mut self) -> &mut ::protobuf::RepeatedField<PlanNode> {
+        &mut self.children
     }
 
-    fn get_children_num_for_reflect(&self) -> &i32 {
-        &self.children_num
+    // Take field
+    pub fn take_children(&mut self) -> ::protobuf::RepeatedField<PlanNode> {
+        ::std::mem::replace(&mut self.children, ::protobuf::RepeatedField::new())
     }
 
-    fn mut_children_num_for_reflect(&mut self) -> &mut i32 {
-        &mut self.children_num
+    pub fn get_children(&self) -> &[PlanNode] {
+        &self.children
+    }
+
+    fn get_children_for_reflect(&self) -> &::protobuf::RepeatedField<PlanNode> {
+        &self.children
+    }
+
+    fn mut_children_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<PlanNode> {
+        &mut self.children
     }
 
     // .PlanNodeType plan_node_type = 3;
@@ -1182,6 +1192,11 @@ impl PlanNode {
 
 impl ::protobuf::Message for PlanNode {
     fn is_initialized(&self) -> bool {
+        for v in &self.children {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
         for v in &self.scan_node {
             if !v.is_initialized() {
                 return false;
@@ -1202,11 +1217,7 @@ impl ::protobuf::Message for PlanNode {
                     self.node_id = tmp;
                 },
                 2 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_int32()?;
-                    self.children_num = tmp;
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.children)?;
                 },
                 3 => {
                     if wire_type != ::protobuf::wire_format::WireTypeVarint {
@@ -1233,9 +1244,10 @@ impl ::protobuf::Message for PlanNode {
         if self.node_id != 0 {
             my_size += ::protobuf::rt::value_size(1, self.node_id, ::protobuf::wire_format::WireTypeVarint);
         }
-        if self.children_num != 0 {
-            my_size += ::protobuf::rt::value_size(2, self.children_num, ::protobuf::wire_format::WireTypeVarint);
-        }
+        for value in &self.children {
+            let len = value.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+        };
         if self.plan_node_type != PlanNodeType::SCAN_NODE {
             my_size += ::protobuf::rt::enum_size(3, self.plan_node_type);
         }
@@ -1252,9 +1264,11 @@ impl ::protobuf::Message for PlanNode {
         if self.node_id != 0 {
             os.write_int32(1, self.node_id)?;
         }
-        if self.children_num != 0 {
-            os.write_int32(2, self.children_num)?;
-        }
+        for v in &self.children {
+            os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
+        };
         if self.plan_node_type != PlanNodeType::SCAN_NODE {
             os.write_enum(3, self.plan_node_type.value())?;
         }
@@ -1312,10 +1326,10 @@ impl ::protobuf::MessageStatic for PlanNode {
                     PlanNode::get_node_id_for_reflect,
                     PlanNode::mut_node_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
-                    "children_num",
-                    PlanNode::get_children_num_for_reflect,
-                    PlanNode::mut_children_num_for_reflect,
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<PlanNode>>(
+                    "children",
+                    PlanNode::get_children_for_reflect,
+                    PlanNode::mut_children_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeEnum<PlanNodeType>>(
                     "plan_node_type",
@@ -1340,7 +1354,7 @@ impl ::protobuf::MessageStatic for PlanNode {
 impl ::protobuf::Clear for PlanNode {
     fn clear(&mut self) {
         self.clear_node_id();
-        self.clear_children_num();
+        self.clear_children();
         self.clear_plan_node_type();
         self.clear_scan_node();
         self.unknown_fields.clear();
@@ -1363,7 +1377,7 @@ impl ::protobuf::reflect::ProtobufValue for PlanNode {
 pub struct QueryPlan {
     // message fields
     pub plan_id: i32,
-    pub nodes: ::protobuf::RepeatedField<PlanNode>,
+    pub root: ::protobuf::SingularPtrField<PlanNode>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -1410,43 +1424,51 @@ impl QueryPlan {
         &mut self.plan_id
     }
 
-    // repeated .PlanNode nodes = 2;
+    // .PlanNode root = 2;
 
-    pub fn clear_nodes(&mut self) {
-        self.nodes.clear();
+    pub fn clear_root(&mut self) {
+        self.root.clear();
+    }
+
+    pub fn has_root(&self) -> bool {
+        self.root.is_some()
     }
 
     // Param is passed by value, moved
-    pub fn set_nodes(&mut self, v: ::protobuf::RepeatedField<PlanNode>) {
-        self.nodes = v;
+    pub fn set_root(&mut self, v: PlanNode) {
+        self.root = ::protobuf::SingularPtrField::some(v);
     }
 
     // Mutable pointer to the field.
-    pub fn mut_nodes(&mut self) -> &mut ::protobuf::RepeatedField<PlanNode> {
-        &mut self.nodes
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_root(&mut self) -> &mut PlanNode {
+        if self.root.is_none() {
+            self.root.set_default();
+        }
+        self.root.as_mut().unwrap()
     }
 
     // Take field
-    pub fn take_nodes(&mut self) -> ::protobuf::RepeatedField<PlanNode> {
-        ::std::mem::replace(&mut self.nodes, ::protobuf::RepeatedField::new())
+    pub fn take_root(&mut self) -> PlanNode {
+        self.root.take().unwrap_or_else(|| PlanNode::new())
     }
 
-    pub fn get_nodes(&self) -> &[PlanNode] {
-        &self.nodes
+    pub fn get_root(&self) -> &PlanNode {
+        self.root.as_ref().unwrap_or_else(|| PlanNode::default_instance())
     }
 
-    fn get_nodes_for_reflect(&self) -> &::protobuf::RepeatedField<PlanNode> {
-        &self.nodes
+    fn get_root_for_reflect(&self) -> &::protobuf::SingularPtrField<PlanNode> {
+        &self.root
     }
 
-    fn mut_nodes_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<PlanNode> {
-        &mut self.nodes
+    fn mut_root_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<PlanNode> {
+        &mut self.root
     }
 }
 
 impl ::protobuf::Message for QueryPlan {
     fn is_initialized(&self) -> bool {
-        for v in &self.nodes {
+        for v in &self.root {
             if !v.is_initialized() {
                 return false;
             }
@@ -1466,7 +1488,7 @@ impl ::protobuf::Message for QueryPlan {
                     self.plan_id = tmp;
                 },
                 2 => {
-                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.nodes)?;
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.root)?;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -1483,10 +1505,10 @@ impl ::protobuf::Message for QueryPlan {
         if self.plan_id != 0 {
             my_size += ::protobuf::rt::value_size(1, self.plan_id, ::protobuf::wire_format::WireTypeVarint);
         }
-        for value in &self.nodes {
-            let len = value.compute_size();
+        if let Some(ref v) = self.root.as_ref() {
+            let len = v.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
-        };
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -1496,11 +1518,11 @@ impl ::protobuf::Message for QueryPlan {
         if self.plan_id != 0 {
             os.write_int32(1, self.plan_id)?;
         }
-        for v in &self.nodes {
+        if let Some(ref v) = self.root.as_ref() {
             os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
-        };
+        }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
@@ -1550,10 +1572,10 @@ impl ::protobuf::MessageStatic for QueryPlan {
                     QueryPlan::get_plan_id_for_reflect,
                     QueryPlan::mut_plan_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<PlanNode>>(
-                    "nodes",
-                    QueryPlan::get_nodes_for_reflect,
-                    QueryPlan::mut_nodes_for_reflect,
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<PlanNode>>(
+                    "root",
+                    QueryPlan::get_root_for_reflect,
+                    QueryPlan::mut_root_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<QueryPlan>(
                     "QueryPlan",
@@ -1568,7 +1590,7 @@ impl ::protobuf::MessageStatic for QueryPlan {
 impl ::protobuf::Clear for QueryPlan {
     fn clear(&mut self) {
         self.clear_plan_id();
-        self.clear_nodes();
+        self.clear_root();
         self.unknown_fields.clear();
     }
 }
@@ -2103,13 +2125,13 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     ode\x12\x1e\n\x04rows\x18\x02\x20\x03(\x0b2\n.RowResultR\x04rows\"T\n\
     \x08ScanNode\x12\x13\n\x05db_id\x18\x01\x20\x01(\x05R\x04dbId\x12\x19\n\
     \x08table_id\x18\x02\x20\x01(\x05R\x07tableId\x12\x18\n\x07columns\x18\
-    \x03\x20\x03(\x05R\x07columns\"\xa3\x01\n\x08PlanNode\x12\x17\n\x07node_\
-    id\x18\x01\x20\x01(\x05R\x06nodeId\x12!\n\x0cchildren_num\x18\x02\x20\
-    \x01(\x05R\x0bchildrenNum\x123\n\x0eplan_node_type\x18\x03\x20\x01(\x0e2\
-    \r.PlanNodeTypeR\x0cplanNodeType\x12&\n\tscan_node\x18\x04\x20\x01(\x0b2\
-    \t.ScanNodeR\x08scanNode\"E\n\tQueryPlan\x12\x17\n\x07plan_id\x18\x01\
-    \x20\x01(\x05R\x06planId\x12\x1f\n\x05nodes\x18\x02\x20\x03(\x0b2\t.Plan\
-    NodeR\x05nodes\".\n\x0cQueryRequest\x12\x1e\n\x04plan\x18\x01\x20\x01(\
+    \x03\x20\x03(\x05R\x07columns\"\xa7\x01\n\x08PlanNode\x12\x17\n\x07node_\
+    id\x18\x01\x20\x01(\x05R\x06nodeId\x12%\n\x08children\x18\x02\x20\x03(\
+    \x0b2\t.PlanNodeR\x08children\x123\n\x0eplan_node_type\x18\x03\x20\x01(\
+    \x0e2\r.PlanNodeTypeR\x0cplanNodeType\x12&\n\tscan_node\x18\x04\x20\x01(\
+    \x0b2\t.ScanNodeR\x08scanNode\"C\n\tQueryPlan\x12\x17\n\x07plan_id\x18\
+    \x01\x20\x01(\x05R\x06planId\x12\x1d\n\x04root\x18\x02\x20\x01(\x0b2\t.P\
+    lanNodeR\x04root\".\n\x0cQueryRequest\x12\x1e\n\x04plan\x18\x01\x20\x01(\
     \x0b2\n.QueryPlanR\x04plan\"5\n\x03Row\x12\x13\n\x05db_id\x18\x01\x20\
     \x01(\x05R\x04dbId\x12\x19\n\x08table_id\x18\x02\x20\x01(\x05R\x07tableI\
     d*\x14\n\nStatusCode\x12\x06\n\x02OK\x10\0*\x1d\n\x0cPlanNodeType\x12\r\
@@ -2176,40 +2198,40 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x04\x04\x04\x02\0\x12\x03&\x04\x16\n\r\n\x05\x04\x04\x02\0\x04\x12\x04&\
     \x04%\x12\n\x0c\n\x05\x04\x04\x02\0\x05\x12\x03&\x04\t\n\x0c\n\x05\x04\
     \x04\x02\0\x01\x12\x03&\n\x11\n\x0c\n\x05\x04\x04\x02\0\x03\x12\x03&\x14\
-    \x15\n\x0b\n\x04\x04\x04\x02\x01\x12\x03'\x04\x1b\n\r\n\x05\x04\x04\x02\
-    \x01\x04\x12\x04'\x04&\x16\n\x0c\n\x05\x04\x04\x02\x01\x05\x12\x03'\x04\
-    \t\n\x0c\n\x05\x04\x04\x02\x01\x01\x12\x03'\n\x16\n\x0c\n\x05\x04\x04\
-    \x02\x01\x03\x12\x03'\x19\x1a\n\x0b\n\x04\x04\x04\x02\x02\x12\x03(\x04$\
-    \n\r\n\x05\x04\x04\x02\x02\x04\x12\x04(\x04'\x1b\n\x0c\n\x05\x04\x04\x02\
-    \x02\x06\x12\x03(\x04\x10\n\x0c\n\x05\x04\x04\x02\x02\x01\x12\x03(\x11\
-    \x1f\n\x0c\n\x05\x04\x04\x02\x02\x03\x12\x03(\"#\n\x0b\n\x04\x04\x04\x02\
-    \x03\x12\x03*\x04\x1b\n\r\n\x05\x04\x04\x02\x03\x04\x12\x04*\x04($\n\x0c\
-    \n\x05\x04\x04\x02\x03\x06\x12\x03*\x04\x0c\n\x0c\n\x05\x04\x04\x02\x03\
-    \x01\x12\x03*\r\x16\n\x0c\n\x05\x04\x04\x02\x03\x03\x12\x03*\x19\x1a\n\n\
-    \n\x02\x04\x05\x12\x04-\00\x01\n\n\n\x03\x04\x05\x01\x12\x03-\x08\x11\n\
+    \x15\n\x0b\n\x04\x04\x04\x02\x01\x12\x03'\x04#\n\x0c\n\x05\x04\x04\x02\
+    \x01\x04\x12\x03'\x04\x0c\n\x0c\n\x05\x04\x04\x02\x01\x06\x12\x03'\r\x15\
+    \n\x0c\n\x05\x04\x04\x02\x01\x01\x12\x03'\x16\x1e\n\x0c\n\x05\x04\x04\
+    \x02\x01\x03\x12\x03'!\"\n\x0b\n\x04\x04\x04\x02\x02\x12\x03(\x04$\n\r\n\
+    \x05\x04\x04\x02\x02\x04\x12\x04(\x04'#\n\x0c\n\x05\x04\x04\x02\x02\x06\
+    \x12\x03(\x04\x10\n\x0c\n\x05\x04\x04\x02\x02\x01\x12\x03(\x11\x1f\n\x0c\
+    \n\x05\x04\x04\x02\x02\x03\x12\x03(\"#\n\x0b\n\x04\x04\x04\x02\x03\x12\
+    \x03*\x04\x1b\n\r\n\x05\x04\x04\x02\x03\x04\x12\x04*\x04($\n\x0c\n\x05\
+    \x04\x04\x02\x03\x06\x12\x03*\x04\x0c\n\x0c\n\x05\x04\x04\x02\x03\x01\
+    \x12\x03*\r\x16\n\x0c\n\x05\x04\x04\x02\x03\x03\x12\x03*\x19\x1a\n\n\n\
+    \x02\x04\x05\x12\x04-\00\x01\n\n\n\x03\x04\x05\x01\x12\x03-\x08\x11\n\
     \x0b\n\x04\x04\x05\x02\0\x12\x03.\x04\x16\n\r\n\x05\x04\x05\x02\0\x04\
     \x12\x04.\x04-\x13\n\x0c\n\x05\x04\x05\x02\0\x05\x12\x03.\x04\t\n\x0c\n\
     \x05\x04\x05\x02\0\x01\x12\x03.\n\x11\n\x0c\n\x05\x04\x05\x02\0\x03\x12\
-    \x03.\x14\x15\n\x0b\n\x04\x04\x05\x02\x01\x12\x03/\x04\x20\n\x0c\n\x05\
-    \x04\x05\x02\x01\x04\x12\x03/\x04\x0c\n\x0c\n\x05\x04\x05\x02\x01\x06\
-    \x12\x03/\r\x15\n\x0c\n\x05\x04\x05\x02\x01\x01\x12\x03/\x16\x1b\n\x0c\n\
-    \x05\x04\x05\x02\x01\x03\x12\x03/\x1e\x1f\n\n\n\x02\x04\x06\x12\x042\04\
-    \x01\n\n\n\x03\x04\x06\x01\x12\x032\x08\x14\n\x0b\n\x04\x04\x06\x02\0\
-    \x12\x033\x04\x17\n\r\n\x05\x04\x06\x02\0\x04\x12\x043\x042\x16\n\x0c\n\
-    \x05\x04\x06\x02\0\x06\x12\x033\x04\r\n\x0c\n\x05\x04\x06\x02\0\x01\x12\
-    \x033\x0e\x12\n\x0c\n\x05\x04\x06\x02\0\x03\x12\x033\x15\x16\n'\n\x02\
-    \x04\x07\x12\x047\0:\x01\x1a\x1b\x20TODO:\x20Remove\x20this\x20message\n\
-    \n\n\n\x03\x04\x07\x01\x12\x037\x08\x0b\n\x0b\n\x04\x04\x07\x02\0\x12\
-    \x038\x04\x14\n\r\n\x05\x04\x07\x02\0\x04\x12\x048\x047\r\n\x0c\n\x05\
-    \x04\x07\x02\0\x05\x12\x038\x04\t\n\x0c\n\x05\x04\x07\x02\0\x01\x12\x038\
-    \n\x0f\n\x0c\n\x05\x04\x07\x02\0\x03\x12\x038\x12\x13\n\x0b\n\x04\x04\
-    \x07\x02\x01\x12\x039\x04\x17\n\r\n\x05\x04\x07\x02\x01\x04\x12\x049\x04\
-    8\x14\n\x0c\n\x05\x04\x07\x02\x01\x05\x12\x039\x04\t\n\x0c\n\x05\x04\x07\
-    \x02\x01\x01\x12\x039\n\x12\n\x0c\n\x05\x04\x07\x02\x01\x03\x12\x039\x15\
-    \x16\n\n\n\x02\x06\0\x12\x04<\0>\x01\n\n\n\x03\x06\0\x01\x12\x03<\x08\
-    \x17\n\x0b\n\x04\x06\0\x02\0\x12\x03=\x044\n\x0c\n\x05\x06\0\x02\0\x01\
-    \x12\x03=\x08\r\n\x0c\n\x05\x06\0\x02\0\x02\x12\x03=\x0e\x1a\n\x0c\n\x05\
-    \x06\0\x02\0\x03\x12\x03=%0b\x06proto3\
+    \x03.\x14\x15\n\x0b\n\x04\x04\x05\x02\x01\x12\x03/\x04\x16\n\r\n\x05\x04\
+    \x05\x02\x01\x04\x12\x04/\x04.\x16\n\x0c\n\x05\x04\x05\x02\x01\x06\x12\
+    \x03/\x04\x0c\n\x0c\n\x05\x04\x05\x02\x01\x01\x12\x03/\r\x11\n\x0c\n\x05\
+    \x04\x05\x02\x01\x03\x12\x03/\x14\x15\n\n\n\x02\x04\x06\x12\x042\04\x01\
+    \n\n\n\x03\x04\x06\x01\x12\x032\x08\x14\n\x0b\n\x04\x04\x06\x02\0\x12\
+    \x033\x04\x17\n\r\n\x05\x04\x06\x02\0\x04\x12\x043\x042\x16\n\x0c\n\x05\
+    \x04\x06\x02\0\x06\x12\x033\x04\r\n\x0c\n\x05\x04\x06\x02\0\x01\x12\x033\
+    \x0e\x12\n\x0c\n\x05\x04\x06\x02\0\x03\x12\x033\x15\x16\n'\n\x02\x04\x07\
+    \x12\x047\0:\x01\x1a\x1b\x20TODO:\x20Remove\x20this\x20message\n\n\n\n\
+    \x03\x04\x07\x01\x12\x037\x08\x0b\n\x0b\n\x04\x04\x07\x02\0\x12\x038\x04\
+    \x14\n\r\n\x05\x04\x07\x02\0\x04\x12\x048\x047\r\n\x0c\n\x05\x04\x07\x02\
+    \0\x05\x12\x038\x04\t\n\x0c\n\x05\x04\x07\x02\0\x01\x12\x038\n\x0f\n\x0c\
+    \n\x05\x04\x07\x02\0\x03\x12\x038\x12\x13\n\x0b\n\x04\x04\x07\x02\x01\
+    \x12\x039\x04\x17\n\r\n\x05\x04\x07\x02\x01\x04\x12\x049\x048\x14\n\x0c\
+    \n\x05\x04\x07\x02\x01\x05\x12\x039\x04\t\n\x0c\n\x05\x04\x07\x02\x01\
+    \x01\x12\x039\n\x12\n\x0c\n\x05\x04\x07\x02\x01\x03\x12\x039\x15\x16\n\n\
+    \n\x02\x06\0\x12\x04<\0>\x01\n\n\n\x03\x06\0\x01\x12\x03<\x08\x17\n\x0b\
+    \n\x04\x06\0\x02\0\x12\x03=\x044\n\x0c\n\x05\x06\0\x02\0\x01\x12\x03=\
+    \x08\r\n\x0c\n\x05\x06\0\x02\0\x02\x12\x03=\x0e\x1a\n\x0c\n\x05\x06\0\
+    \x02\0\x03\x12\x03=%0b\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

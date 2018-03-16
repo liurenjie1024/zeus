@@ -1,5 +1,6 @@
 #![feature(iterator_try_fold)]
 #![feature(fnbox)]
+#![feature(box_syntax)]
 
 extern crate protobuf;
 extern crate grpcio;
