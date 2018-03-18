@@ -1,5 +1,6 @@
 use std::vec::Vec;
 use std::any::Any;
+use std::sync::Arc;
 
 use rpc::zeus_meta::FieldType;
 use rpc::zeus_data::ColumnValue;
@@ -9,8 +10,8 @@ use util::error::Result;
 use util::cow_ptr::ToBoxedOwned;
 
 pub struct ColumnString {
-  offsets: Vec<usize>,
-  chars: Vec<u8>,
+  offsets: Arc<Vec<usize>> ,
+  chars: Arc<Vec<u8>>,
 }
 
 impl Column for ColumnString {
@@ -42,8 +43,8 @@ impl ColumnString {
   ) -> Result<ColumnString>
   {
     Ok(ColumnString {
-      offsets,
-      chars,
+      offsets: Arc::new(offsets),
+      chars: Arc::new(chars)
     })
   }
 }
