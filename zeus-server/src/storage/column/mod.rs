@@ -1,4 +1,3 @@
-use std::borrow::ToOwned;
 use std::boxed::Box;
 use std::iter::Iterator;
 
@@ -9,6 +8,7 @@ use util::error::Result;
 
 pub mod column_string;
 pub mod column_vector;
+mod field;
 
 pub type BoolColumn = column_vector::ColumnVector<bool>;
 pub type ByteColumn = column_vector::ColumnVector<u8>;
@@ -23,7 +23,7 @@ pub type ColumnValueIter = Box<Iterator<Item = ColumnValue>>;
 pub trait Column: ToBoxedOwned + Send + 'static {
   fn size(&self) -> usize;
   fn field_type(&self) -> FieldType;
-  fn iter(&self) -> ColumnValueIter;
+  fn into_iter(&self) -> ColumnValueIter;
 }
 
 pub trait ColumnFactory: Send + 'static {

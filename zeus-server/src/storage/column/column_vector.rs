@@ -2,7 +2,9 @@ use std::vec::Vec;
 use std::borrow::ToOwned;
 use std::boxed::Box;
 use std::iter::Iterator;
+use std::sync::Arc;
 use std::any::Any;
+use std::convert::Into;
 
 use super::Column;
 use rpc::zeus_meta::FieldType;
@@ -10,12 +12,34 @@ use rpc::zeus_data::ColumnValue;
 use util::cow_ptr::ToBoxedOwned;
 use util::error::Result;
 
-pub struct ColumnVector<T: Send + 'static> {
+
+pub struct ColumnVector<T>
+  where T: Send + Sync + Copy + Into<ColumnValue> + 'static {
   field_type: FieldType,
-  data: Vec<T>,
+  data: Arc<Vec<T>>,
 }
 
-impl<T: Clone + Send + 'static> Column for ColumnVector<T> {
+
+struct ColumnVectorIterator<T>
+  where T: Copy + Into<ColumnValue> {
+  cur_pos: usize,
+  column_vec: Arc<Vec<T>> ,
+}
+
+impl<T> Iterator for ColumnVectorIterator<T>
+  where T: Copy + Into<ColumnValue> {
+  type Item = ColumnValue;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    let v = self.column_vec.get(self.cur_pos)
+      .map(|&x| x.into());
+    self.cur_pos += 1;
+    v
+  }
+}
+
+impl<T> Column for ColumnVector<T>
+  where T: Send + Sync + Copy + Into<ColumnValue> + 'static {
   fn size(&self) -> usize {
     self.data.len()
   }
@@ -23,12 +47,16 @@ impl<T: Clone + Send + 'static> Column for ColumnVector<T> {
   fn field_type(&self) -> FieldType {
     self.field_type
   }
-  fn iter(&self) -> Box<Iterator<Item = ColumnValue>> {
-    unimplemented!()
+  fn into_iter(&self) -> Box<Iterator<Item = ColumnValue>> {
+    box ColumnVectorIterator {
+      cur_pos: 0usize,
+      column_vec: self.data.clone()
+    }
   }
 }
 
-impl<T: Clone + Send + 'static> ToBoxedOwned for ColumnVector<T> {
+impl<T> ToBoxedOwned for ColumnVector<T>
+  where T: Send + Sync + Copy + Into<ColumnValue> + 'static {
   fn to_boxed_owned(&self) -> Box<Any> {
     Box::new(ColumnVector {
       field_type: self.field_type,
@@ -37,7 +65,8 @@ impl<T: Clone + Send + 'static> ToBoxedOwned for ColumnVector<T> {
   }
 }
 
-impl<T: Send + 'static> ColumnVector<T> {
+impl<T> ColumnVector<T>
+  where T: Send + Sync + Copy + Into<ColumnValue> + 'static {
   pub fn create(
     field_type: FieldType,
     data: Vec<T>,
@@ -45,7 +74,7 @@ impl<T: Send + 'static> ColumnVector<T> {
   {
     Ok(ColumnVector {
       field_type,
-      data,
+      data: Arc::new(data),
     })
   }
 }

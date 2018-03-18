@@ -151,7 +151,7 @@ impl DAGExecutor {
       let block = self.root.next()?;
 
       let mut column_iterators: Vec<ColumnValueIter> =
-        block.columns.iter().map(|c| c.column.iter()).collect();
+        block.columns.iter().map(|c| c.column.into_iter()).collect();
 
       loop {
         let mut incomplete = 0usize;
@@ -202,6 +202,7 @@ mod tests {
   use rpc::zeus_meta::FieldType;
   use storage::column::column_vector::ColumnVector;
   use util::error::Result;
+
 
   struct MemoryBlocks {
     blocks: Vec<Block>,
@@ -254,13 +255,14 @@ mod tests {
     dag.run();
     let result = receiver.poll().unwrap();
 
-    let expected_rows = vec![to_row_result(true, 12i64),
-                             to_row_result(false, 14i64),
-                             to_row_result(false, 100000i64),
-                             to_row_result(true, 54321i64)];
+    let expected_rows = vec![
+      to_row_result(false, 100000i64),
+      to_row_result(true, 54321i64),
+      to_row_result(true, 12i64),
+      to_row_result(false, 14i64)];
     match result {
-      Async::Ready(t) => assert_eq(expected_rows, t),
-      Async::NotReady(t) => assert!(false, "Result should be ready!")
+      Async::Ready(t) => assert_eq!(expected_rows, t.ok().unwrap()),
+      Async::NotReady => assert!(false, "Result should be ready!")
     }
   }
 

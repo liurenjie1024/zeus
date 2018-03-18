@@ -1,10 +1,10 @@
 use std::vec::Vec;
-use std::iter::Iterator;
 use std::any::Any;
 
 use rpc::zeus_meta::FieldType;
 use rpc::zeus_data::ColumnValue;
 use storage::column::Column;
+use storage::column::ColumnValueIter;
 use util::error::Result;
 use util::cow_ptr::ToBoxedOwned;
 
@@ -21,7 +21,7 @@ impl Column for ColumnString {
   fn field_type(&self) -> FieldType {
     FieldType::STRING
   }
-  fn iter(&self) -> Box<Iterator<Item = ColumnValue>> {
+  fn into_iter(&self) -> ColumnValueIter {
     unimplemented!()
   }
 }

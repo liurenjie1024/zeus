@@ -47,8 +47,6 @@ mod tests {
   use std::sync::Arc;
   use std::any::Any;
   use std::fmt::Debug;
-  use std::cmp::Eq;
-  use std::cmp::PartialEq;
 
   #[derive(PartialEq, Eq, Debug, Copy, Clone)]
   struct TestStruct {
