@@ -80,3 +80,31 @@ where T: Send + Sync + Copy + Into<ColumnValue> + 'static
     })
   }
 }
+
+#[cfg(test)]
+mod tests {
+
+  use rpc::zeus_data::ColumnValue;
+  use rpc::zeus_meta::FieldType;
+  use super::Column;
+  use super::ColumnVector;
+
+  #[test]
+  fn test_column_iterator() {
+    let data = vec![1i32, 4i32, 8i32];
+
+    let vector = ColumnVector::create(FieldType::INT32, data).ok().unwrap();
+
+    let transformed: Vec<ColumnValue>= vector.into_iter()
+      .collect();
+
+    let expected: Vec<ColumnValue> = vec![1i32, 4i32, 8i32]
+      .iter()
+      .map(|x| (*x).into())
+      .collect();
+
+    assert_eq!(expected, transformed);
+  }
+}
+
+
