@@ -26,7 +26,7 @@ pub struct ZeusServer {
 impl ZeusServer {
   pub fn new(config: Arc<ZeusConfig>) -> Result<ZeusServer> {
     let catalog_manager = load_catalog_manager(&*config)?;
-    let storage_manager = Arc::new(StorageManager::load(&*config)?);
+    let storage_manager = Arc::new(StorageManager::load(&*config, catalog_manager.clone())?);
     let query_scheudler = build_scheduler("query", &*config)?;
 
     let context = ServerContext::new(storage_manager, catalog_manager, query_scheudler);

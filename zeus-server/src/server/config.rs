@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use util::error::Result;
 
 #[derive(Default)]
@@ -14,8 +16,8 @@ pub struct ServerConfig {
 
 #[derive(Default)]
 pub struct StorageConfig {
-  /// Root dir storage
-  pub path: String,
+  /// Root storage directory
+  pub root_path: Arc<String>,
 }
 
 #[derive(Default)]

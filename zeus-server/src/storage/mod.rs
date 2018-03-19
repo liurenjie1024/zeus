@@ -20,6 +20,7 @@ pub enum ErrorKind {
   InvalidHeader,
   InvalidFieldType,
   TableNotFound,
+  InvalidStorageType,
   EOF,
 }
 

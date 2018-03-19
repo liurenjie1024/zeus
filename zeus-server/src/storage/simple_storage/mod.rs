@@ -19,7 +19,7 @@ use self::simple_file_segment::SimpleFileSegment;
 #[allow(dead_code)]
 const TABLE_PLAYLIST_FILE: &'static str = "table.pl";
 
-struct SimpleTable {
+pub struct SimpleTable {
   table_id: i32,
   file_segments: LinkedList<SimpleFileSegment>,
 }
@@ -35,7 +35,7 @@ impl SimpleTable {
     table_id: i32,
   ) -> Result<SimpleTable>
   {
-    let mut playlist_path = PathBuf::from(config.path.clone());
+    let mut playlist_path = PathBuf::from(&*(config.root_path));
     playlist_path.push(table_id.to_string());
     playlist_path.push(TABLE_PLAYLIST_FILE);
 
@@ -52,7 +52,7 @@ impl SimpleTable {
         break;
       }
 
-      let mut seg_path = PathBuf::from(config.path.clone());
+      let mut seg_path = PathBuf::from(&*(config.root_path));
       seg_path.push(table_id.to_string());
       seg_path.push(line);
 
@@ -74,6 +74,10 @@ impl SimpleTable {
 }
 
 impl Storage for SimpleTable {
+  fn get_id(&self) -> i32 {
+    self.table_id
+  }
+
   fn scan(
     &self,
     scan_context: &ScanContext,

@@ -67,7 +67,7 @@ impl SimpleFileSegment {
     let mut column_names: HashMap<i32, String> = HashMap::new();
 
     let table_schema =
-      context.catalog_manager.get_table_schema(scan_node.db_id, scan_node.table_id).unwrap();
+      context.catalog_manager.get_table_schema(scan_node.table_id).unwrap();
     for column_id in &scan_node.columns {
       let column_schema = table_schema.get_column_schema(*column_id).unwrap();
       column_types.insert(*column_id, column_schema.get_type());

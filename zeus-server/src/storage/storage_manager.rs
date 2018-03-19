@@ -2,7 +2,9 @@ use std::sync::Arc;
 use std::collections::HashMap;
 
 use util::error::Result;
+use storage::catalog::CatalogManager;
 use storage::Storage;
+use storage::storage_factory::StorageFactory;
 use server::config::ZeusConfig;
 
 pub struct StorageManager {
@@ -13,15 +15,34 @@ unsafe impl Sync for StorageManager {}
 unsafe impl Send for StorageManager {}
 
 impl StorageManager {
-  pub fn load(_config: &ZeusConfig) -> Result<StorageManager> {
-    unimplemented!()
+  pub fn load(config: &ZeusConfig, catalog_manager: Arc<CatalogManager>) -> Result<StorageManager> {
+    let mut tables = HashMap::new();
+    catalog_manager.list_table_ids()
+      .map(|table_id| catalog_manager.get_table_schema(table_id).unwrap())
+      .for_each(|table_schema| {
+        let storage = StorageFactory::create_storage(
+          table_schema.get_id(),
+          table_schema.get_table_engine().as_str(),
+          config);
+        match storage {
+          Ok(s) => {
+            tables.insert(s.get_id(), s);
+          },
+          Err(_) => {
+            info!("Failed to load storage: {}", table_schema.get_id())
+          }
+        }
+      });
+
+    Ok(StorageManager {
+      tables
+    })
   }
 
   pub fn get_table(
     &self,
     table_id: i32,
-  ) -> Option<Arc<Storage>>
-  {
+  ) -> Option<Arc<Storage>> {
     self.tables.get(&table_id).map(|s| s.clone())
   }
 }
