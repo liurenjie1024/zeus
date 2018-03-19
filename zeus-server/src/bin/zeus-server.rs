@@ -1,12 +1,5 @@
 extern crate zeus;
 
-#[allow(unused_import)]
-use zeus::server::server::ZeusServer;
-#[allow(unused_import)]
-use std::sync::Arc;
-#[allow(unused_import)]
-use std::io;
-
 fn main() {
   //    let config = Arc::new(Config {
   //        server_addr: "127.0.0.1:7788".to_string(),
