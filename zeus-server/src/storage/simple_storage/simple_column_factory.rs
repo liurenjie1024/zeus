@@ -1,6 +1,5 @@
 use std::io::Cursor;
 use std::vec::Vec;
-use std::vec::Splice;
 use std::mem::size_of;
 
 use bytes::{BigEndian, Buf};

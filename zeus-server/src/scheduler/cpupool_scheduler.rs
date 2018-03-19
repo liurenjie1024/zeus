@@ -49,11 +49,10 @@ impl ExecutorService for CpuPoolScheduler {
   }
 }
 
-mod tests {
-  use std::sync::Arc;
 
+#[cfg(test)]
+mod tests {
   use futures::Future;
-  use futures::sync::oneshot::Receiver;
   use futures::sync::oneshot::Sender;
   use futures::sync::oneshot::channel;
 
@@ -69,7 +68,7 @@ mod tests {
 
   impl BarrierCount {
     fn run(self) {
-      self.sink.send(self.num);
+      self.sink.send(self.num).ok().unwrap();
     }
   }
 
@@ -89,7 +88,7 @@ mod tests {
 
     let runner = Box::new(move || counter.run());
 
-    scheduler.submit(Task::new(runner));
+    scheduler.submit(Task::new(runner)).ok().unwrap();
 
     let r = receiver.wait().unwrap();
 

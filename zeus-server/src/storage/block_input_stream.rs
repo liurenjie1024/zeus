@@ -40,7 +40,7 @@ impl BlockInputStream for CombinedBlockInputStream {
       return Err(DBError(DBErrorKind::EOF));
     }
 
-    let is_last_stream = (self.idx == (self.streams.len() - 1));
+    let is_last_stream = self.idx == (self.streams.len() - 1);
     let cur_stream = self.streams.get_mut(self.idx).unwrap();
     if self.need_open {
       cur_stream.open()?;

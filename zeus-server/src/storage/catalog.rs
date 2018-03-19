@@ -26,6 +26,6 @@ pub trait CatalogManager: Send + Sync {
   ) -> Option<Arc<TableSchema>>;
 }
 
-pub fn load(config: &ZeusConfig) -> Result<Arc<CatalogManager>> {
+pub fn load(_config: &ZeusConfig) -> Result<Arc<CatalogManager>> {
   unimplemented!()
 }

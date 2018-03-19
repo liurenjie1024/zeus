@@ -1,27 +1,22 @@
 mod simple_column_factory;
 mod simple_file_segment;
 
-use std::collections::HashMap;
 use std::collections::LinkedList;
-use std::sync::Arc;
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
 
-use rpc::zeus_meta::ZeusDBSchema;
-use protobuf::core::parse_from_reader;
 
 use server::config::StorageConfig;
 use util::error::Result;
-use util::error::Error::DBError;
 use storage::Storage;
-use storage::ErrorKind as DBErrorKind;
 use storage::ScanContext;
 use storage::BlockInputStream;
 use storage::block_input_stream::CombinedBlockInputStream;
 use self::simple_file_segment::SimpleFileSegment;
 
+#[allow(dead_code)]
 const TABLE_PLAYLIST_FILE: &'static str = "table.pl";
 
 struct SimpleTable {
@@ -32,7 +27,9 @@ struct SimpleTable {
 unsafe impl Send for SimpleTable {}
 unsafe impl Sync for SimpleTable {}
 
+#[allow(dead_code)]
 impl SimpleTable {
+  #[allow(dead_code)]
   pub fn new(
     config: &StorageConfig,
     table_id: i32,

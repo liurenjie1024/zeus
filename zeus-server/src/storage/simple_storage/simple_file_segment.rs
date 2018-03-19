@@ -5,7 +5,6 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
-use std::collections::HashSet;
 use std::collections::HashMap;
 
 use bytes::{BigEndian, ByteOrder};
@@ -17,7 +16,7 @@ use storage::column::ColumnFactory;
 use exec::Block;
 use exec::ColumnWithInfo;
 use exec::ExecPhase;
-use rpc::zeus_simple_format::{BlockHandle, BlockHandles};
+use rpc::zeus_simple_format::BlockHandles;
 use rpc::zeus_meta::FieldType;
 use util::error::Result;
 use util::error::Error;
@@ -25,6 +24,7 @@ use util::cow_ptr::CowPtr;
 use storage::ErrorKind as DBErrorKind;
 use super::simple_column_factory::create_column_factory;
 
+#[allow(dead_code)]
 pub struct SimpleFileSegment {
   pub table_id: i32,
   pub path: String,
@@ -42,6 +42,7 @@ struct FileSegmentBlockInputStream {
 }
 
 impl SimpleFileSegment {
+  #[allow(dead_code)]
   pub fn validate(&self) -> Result<()> {
     let path = Path::new(&self.path);
 
@@ -58,7 +59,6 @@ impl SimpleFileSegment {
     context: &ScanContext,
   ) -> Result<Box<BlockInputStream>>
   {
-    let file = File::open(&self.path)?;
     let blocks = BlockHandles::new();
 
     let scan_node = context.scan_node;
@@ -74,7 +74,6 @@ impl SimpleFileSegment {
       column_names.insert(*column_id, column_schema.get_name());
     }
 
-    let column_ids = scan_node.columns.clone();
 
     Ok(Box::new(FileSegmentBlockInputStream {
       phase: ExecPhase::UnInited,

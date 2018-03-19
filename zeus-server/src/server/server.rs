@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::net::SocketAddr;
 use std::str::FromStr;
 
-use grpcio::Environment;
 use grpcio::Server as GrpcServer;
 use grpcio::EnvBuilder;
 use grpcio::ChannelBuilder;
@@ -13,11 +12,12 @@ use server::config::ZeusConfig;
 use server::config::ServerConfig;
 use super::data_service::DataService;
 use storage::StorageManager;
-use storage::CatalogManager;
 use rpc::zeus_data_grpc::create_zeus_data_service;
 use server::ServerContext;
 use storage::catalog::load as load_catalog_manager;
 use scheduler::build as build_scheduler;
+
+#[allow(dead_code)]
 pub struct ZeusServer {
   server: GrpcServer,
   context: ServerContext,

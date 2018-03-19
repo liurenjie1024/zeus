@@ -13,7 +13,7 @@ unsafe impl Sync for StorageManager {}
 unsafe impl Send for StorageManager {}
 
 impl StorageManager {
-  pub fn load(config: &ZeusConfig) -> Result<StorageManager> {
+  pub fn load(_config: &ZeusConfig) -> Result<StorageManager> {
     unimplemented!()
   }
 

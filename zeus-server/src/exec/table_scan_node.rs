@@ -1,11 +1,7 @@
-use std::vec::Vec;
-use std::collections::HashMap;
 
-use util::cow_ptr::CowPtr;
 use util::error::Result;
 use util::error::Error;
 use storage::ErrorKind as DBErrorKind;
-use storage::column::Column;
 use storage::storage::ScanContext;
 use super::ExecNode;
 use super::ExecContext;
@@ -14,6 +10,7 @@ use storage::BlockInputStream;
 use rpc::zeus_data::ScanNode;
 use server::ServerContext;
 
+#[allow(dead_code)]
 pub struct TableScanNode {
   table_id: i32,
   input_stream: Box<BlockInputStream>,
@@ -49,7 +46,7 @@ impl TableScanNode {
 impl ExecNode for TableScanNode {
   fn open(
     &mut self,
-    context: &mut ExecContext,
+    _context: &mut ExecContext,
   ) -> Result<()>
   {
     debug!("Begin to scan..");

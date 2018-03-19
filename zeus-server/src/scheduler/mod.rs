@@ -3,8 +3,6 @@ mod cpupool_scheduler;
 use std::sync::Arc;
 use std::boxed::FnBox;
 
-use futures::BoxFuture;
-use futures::IntoFuture;
 
 use server::config::ZeusConfig;
 use self::cpupool_scheduler::CpuPoolScheduler;

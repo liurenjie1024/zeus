@@ -3,7 +3,6 @@ use std::any::Any;
 use std::sync::Arc;
 
 use rpc::zeus_meta::FieldType;
-use rpc::zeus_data::ColumnValue;
 use storage::column::Column;
 use storage::column::ColumnValueIter;
 use util::error::Result;

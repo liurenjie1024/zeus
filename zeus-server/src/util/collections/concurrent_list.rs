@@ -136,7 +136,7 @@ mod tests {
 
   #[test]
   fn test_append() {
-    let mut list: ConcurrentList<i32> = ConcurrentList::new();
+    let list: ConcurrentList<i32> = ConcurrentList::new();
 
     for x in 1..5 {
       list.append(x);
@@ -147,7 +147,7 @@ mod tests {
 
   #[test]
   fn test_iter() {
-    let mut list: ConcurrentList<i32> = ConcurrentList::new();
+    let list: ConcurrentList<i32> = ConcurrentList::new();
 
     for x in 1..5 {
       list.append(x);
@@ -167,7 +167,7 @@ mod tests {
   fn test_drop() {
     let count = Cell::new(0);
     {
-      let mut list: ConcurrentList<CountDroppable> = ConcurrentList::new();
+      let list: ConcurrentList<CountDroppable> = ConcurrentList::new();
 
       for _ in 1..5 {
         list.append(CountDroppable {

@@ -1,5 +1,4 @@
 use std::vec::Vec;
-use std::borrow::ToOwned;
 use std::boxed::Box;
 use std::iter::Iterator;
 use std::sync::Arc;

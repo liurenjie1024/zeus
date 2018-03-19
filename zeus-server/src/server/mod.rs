@@ -8,7 +8,6 @@ use std::sync::Arc;
 use storage::StorageManager;
 use storage::CatalogManager;
 use scheduler::ExecutorService;
-use util::error::Result;
 
 pub const MAX_GRPC_RECV_MSG_SIZE: usize = 10 * 1024 * 1024;
 pub const MAX_GRPC_SEND_MSG_SIZE: usize = 10 * 1024 * 1024;

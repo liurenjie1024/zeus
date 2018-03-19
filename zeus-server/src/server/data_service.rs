@@ -6,10 +6,8 @@ use rpc::zeus_data_grpc::ZeusDataService;
 use rpc::zeus_data::QueryRequest;
 use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::RowResult;
-use rpc::zeus_data::ColumnValue;
 use rpc::zeus_data::StatusCode;
 use exec::DAGExecutor;
-use util::error::Result;
 use util::error::Error;
 
 use grpcio::RpcContext;
@@ -49,7 +47,8 @@ impl ZeusDataService for DataService {
 
     let task = DAGExecutor::task(req, sender, self.server_context.clone());
 
-    self.server_context.query_scheduler.submit(task);
+    //TODO: Handle error here.
+    self.server_context.query_scheduler.submit(task).ok().unwrap();
 
     let future = receiver
       .map_err(|e| Error::from(e))

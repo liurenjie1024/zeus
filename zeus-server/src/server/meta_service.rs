@@ -11,9 +11,9 @@ pub struct MetaService {}
 impl ZeusMetaService for MetaService {
   fn get_db_schema(
     &self,
-    ctx: RpcContext,
-    req: GetSchemaRequest,
-    sink: UnarySink<GetSchemaResponse>,
+    _ctx: RpcContext,
+    _req: GetSchemaRequest,
+    _sink: UnarySink<GetSchemaResponse>,
   )
   {
     unimplemented!()

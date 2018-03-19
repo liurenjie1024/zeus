@@ -2,9 +2,6 @@ pub mod table_scan_node;
 
 use std::boxed::Box;
 use std::vec::Vec;
-use std::borrow::Cow;
-use std::clone::Clone;
-use std::convert::Into;
 
 use futures::sync::oneshot::Sender;
 
@@ -13,10 +10,8 @@ use util::cow_ptr::CowPtr;
 use util::error::Result;
 use rpc::zeus_data::RowResult;
 use rpc::zeus_data::QueryRequest;
-use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::PlanNode;
 use rpc::zeus_data::PlanNodeType;
-use rpc::zeus_data::QueryPlan;
 use scheduler::Task;
 use storage::column::ColumnValueIter;
 use server::ServerContext;
@@ -63,7 +58,7 @@ pub enum ExecPhase {
 
 pub struct ExecContext {}
 
-trait ExecNode: Send + 'static {
+pub trait ExecNode: Send + 'static {
   fn open(
     &mut self,
     context: &mut ExecContext,
@@ -99,7 +94,10 @@ impl DAGExecutor {
           dag.run();
         },
         Err(e) => {
-          sender.send(Err(e));
+          sender.send(Err(e))
+            .err()
+            .iter()
+            .for_each(|e| error!("Failed to send error: {:?}", e));
         },
       }
     };
@@ -185,6 +183,7 @@ impl DAGExecutor {
   }
 }
 
+#[cfg(test)]
 mod tests {
   use std::vec::Vec;
 
@@ -210,7 +209,7 @@ mod tests {
   impl ExecNode for MemoryBlocks {
     fn open(
       &mut self,
-      context: &mut ExecContext,
+      _context: &mut ExecContext,
     ) -> Result<()>
     {
       Ok(())
