@@ -19,8 +19,6 @@ use storage::column::Column;
 use util::error::Result;
 use util::cow_ptr::CowPtr;
 use exec::Block;
-use rpc::zeus_data::ScanNode;
-use rpc::zeus_meta::ZeusTableSchema;
 
 pub use self::block_input_stream::BlockInputStream;
 pub use self::storage_manager::StorageManager;

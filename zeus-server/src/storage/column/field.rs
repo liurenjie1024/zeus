@@ -18,7 +18,6 @@ impl Into<ColumnValue> for u8 {
   }
 }
 
-
 impl Into<ColumnValue> for f32 {
   fn into(self) -> ColumnValue {
     let mut v = ColumnValue::new();

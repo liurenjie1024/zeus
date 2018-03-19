@@ -34,7 +34,7 @@ impl ColumnWithInfo {
     ColumnWithInfo {
       name: "".to_string(),
       id: None,
-      column: CowPtr::Owned(column)
+      column: CowPtr::Owned(column),
     }
   }
 }
@@ -48,7 +48,7 @@ impl Block {
   pub fn from(columns: Vec<ColumnWithInfo>) -> Block {
     Block {
       columns,
-      eof: true
+      eof: true,
     }
   }
 }
@@ -203,7 +203,6 @@ mod tests {
   use storage::column::column_vector::ColumnVector;
   use util::error::Result;
 
-
   struct MemoryBlocks {
     blocks: Vec<Block>,
   }
@@ -234,22 +233,22 @@ mod tests {
   fn test_run() {
     let column1 = ColumnVector::create(FieldType::BOOL, vec![true, false]).ok().unwrap();
     let column2 = ColumnVector::create(FieldType::INT64, vec![12i64, 14i64]).ok().unwrap();
-    let block1 =  vec![ColumnWithInfo::from(box column1), ColumnWithInfo::from(box column2)];
+    let block1 = vec![ColumnWithInfo::from(box column1), ColumnWithInfo::from(box column2)];
     let block1 = Block::from(block1);
 
     let column3 = ColumnVector::create(FieldType::BOOL, vec![false, true]).ok().unwrap();
     let column4 = ColumnVector::create(FieldType::INT64, vec![100000i64, 54321i64]).ok().unwrap();
-    let block2 =  vec![ColumnWithInfo::from(box column3), ColumnWithInfo::from(box column4)];
+    let block2 = vec![ColumnWithInfo::from(box column3), ColumnWithInfo::from(box column4)];
     let block2 = Block::from(block2);
 
     let mem_blocks = box MemoryBlocks {
-      blocks: vec![block1, block2]
+      blocks: vec![block1, block2],
     };
 
     let (sender, mut receiver) = channel();
     let dag = DAGExecutor {
       root: mem_blocks,
-      sender
+      sender,
     };
 
     dag.run();
@@ -259,14 +258,19 @@ mod tests {
       to_row_result(false, 100000i64),
       to_row_result(true, 54321i64),
       to_row_result(true, 12i64),
-      to_row_result(false, 14i64)];
+      to_row_result(false, 14i64),
+    ];
     match result {
       Async::Ready(t) => assert_eq!(expected_rows, t.ok().unwrap()),
-      Async::NotReady => assert!(false, "Result should be ready!")
+      Async::NotReady => assert!(false, "Result should be ready!"),
     }
   }
 
-  fn to_row_result(v1: bool, v2: i64) -> RowResult {
+  fn to_row_result(
+    v1: bool,
+    v2: i64,
+  ) -> RowResult
+  {
     let mut r = RowResult::new();
 
     let mut c1 = ColumnValue::new();

@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::boxed::Box;
 use std::any::Any;
 use std::ops::Deref;
-use std::ops::DerefMut;
 
 pub trait ToBoxedOwned {
   fn to_boxed_owned(&self) -> Box<Any>;
@@ -46,7 +45,6 @@ mod tests {
   use super::CowPtr;
   use std::sync::Arc;
   use std::any::Any;
-  use std::fmt::Debug;
 
   #[derive(PartialEq, Eq, Debug, Copy, Clone)]
   struct TestStruct {

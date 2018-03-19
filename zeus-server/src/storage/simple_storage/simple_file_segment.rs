@@ -158,7 +158,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 
       let file_ref: &mut File = self.file.as_mut().unwrap();
       file_ref.seek(SeekFrom::Start(column_start))?;
-      file_ref.read_exact(&mut buf);
+      file_ref.read_exact(&mut buf)?;
 
       let column = column_factory.create_column(&buf)?;
       columns.push(ColumnWithInfo {

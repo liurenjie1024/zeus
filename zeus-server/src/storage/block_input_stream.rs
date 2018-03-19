@@ -52,7 +52,7 @@ impl BlockInputStream for CombinedBlockInputStream {
     if block.eof {
       self.idx += 1;
       self.need_open = true;
-      cur_stream.close();
+      cur_stream.close()?;
     }
 
     if !block.eof || !is_last_stream {

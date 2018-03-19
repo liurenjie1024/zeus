@@ -10,7 +10,7 @@ use util::error::Result;
 use util::cow_ptr::ToBoxedOwned;
 
 pub struct ColumnString {
-  offsets: Arc<Vec<usize>> ,
+  offsets: Arc<Vec<usize>>,
   chars: Arc<Vec<u8>>,
 }
 
@@ -44,7 +44,7 @@ impl ColumnString {
   {
     Ok(ColumnString {
       offsets: Arc::new(offsets),
-      chars: Arc::new(chars)
+      chars: Arc::new(chars),
     })
   }
 }
