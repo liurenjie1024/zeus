@@ -35,7 +35,7 @@ impl SimpleTable {
     table_id: i32,
   ) -> Result<SimpleTable>
   {
-    let mut playlist_path = PathBuf::from(&*(config.root_path));
+    let mut playlist_path = PathBuf::from(&config.root_path);
     playlist_path.push(table_id.to_string());
     playlist_path.push(TABLE_PLAYLIST_FILE);
 
@@ -52,7 +52,7 @@ impl SimpleTable {
         break;
       }
 
-      let mut seg_path = PathBuf::from(&*(config.root_path));
+      let mut seg_path = PathBuf::from(&config.root_path);
       seg_path.push(table_id.to_string());
       seg_path.push(line);
 

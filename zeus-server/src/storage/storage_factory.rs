@@ -18,7 +18,7 @@ impl StorageFactory {
     config: &ZeusConfig
   ) -> Result<Arc<Storage>> {
     match storage_type {
-      "simple" => Ok(Arc::new(SimpleTable::new(&config.storage_config, table_id)?)),
+      "simple" => Ok(Arc::new(SimpleTable::new(&config.storage, table_id)?)),
       s => {
         error!("Unrecognized storage type: {}", s);
         Err(Error::DBError(DBErrorKind::InvalidStorageType))

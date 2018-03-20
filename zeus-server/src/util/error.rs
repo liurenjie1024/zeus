@@ -2,6 +2,8 @@ use std::convert::Into;
 use std::result;
 
 use futures::sync::oneshot::Canceled;
+use toml::ser::Error as TomlSerError;
+use toml::de::Error as TomlDeError;
 
 use grpcio::Error as GrpcError;
 use protobuf::error::ProtobufError;
@@ -32,6 +34,10 @@ pub enum Error {
   }
   ServerError {
     from(Canceled)
+  }
+  SerdeError {
+    from(TomlSerError)
+    from(TomlDeError)
   }
 }
 }

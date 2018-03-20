@@ -32,7 +32,7 @@ impl ZeusServer {
     let context = ServerContext::new(storage_manager, catalog_manager, query_scheudler);
 
     Ok(ZeusServer {
-      server: ZeusServer::create_grpc_server(&config.server_config, context.clone())?,
+      server: ZeusServer::create_grpc_server(&config.server, context.clone())?,
       context,
     })
   }

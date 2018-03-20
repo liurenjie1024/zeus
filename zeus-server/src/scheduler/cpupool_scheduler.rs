@@ -18,7 +18,7 @@ impl CpuPoolScheduler {
   ) -> CpuPoolScheduler
   {
     let cpu_pool =
-      CpuPoolBuilder::new().pool_size(config.query_config.worker_size).name_prefix(name).create();
+      CpuPoolBuilder::new().pool_size(config.query.worker_size).name_prefix(name).create();
 
     CpuPoolScheduler {
       cpu_pool,
@@ -75,7 +75,7 @@ mod tests {
   #[test]
   fn test_sumbit_task() {
     let mut config = ZeusConfig::default();
-    config.query_config.worker_size = 4;
+    config.query.worker_size = 4;
 
     let scheduler = CpuPoolScheduler::new("test-runner", &config);
 
