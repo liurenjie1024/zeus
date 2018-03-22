@@ -10,7 +10,33 @@
     <version>0.0.1-SNAPSHOT</version>
     <modules>
         <module>zeus-client</module>
+        <module>zeus-batch</module>
     </modules>
 
+    <properties>
+        <scala.version>2.12.5</scala.version>
+        <scala.binary>2.12</scala.binary>
+    </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>${scala.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>net.alchim31.maven</groupId>
+                    <artifactId>scala-maven-plugin</artifactId>
+                    <version>3.3.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
