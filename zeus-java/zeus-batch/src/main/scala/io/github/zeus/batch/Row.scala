@@ -1,6 +1,9 @@
 package io.github.zeus.batch
 
 /**
-  * Created by liurenjie on 22/03/2018.
+  * The key of columns is column id, value is column value.
+  * @param columns
   */
-class Row(private val columns: Array[Any])
+class Row(private val columns: Map[Int, Any]) {
+  def getColumnValue(columnId: Int): Option[Any] = columns.get(columnId)
+}

@@ -14,6 +14,7 @@ message ZeusTableSchema {
     string name = 1;
     int32 id = 2;
     map<int32, ZeusColumnSchema> fields = 3;
+    string format = 4;
 }
 
 enum FieldType {
