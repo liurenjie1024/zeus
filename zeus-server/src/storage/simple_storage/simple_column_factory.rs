@@ -141,9 +141,10 @@ impl ColumnFactory for StringColumnFactory {
     raw_data: &[u8],
   ) -> Result<Box<Column>>
   {
-    let mut indexes: Vec<usize> = Vec::with_capacity(self.column_size);
+    let mut indexes: Vec<usize> = Vec::with_capacity(self.column_size+1);
     let mut cursor = Cursor::new(raw_data);
 
+    indexes.push(0 as usize);
     for _ in 0..self.column_size {
       indexes.push(cursor.get_i32::<BigEndian>() as usize);
     }

@@ -1,24 +1,26 @@
 package io.github.zeus.batch.format.simple
 
-import java.io.OutputStream
-
+import com.google.protobuf.CodedOutputStream
+import io.github.zeus.batch.format.simple.FieldHelper._
+import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream._
+import io.github.zeus.batch.format.simple.serde.ColumnOutputStream
 import io.github.zeus.batch.{Row, TableOutputStream, TableOutputStreamBuilder}
-import io.github.zeus.format.simple.{BlockHandle, BlockHandles}
+import io.github.zeus.format.simple.{BlockHandle, BlockHandles, ColumnHandle}
 
-import scala.collection.JavaConversions._
-import SimpleSegmentOutputStream._
+import scala.math.max
+import scala.collection.JavaConverters._
+
 
 class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends TableOutputStream {
-  private val destination: OutputStream = builder.getOutputStream
+  private val destination: ColumnOutputStream = new ColumnOutputStream(builder.getOutput)
+
 
   private val blockRowNum = builder.config.getProperty("simple.block.row.num").toInt
   require(blockRowNum > 0)
 
   private val block: Array[Row] = Array.fill(blockRowNum)(null)
   private var nextIndex: Int = 0
-  private val blockHandles = new BlockHandles.Builder()
-    .setBlockColumnSize(blockRowNum)
-    .build()
+  private val blockHandlesBuilder = BlockHandles.newBuilder()
 
   private var headerWritten: Boolean = false
 
@@ -43,29 +45,56 @@ class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends Table
   }
 
   private def writeBlockAndClear: Unit = {
-    val blockStart = blockHandles.getHandlesList.lastOption
+    val blockStart = blockHandlesBuilder.getHandlesList.asScala.lastOption
       .map(_.getEnd)
-      .getOrElse(MagicNumer.length+VERSION.length)
+      .getOrElse((MagicNumber.length+VERSION.length).toLong)
 
-    val blockHandle = new BlockHandle.Builder()
+    val blockHandleBuilder = BlockHandle.newBuilder()
       .setStart(blockStart)
+
+    val nonEmptyBlocks = block.take(nextIndex)
+    var columnStart = blockStart
+    for (columnSchema <- builder.tableSchema.getFieldsMap.values().asScala) {
+      val columnId = columnSchema.getId
+      val column = nonEmptyBlocks
+        .map(_.getColumnValue(columnId).get)
+        .iterator
+
+      val bytesWritten = columnSchema.getFieldType
+        .serialize(column, destination)
+
+      val columnHandle = ColumnHandle.newBuilder()
+        .setStart(columnStart)
+        .setEnd(columnStart + bytesWritten)
+        .build()
+      blockHandleBuilder.putColumns(columnId, columnHandle)
+      columnStart += bytesWritten
+    }
+
+    val blockHandle =  blockHandleBuilder.setEnd(columnStart)
+      .setBlockColumnSize(nonEmptyBlocks.length)
       .build()
 
-    var nextColumnStart = blockStart
-    for (columnSchema <- builder.tableSchema.getFieldsMap.values()) {
-      block.map(_.getColumnValue(columnSchema.getId))
+    blockHandlesBuilder.addHandles(blockHandle)
+      .setMaxBlockColumnSize(max(blockHandlesBuilder.getMaxBlockColumnSize, nonEmptyBlocks.length))
 
-    }
+    block.indices.foreach(idx => block(idx) = null)
+    nextIndex = 0
   }
 
   private def isBlockFull: Boolean = {
     nextIndex >= block.length
   }
 
-  private def writeBlockIndexes: Unit = ???
+  private def writeBlockIndexes: Unit = {
+    val output = CodedOutputStream.newInstance(destination.getOutput)
+    blockHandlesBuilder.build()
+      .writeTo(output)
+    destination.write(output.getTotalBytesWritten)
+  }
 
   private def writeHeader: Unit = {
-    destination.write(MagicNumer)
+    destination.write(MagicNumber)
     destination.write(VERSION)
 
     headerWritten = true
@@ -74,6 +103,6 @@ class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends Table
 }
 
 object SimpleSegmentOutputStream {
-  private val MagicNumer = Array(0xAA, 0xBB, 0xCC, 0xDD).map(_.toByte)
+  private val MagicNumber = Array(0xAA, 0xBB, 0xCC, 0xDD).map(_.toByte)
   private val VERSION = Array(0x00, 0x00, 0x00, 0x01).map(_.toByte)
 }

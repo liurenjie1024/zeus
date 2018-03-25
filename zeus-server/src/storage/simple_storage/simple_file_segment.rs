@@ -120,7 +120,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     for (column_id, column_type) in self.column_types.iter() {
       self.column_factories.insert(
         *column_id,
-        create_column_factory(*column_type, self.blocks.get_block_column_size() as usize),
+        create_column_factory(*column_type, self.blocks.get_max_block_column_size() as usize),
       );
     }
 

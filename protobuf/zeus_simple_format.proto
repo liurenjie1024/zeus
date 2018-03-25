@@ -12,9 +12,10 @@ message BlockHandle {
     int64 start = 1;
     int64 end = 2; // exclusive
     map<int32, ColumnHandle> columns = 3;
+    int32 block_column_size = 4;
 }
 
 message BlockHandles {
     repeated BlockHandle handles = 1;
-    int32 block_column_size = 2;
+    int32 max_block_column_size = 2;
 }

@@ -239,6 +239,7 @@ pub struct BlockHandle {
     pub start: i64,
     pub end: i64,
     pub columns: ::std::collections::HashMap<i32, ColumnHandle>,
+    pub block_column_size: i32,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -340,6 +341,29 @@ impl BlockHandle {
     fn mut_columns_for_reflect(&mut self) -> &mut ::std::collections::HashMap<i32, ColumnHandle> {
         &mut self.columns
     }
+
+    // int32 block_column_size = 4;
+
+    pub fn clear_block_column_size(&mut self) {
+        self.block_column_size = 0;
+    }
+
+    // Param is passed by value, moved
+    pub fn set_block_column_size(&mut self, v: i32) {
+        self.block_column_size = v;
+    }
+
+    pub fn get_block_column_size(&self) -> i32 {
+        self.block_column_size
+    }
+
+    fn get_block_column_size_for_reflect(&self) -> &i32 {
+        &self.block_column_size
+    }
+
+    fn mut_block_column_size_for_reflect(&mut self) -> &mut i32 {
+        &mut self.block_column_size
+    }
 }
 
 impl ::protobuf::Message for BlockHandle {
@@ -368,6 +392,13 @@ impl ::protobuf::Message for BlockHandle {
                 3 => {
                     ::protobuf::rt::read_map_into::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ColumnHandle>>(wire_type, is, &mut self.columns)?;
                 },
+                4 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_int32()?;
+                    self.block_column_size = tmp;
+                },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
@@ -387,6 +418,9 @@ impl ::protobuf::Message for BlockHandle {
             my_size += ::protobuf::rt::value_size(2, self.end, ::protobuf::wire_format::WireTypeVarint);
         }
         my_size += ::protobuf::rt::compute_map_size::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ColumnHandle>>(3, &self.columns);
+        if self.block_column_size != 0 {
+            my_size += ::protobuf::rt::value_size(4, self.block_column_size, ::protobuf::wire_format::WireTypeVarint);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -400,6 +434,9 @@ impl ::protobuf::Message for BlockHandle {
             os.write_int64(2, self.end)?;
         }
         ::protobuf::rt::write_map_with_cached_sizes::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ColumnHandle>>(3, &self.columns, os)?;
+        if self.block_column_size != 0 {
+            os.write_int32(4, self.block_column_size)?;
+        }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
     }
@@ -459,6 +496,11 @@ impl ::protobuf::MessageStatic for BlockHandle {
                     BlockHandle::get_columns_for_reflect,
                     BlockHandle::mut_columns_for_reflect,
                 ));
+                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
+                    "block_column_size",
+                    BlockHandle::get_block_column_size_for_reflect,
+                    BlockHandle::mut_block_column_size_for_reflect,
+                ));
                 ::protobuf::reflect::MessageDescriptor::new::<BlockHandle>(
                     "BlockHandle",
                     fields,
@@ -474,6 +516,7 @@ impl ::protobuf::Clear for BlockHandle {
         self.clear_start();
         self.clear_end();
         self.clear_columns();
+        self.clear_block_column_size();
         self.unknown_fields.clear();
     }
 }
@@ -494,7 +537,7 @@ impl ::protobuf::reflect::ProtobufValue for BlockHandle {
 pub struct BlockHandles {
     // message fields
     pub handles: ::protobuf::RepeatedField<BlockHandle>,
-    pub block_column_size: i32,
+    pub max_block_column_size: i32,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -551,27 +594,27 @@ impl BlockHandles {
         &mut self.handles
     }
 
-    // int32 block_column_size = 2;
+    // int32 max_block_column_size = 2;
 
-    pub fn clear_block_column_size(&mut self) {
-        self.block_column_size = 0;
+    pub fn clear_max_block_column_size(&mut self) {
+        self.max_block_column_size = 0;
     }
 
     // Param is passed by value, moved
-    pub fn set_block_column_size(&mut self, v: i32) {
-        self.block_column_size = v;
+    pub fn set_max_block_column_size(&mut self, v: i32) {
+        self.max_block_column_size = v;
     }
 
-    pub fn get_block_column_size(&self) -> i32 {
-        self.block_column_size
+    pub fn get_max_block_column_size(&self) -> i32 {
+        self.max_block_column_size
     }
 
-    fn get_block_column_size_for_reflect(&self) -> &i32 {
-        &self.block_column_size
+    fn get_max_block_column_size_for_reflect(&self) -> &i32 {
+        &self.max_block_column_size
     }
 
-    fn mut_block_column_size_for_reflect(&mut self) -> &mut i32 {
-        &mut self.block_column_size
+    fn mut_max_block_column_size_for_reflect(&mut self) -> &mut i32 {
+        &mut self.max_block_column_size
     }
 }
 
@@ -597,7 +640,7 @@ impl ::protobuf::Message for BlockHandles {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
                     let tmp = is.read_int32()?;
-                    self.block_column_size = tmp;
+                    self.max_block_column_size = tmp;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -615,8 +658,8 @@ impl ::protobuf::Message for BlockHandles {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
-        if self.block_column_size != 0 {
-            my_size += ::protobuf::rt::value_size(2, self.block_column_size, ::protobuf::wire_format::WireTypeVarint);
+        if self.max_block_column_size != 0 {
+            my_size += ::protobuf::rt::value_size(2, self.max_block_column_size, ::protobuf::wire_format::WireTypeVarint);
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -629,8 +672,8 @@ impl ::protobuf::Message for BlockHandles {
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
         };
-        if self.block_column_size != 0 {
-            os.write_int32(2, self.block_column_size)?;
+        if self.max_block_column_size != 0 {
+            os.write_int32(2, self.max_block_column_size)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -682,9 +725,9 @@ impl ::protobuf::MessageStatic for BlockHandles {
                     BlockHandles::mut_handles_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
-                    "block_column_size",
-                    BlockHandles::get_block_column_size_for_reflect,
-                    BlockHandles::mut_block_column_size_for_reflect,
+                    "max_block_column_size",
+                    BlockHandles::get_max_block_column_size_for_reflect,
+                    BlockHandles::mut_max_block_column_size_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<BlockHandles>(
                     "BlockHandles",
@@ -699,7 +742,7 @@ impl ::protobuf::MessageStatic for BlockHandles {
 impl ::protobuf::Clear for BlockHandles {
     fn clear(&mut self) {
         self.clear_handles();
-        self.clear_block_column_size();
+        self.clear_max_block_column_size();
         self.unknown_fields.clear();
     }
 }
@@ -719,51 +762,56 @@ impl ::protobuf::reflect::ProtobufValue for BlockHandles {
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n!protobuf/zeus_simple_format.proto\"6\n\x0cColumnHandle\x12\x14\n\x05s\
     tart\x18\x01\x20\x01(\x03R\x05start\x12\x10\n\x03end\x18\x02\x20\x01(\
-    \x03R\x03end\"\xb5\x01\n\x0bBlockHandle\x12\x14\n\x05start\x18\x01\x20\
+    \x03R\x03end\"\xe1\x01\n\x0bBlockHandle\x12\x14\n\x05start\x18\x01\x20\
     \x01(\x03R\x05start\x12\x10\n\x03end\x18\x02\x20\x01(\x03R\x03end\x123\n\
     \x07columns\x18\x03\x20\x03(\x0b2\x19.BlockHandle.ColumnsEntryR\x07colum\
-    ns\x1aI\n\x0cColumnsEntry\x12\x10\n\x03key\x18\x01\x20\x01(\x05R\x03key\
+    ns\x12*\n\x11block_column_size\x18\x04\x20\x01(\x05R\x0fblockColumnSize\
+    \x1aI\n\x0cColumnsEntry\x12\x10\n\x03key\x18\x01\x20\x01(\x05R\x03key\
     \x12#\n\x05value\x18\x02\x20\x01(\x0b2\r.ColumnHandleR\x05value:\x028\
-    \x01\"b\n\x0cBlockHandles\x12&\n\x07handles\x18\x01\x20\x03(\x0b2\x0c.Bl\
-    ockHandleR\x07handles\x12*\n\x11block_column_size\x18\x02\x20\x01(\x05R\
-    \x0fblockColumnSizeB\x20\n\x1cio.github.zeus.format.simpleP\x01J\x81\x06\
-    \n\x06\x12\x04\0\0\x13\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\x08\n\x01\
-    \x08\x12\x03\x02\03\n\x0b\n\x04\x08\xe7\x07\0\x12\x03\x02\03\n\x0c\n\x05\
-    \x08\xe7\x07\0\x02\x12\x03\x02\x07\x13\n\r\n\x06\x08\xe7\x07\0\x02\0\x12\
-    \x03\x02\x07\x13\n\x0e\n\x07\x08\xe7\x07\0\x02\0\x01\x12\x03\x02\x07\x13\
-    \n\x0c\n\x05\x08\xe7\x07\0\x07\x12\x03\x02\x142\n\x08\n\x01\x08\x12\x03\
-    \x03\0\x20\n\x0b\n\x04\x08\xe7\x07\x01\x12\x03\x03\0\x20\n\x0c\n\x05\x08\
-    \xe7\x07\x01\x02\x12\x03\x03\x07\x1a\n\r\n\x06\x08\xe7\x07\x01\x02\0\x12\
-    \x03\x03\x07\x1a\n\x0e\n\x07\x08\xe7\x07\x01\x02\0\x01\x12\x03\x03\x07\
-    \x1a\n\x0c\n\x05\x08\xe7\x07\x01\x03\x12\x03\x03\x1b\x1f\n\n\n\x02\x04\0\
-    \x12\x04\x05\0\x08\x01\n\n\n\x03\x04\0\x01\x12\x03\x05\x08\x14\n\x0b\n\
-    \x04\x04\0\x02\0\x12\x03\x06\x04\x14\n\r\n\x05\x04\0\x02\0\x04\x12\x04\
-    \x06\x04\x05\x16\n\x0c\n\x05\x04\0\x02\0\x05\x12\x03\x06\x04\t\n\x0c\n\
-    \x05\x04\0\x02\0\x01\x12\x03\x06\n\x0f\n\x0c\n\x05\x04\0\x02\0\x03\x12\
-    \x03\x06\x12\x13\n\x18\n\x04\x04\0\x02\x01\x12\x03\x07\x04\x12\"\x0b\x20\
-    exclusive\n\n\r\n\x05\x04\0\x02\x01\x04\x12\x04\x07\x04\x06\x14\n\x0c\n\
-    \x05\x04\0\x02\x01\x05\x12\x03\x07\x04\t\n\x0c\n\x05\x04\0\x02\x01\x01\
-    \x12\x03\x07\n\r\n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\x07\x10\x11\n\n\n\
-    \x02\x04\x01\x12\x04\n\0\x0e\x01\n\n\n\x03\x04\x01\x01\x12\x03\n\x08\x13\
-    \n\x0b\n\x04\x04\x01\x02\0\x12\x03\x0b\x04\x14\n\r\n\x05\x04\x01\x02\0\
-    \x04\x12\x04\x0b\x04\n\x15\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\x0b\x04\
-    \t\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x0b\n\x0f\n\x0c\n\x05\x04\x01\
-    \x02\0\x03\x12\x03\x0b\x12\x13\n\x18\n\x04\x04\x01\x02\x01\x12\x03\x0c\
-    \x04\x12\"\x0b\x20exclusive\n\n\r\n\x05\x04\x01\x02\x01\x04\x12\x04\x0c\
-    \x04\x0b\x14\n\x0c\n\x05\x04\x01\x02\x01\x05\x12\x03\x0c\x04\t\n\x0c\n\
-    \x05\x04\x01\x02\x01\x01\x12\x03\x0c\n\r\n\x0c\n\x05\x04\x01\x02\x01\x03\
-    \x12\x03\x0c\x10\x11\n\x0b\n\x04\x04\x01\x02\x02\x12\x03\r\x04)\n\r\n\
-    \x05\x04\x01\x02\x02\x04\x12\x04\r\x04\x0c\x12\n\x0c\n\x05\x04\x01\x02\
+    \x01\"i\n\x0cBlockHandles\x12&\n\x07handles\x18\x01\x20\x03(\x0b2\x0c.Bl\
+    ockHandleR\x07handles\x121\n\x15max_block_column_size\x18\x02\x20\x01(\
+    \x05R\x12maxBlockColumnSizeB\x20\n\x1cio.github.zeus.format.simpleP\x01J\
+    \xc7\x06\n\x06\x12\x04\0\0\x14\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\x08\
+    \n\x01\x08\x12\x03\x02\03\n\x0b\n\x04\x08\xe7\x07\0\x12\x03\x02\03\n\x0c\
+    \n\x05\x08\xe7\x07\0\x02\x12\x03\x02\x07\x13\n\r\n\x06\x08\xe7\x07\0\x02\
+    \0\x12\x03\x02\x07\x13\n\x0e\n\x07\x08\xe7\x07\0\x02\0\x01\x12\x03\x02\
+    \x07\x13\n\x0c\n\x05\x08\xe7\x07\0\x07\x12\x03\x02\x142\n\x08\n\x01\x08\
+    \x12\x03\x03\0\x20\n\x0b\n\x04\x08\xe7\x07\x01\x12\x03\x03\0\x20\n\x0c\n\
+    \x05\x08\xe7\x07\x01\x02\x12\x03\x03\x07\x1a\n\r\n\x06\x08\xe7\x07\x01\
+    \x02\0\x12\x03\x03\x07\x1a\n\x0e\n\x07\x08\xe7\x07\x01\x02\0\x01\x12\x03\
+    \x03\x07\x1a\n\x0c\n\x05\x08\xe7\x07\x01\x03\x12\x03\x03\x1b\x1f\n\n\n\
+    \x02\x04\0\x12\x04\x05\0\x08\x01\n\n\n\x03\x04\0\x01\x12\x03\x05\x08\x14\
+    \n\x0b\n\x04\x04\0\x02\0\x12\x03\x06\x04\x14\n\r\n\x05\x04\0\x02\0\x04\
+    \x12\x04\x06\x04\x05\x16\n\x0c\n\x05\x04\0\x02\0\x05\x12\x03\x06\x04\t\n\
+    \x0c\n\x05\x04\0\x02\0\x01\x12\x03\x06\n\x0f\n\x0c\n\x05\x04\0\x02\0\x03\
+    \x12\x03\x06\x12\x13\n\x18\n\x04\x04\0\x02\x01\x12\x03\x07\x04\x12\"\x0b\
+    \x20exclusive\n\n\r\n\x05\x04\0\x02\x01\x04\x12\x04\x07\x04\x06\x14\n\
+    \x0c\n\x05\x04\0\x02\x01\x05\x12\x03\x07\x04\t\n\x0c\n\x05\x04\0\x02\x01\
+    \x01\x12\x03\x07\n\r\n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\x07\x10\x11\n\
+    \n\n\x02\x04\x01\x12\x04\n\0\x0f\x01\n\n\n\x03\x04\x01\x01\x12\x03\n\x08\
+    \x13\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x0b\x04\x14\n\r\n\x05\x04\x01\x02\
+    \0\x04\x12\x04\x0b\x04\n\x15\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\x0b\
+    \x04\t\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x0b\n\x0f\n\x0c\n\x05\x04\
+    \x01\x02\0\x03\x12\x03\x0b\x12\x13\n\x18\n\x04\x04\x01\x02\x01\x12\x03\
+    \x0c\x04\x12\"\x0b\x20exclusive\n\n\r\n\x05\x04\x01\x02\x01\x04\x12\x04\
+    \x0c\x04\x0b\x14\n\x0c\n\x05\x04\x01\x02\x01\x05\x12\x03\x0c\x04\t\n\x0c\
+    \n\x05\x04\x01\x02\x01\x01\x12\x03\x0c\n\r\n\x0c\n\x05\x04\x01\x02\x01\
+    \x03\x12\x03\x0c\x10\x11\n\x0b\n\x04\x04\x01\x02\x02\x12\x03\r\x04)\n\r\
+    \n\x05\x04\x01\x02\x02\x04\x12\x04\r\x04\x0c\x12\n\x0c\n\x05\x04\x01\x02\
     \x02\x06\x12\x03\r\x04\x1c\n\x0c\n\x05\x04\x01\x02\x02\x01\x12\x03\r\x1d\
-    $\n\x0c\n\x05\x04\x01\x02\x02\x03\x12\x03\r'(\n\n\n\x02\x04\x02\x12\x04\
-    \x10\0\x13\x01\n\n\n\x03\x04\x02\x01\x12\x03\x10\x08\x14\n\x0b\n\x04\x04\
-    \x02\x02\0\x12\x03\x11\x04%\n\x0c\n\x05\x04\x02\x02\0\x04\x12\x03\x11\
-    \x04\x0c\n\x0c\n\x05\x04\x02\x02\0\x06\x12\x03\x11\r\x18\n\x0c\n\x05\x04\
-    \x02\x02\0\x01\x12\x03\x11\x19\x20\n\x0c\n\x05\x04\x02\x02\0\x03\x12\x03\
-    \x11#$\n\x0b\n\x04\x04\x02\x02\x01\x12\x03\x12\x04\x20\n\r\n\x05\x04\x02\
-    \x02\x01\x04\x12\x04\x12\x04\x11%\n\x0c\n\x05\x04\x02\x02\x01\x05\x12\
-    \x03\x12\x04\t\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03\x12\n\x1b\n\x0c\n\
-    \x05\x04\x02\x02\x01\x03\x12\x03\x12\x1e\x1fb\x06proto3\
+    $\n\x0c\n\x05\x04\x01\x02\x02\x03\x12\x03\r'(\n\x0b\n\x04\x04\x01\x02\
+    \x03\x12\x03\x0e\x04\x20\n\r\n\x05\x04\x01\x02\x03\x04\x12\x04\x0e\x04\r\
+    )\n\x0c\n\x05\x04\x01\x02\x03\x05\x12\x03\x0e\x04\t\n\x0c\n\x05\x04\x01\
+    \x02\x03\x01\x12\x03\x0e\n\x1b\n\x0c\n\x05\x04\x01\x02\x03\x03\x12\x03\
+    \x0e\x1e\x1f\n\n\n\x02\x04\x02\x12\x04\x11\0\x14\x01\n\n\n\x03\x04\x02\
+    \x01\x12\x03\x11\x08\x14\n\x0b\n\x04\x04\x02\x02\0\x12\x03\x12\x04%\n\
+    \x0c\n\x05\x04\x02\x02\0\x04\x12\x03\x12\x04\x0c\n\x0c\n\x05\x04\x02\x02\
+    \0\x06\x12\x03\x12\r\x18\n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03\x12\x19\
+    \x20\n\x0c\n\x05\x04\x02\x02\0\x03\x12\x03\x12#$\n\x0b\n\x04\x04\x02\x02\
+    \x01\x12\x03\x13\x04$\n\r\n\x05\x04\x02\x02\x01\x04\x12\x04\x13\x04\x12%\
+    \n\x0c\n\x05\x04\x02\x02\x01\x05\x12\x03\x13\x04\t\n\x0c\n\x05\x04\x02\
+    \x02\x01\x01\x12\x03\x13\n\x1f\n\x0c\n\x05\x04\x02\x02\x01\x03\x12\x03\
+    \x13\"#b\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {
