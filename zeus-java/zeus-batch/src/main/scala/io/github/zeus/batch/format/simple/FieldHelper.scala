@@ -1,7 +1,6 @@
 package io.github.zeus.batch.format.simple
 
-implicit import io.github.zeus.batch.format.simple.serde.{BooleanColumnSerde, ByteColumnSerde,
- ColumnOutputStream, ColumnSerde}
+import io.github.zeus.batch.format.simple.serde._
 import io.github.zeus.rpc.FieldType
 import io.github.zeus.rpc.FieldType._
 
@@ -13,8 +12,14 @@ object FieldHelper {
   implicit class FieldImprovement(private val filedType: FieldType) {
     def serialize(values: Iterator[Any], output: ColumnOutputStream): Int = {
       filedType match {
-        case BOOL => BooleanColumnSerde.serialize(values.map(_.asInstanceOf[Byte]), output)
-        case BYTE => BooleanColumnSerde.serialize(va)
+        case BOOL => BooleanColumnSerde.serialize(values.map(_.asInstanceOf[Boolean]), output)
+        case BYTE => ByteColumnSerde.serialize(values.map(_.asInstanceOf[Byte]), output)
+        case FLOAT => FloatColumnSerde.serialize(values.map(_.asInstanceOf[Float]), output)
+        case INT32 => IntColumnSerde.serialize(values.map(_.asInstanceOf[Int]), output)
+        case INT64 => LongColumnSerde.serialize(values.map(_.asInstanceOf[Long]), output)
+        case STRING => StringColumnSerde.serialize(values.map(_.asInstanceOf[String]), output)
+        case TIMESTAMP => LongColumnSerde.serialize(values.map(_.asInstanceOf[Long]), output)
+        case t => throw new IllegalArgumentException(s"Unrecognized field type: ${t.name()}")
       }
     }
     

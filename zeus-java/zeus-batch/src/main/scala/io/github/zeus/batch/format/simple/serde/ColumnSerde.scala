@@ -63,6 +63,22 @@ object FloatColumnSerde extends ColumnSerde[Float] {
   }
 }
 
+object IntColumnSerde extends ColumnSerde[Int] {
+  /**
+    * Serialize column to output stream.
+    *
+    * @param column
+    * @param output
+    * @return Bytes written.
+    */
+  override def serialize(
+    column: Iterator[Int],
+    output: ColumnOutputStream): Int = {
+    column.map(output.write)
+      .sum
+  }
+}
+
 object LongColumnSerde extends ColumnSerde[Long] {
   /**
     * Serialize column to output stream.
@@ -89,15 +105,17 @@ object StringColumnSerde extends ColumnSerde[String] {
     val buffer = new ByteArrayOutputStream()
     val bufferOutput = new ColumnOutputStream(buffer)
 
+    var bytesWritten = 0
     var pos = 0
     for (s <- column) {
       pos += bufferOutput.write(s)
-      output.write(pos)
+      bytesWritten += output.write(pos)
     }
     bufferOutput.flush()
     bufferOutput.close()
 
-    output.write(buffer.toByteArray)
+    bytesWritten += output.write(buffer.toByteArray)
+    bytesWritten
   }
 }
 

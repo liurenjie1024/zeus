@@ -1,5 +1,7 @@
 package io.github.zeus.batch.format.simple
 
+import java.io.ByteArrayOutputStream
+
 import com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.format.simple.FieldHelper._
 import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream._
@@ -45,17 +47,21 @@ class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends Table
   }
 
   private def writeBlockAndClear: Unit = {
+    val nonEmptyBlocks = block.take(nextIndex)
+    if (nonEmptyBlocks.isEmpty) {
+      return
+    }
+
     val blockStart = blockHandlesBuilder.getHandlesList.asScala.lastOption
       .map(_.getEnd)
-      .getOrElse((MagicNumber.length+VERSION.length).toLong)
+      .getOrElse((MagicNumber.length+Version.length).toLong)
 
     val blockHandleBuilder = BlockHandle.newBuilder()
       .setStart(blockStart)
 
-    val nonEmptyBlocks = block.take(nextIndex)
     var columnStart = blockStart
-    for (columnSchema <- builder.tableSchema.getFieldsMap.values().asScala) {
-      val columnId = columnSchema.getId
+    for (columnId <- builder.tableSchema.getFieldsMap.keySet().asScala) {
+      val columnSchema = builder.tableSchema.getFieldsOrThrow(columnId)
       val column = nonEmptyBlocks
         .map(_.getColumnValue(columnId).get)
         .iterator
@@ -87,15 +93,19 @@ class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends Table
   }
 
   private def writeBlockIndexes: Unit = {
-    val output = CodedOutputStream.newInstance(destination.getOutput)
+    val buffer = new ByteArrayOutputStream()
+    val output = CodedOutputStream.newInstance(buffer)
     blockHandlesBuilder.build()
       .writeTo(output)
-    destination.write(output.getTotalBytesWritten)
+    output.flush()
+    val indexBytes = buffer.toByteArray
+    destination.write(indexBytes)
+    destination.write(indexBytes.length)
   }
 
   private def writeHeader: Unit = {
     destination.write(MagicNumber)
-    destination.write(VERSION)
+    destination.write(Version)
 
     headerWritten = true
   }
@@ -103,6 +113,6 @@ class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends Table
 }
 
 object SimpleSegmentOutputStream {
-  private val MagicNumber = Array(0xAA, 0xBB, 0xCC, 0xDD).map(_.toByte)
-  private val VERSION = Array(0x00, 0x00, 0x00, 0x01).map(_.toByte)
+  private[simple] val MagicNumber = Array(0xAA, 0xBB, 0xCC, 0xDD).map(_.toByte)
+  private[simple] val Version = Array(0x00, 0x00, 0x00, 0x01).map(_.toByte)
 }
