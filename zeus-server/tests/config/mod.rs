@@ -17,7 +17,8 @@ fn test_read_config() {
   };
 
   zeus_config.storage = StorageConfig {
-    root_path: "zeus/data".to_string()
+    root_path: "zeus/data".to_string(),
+    schema_filename: "test.schema".to_string()
   };
 
   zeus_config.query = QuerySchedulerConfig {
