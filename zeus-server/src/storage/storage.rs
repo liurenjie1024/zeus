@@ -3,7 +3,7 @@ use std::sync::Arc;
 use util::error::Result;
 use rpc::zeus_data::ScanNode;
 use storage::BlockInputStream;
-use storage::CatalogManager;
+use catalog::CatalogManager;
 
 pub struct ScanContext<'a> {
   pub scan_node: &'a ScanNode,

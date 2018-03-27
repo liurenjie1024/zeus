@@ -14,7 +14,7 @@ use super::data_service::DataService;
 use storage::StorageManager;
 use rpc::zeus_data_grpc::create_zeus_data_service;
 use server::ServerContext;
-use storage::catalog::load as load_catalog_manager;
+use catalog::load as load_catalog_manager;
 use scheduler::build as build_scheduler;
 
 #[allow(dead_code)]

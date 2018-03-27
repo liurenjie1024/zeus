@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::collections::HashMap;
 
 use util::error::Result;
-use storage::catalog::CatalogManager;
+use catalog::CatalogManager;
 use storage::Storage;
 use storage::storage_factory::StorageFactory;
 use server::config::ZeusConfig;

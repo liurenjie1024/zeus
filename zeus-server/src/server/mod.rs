@@ -6,7 +6,7 @@ pub mod server;
 use std::sync::Arc;
 
 use storage::StorageManager;
-use storage::CatalogManager;
+use catalog::CatalogManager;
 use scheduler::ExecutorService;
 
 pub const MAX_GRPC_RECV_MSG_SIZE: usize = 10 * 1024 * 1024;

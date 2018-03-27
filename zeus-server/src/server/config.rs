@@ -22,6 +22,7 @@ pub struct ServerConfig {
 pub struct StorageConfig {
   /// Root storage directory
   pub root_path: String,
+  pub schema_filename: String
 }
 
 #[derive(Default,Serialize,Deserialize,Debug,Clone, Eq, PartialEq)]

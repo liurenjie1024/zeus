@@ -5,7 +5,7 @@ import java.util.Properties
 
 import com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
-import io.github.zeus.rpc.{FieldType, ZeusColumnSchema, ZeusTableSchema}
+import io.github.zeus.rpc._
 
 object SimpleSegmentGenerator {
   def main(args: Array[String]): Unit = {
@@ -57,9 +57,20 @@ object SimpleSegmentGenerator {
       .putFields(6, stringColumnSchema)
       .build()
 
+    val dbSchema = ZeusDBSchema.newBuilder()
+      .setId(1)
+      .setName("test-db")
+      .setVersion(1)
+      .putTables(1, tableSchema)
+      .build()
+
+    val catalog = ZeusCatalog.newBuilder()
+      .addDbSchemas(dbSchema)
+      .build()
+
     val schemaOutput = new FileOutputStream("/home/liurenjie-sal/Downloads/test.schema")
     val codedOutput = CodedOutputStream.newInstance(schemaOutput)
-    tableSchema.writeTo(codedOutput)
+    catalog.writeTo(codedOutput)
     codedOutput.flush()
     schemaOutput.flush()
     schemaOutput.close()
