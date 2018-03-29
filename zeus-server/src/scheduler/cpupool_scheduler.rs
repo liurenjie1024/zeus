@@ -5,7 +5,7 @@ use futures_cpupool::Builder as CpuPoolBuilder;
 use super::ExecutorService;
 use super::Task;
 use server::config::ZeusConfig;
-use util::error::Result;
+use util::errors::*;
 
 pub struct CpuPoolScheduler {
   cpu_pool: CpuPool,

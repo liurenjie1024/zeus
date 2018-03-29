@@ -6,7 +6,7 @@ use std::boxed::FnBox;
 
 use server::config::ZeusConfig;
 use self::cpupool_scheduler::CpuPoolScheduler;
-use util::error::Result;
+use util::errors::*;
 
 #[derive(Debug)]
 pub enum ErrorKind {

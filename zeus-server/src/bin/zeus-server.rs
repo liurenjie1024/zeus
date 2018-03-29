@@ -1,28 +1,62 @@
 extern crate zeus;
+extern crate clap;
+#[macro_use]
+extern crate log;
+extern crate log4rs;
+
+use std::sync::Arc;
+use std::process;
+
+use clap::{App, Arg};
+use zeus::server::config::ZeusConfig;
+use zeus::server::server::ZeusServer;
+
+macro_rules! fatal {
+  ($lvl:expr, $($arg:tt)+) => ({
+    error!($lvl, $($arg)+);
+    process::exit(1)
+  })
+}
 
 fn main() {
-  //    let config = Arc::new(Config {
-  //        server_addr: "127.0.0.1:7788".to_string(),
-  //        grpc_concurrency: 4 as usize,
-  //        grpc_concurrent_stream: 10 as usize,
-  //        grpc_stream_init_window_size: 20 as usize,
-  //        grpc_max_send_msg_len: zeus::server::MAX_GRPC_SEND_MSG_SIZE,
-  //        grpc_max_recv_msg_len: zeus::server::MAX_GRPC_RECV_MSG_SIZE,
-  //
-  //        query_concurrency: 10 as usize
-  //    });
-  //
-  //    let mut server = ZeusServer::new(config.clone())
-  //        .unwrap();
-  //    println!("Starting server...");
-  //    server.start();
-  //    println!("Starting running...");
-  //
-  //    let mut buf = String::new();
-  //    let stdin = io::stdin();
-  //    stdin.read_line(&mut buf);
+  let matches = App::new("Zeus Server")
+    .about("A time-series database written in rust!")
+    .author("liurenjie1024 <liurenjie2008@gmail.com>")
+    .arg(Arg::with_name("config")
+      .short("c")
+      .long("config")
+      .value_name("CONFIG_FILE")
+      .required(true)
+      .takes_value(true))
+    .arg(Arg::with_name("log")
+      .short("l")
+      .long("log")
+      .value_name("LOG_CONFIG_FILE")
+      .takes_value(true))
+    .get_matches();
 
-  //    println!("Stopping server...");
-  //    server.stop();
-  //    println!("Starting stopped...");
+  let log_config_file = matches.value_of("log")
+    .unwrap_or("log4rs.yml");
+  log4rs::init_file(log_config_file, Default::default())
+    .unwrap_or_else(|e| panic!("Failed to init logger: {:?}", e));
+
+
+  let config = ZeusConfig::from_toml(matches.value_of("config").unwrap())
+    .unwrap_or_else(|e| fatal!("Failed to parse config: {:?}", e));
+
+  let mut server = ZeusServer::new(Arc::new(config))
+    .unwrap_or_else(|e| fatal!("Failed to create server: {:?}", e));
+
+  server.start();
+
+  info!("zeus server started...");
+
+  let mut buf = String::new();
+  let stdin = std::io::stdin();
+  stdin.read_line(&mut buf);
+
+  info!("stopping zeus server...");
+  server.stop();
+  info!("zeus server stopped...");
 }
+

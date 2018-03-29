@@ -9,7 +9,7 @@ use std::io::BufRead;
 
 
 use server::config::StorageConfig;
-use util::error::Result;
+use util::errors::*;
 use storage::Storage;
 use storage::ScanContext;
 use storage::BlockInputStream;

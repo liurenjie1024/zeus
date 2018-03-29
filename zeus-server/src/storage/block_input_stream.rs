@@ -1,7 +1,6 @@
 use std::vec::Vec;
 
-use util::error::Result;
-use util::error::Error::DBError;
+use util::errors::*;
 use storage::ErrorKind as DBErrorKind;
 use exec::Block;
 
@@ -37,7 +36,7 @@ impl BlockInputStream for CombinedBlockInputStream {
 
   fn next(&mut self) -> Result<Block> {
     if self.idx >= self.streams.len() {
-      return Err(DBError(DBErrorKind::EOF));
+      bail!(ErrorKind::DB(DBErrorKind::EOF))
     }
 
     let is_last_stream = self.idx == (self.streams.len() - 1);

@@ -7,7 +7,7 @@ use rpc::zeus_meta::FieldType;
 use rpc::zeus_data::ColumnValue;
 use storage::column::Column;
 use storage::column::ColumnValueIter;
-use util::error::Result;
+use util::errors::*;
 use util::cow_ptr::ToBoxedOwned;
 
 pub struct ColumnString {

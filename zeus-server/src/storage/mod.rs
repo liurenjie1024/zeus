@@ -6,7 +6,7 @@ pub mod storage;
 pub mod storage_factory;
 pub mod storage_manager;
 
-use util::error::Result;
+use util::errors::*;
 
 pub use self::block_input_stream::BlockInputStream;
 pub use self::storage_manager::StorageManager;
@@ -21,5 +21,3 @@ pub enum ErrorKind {
   InvalidStorageType,
   EOF,
 }
-
-pub type StorageResult = Result<i32>;

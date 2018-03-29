@@ -5,8 +5,7 @@ use std::io::Read;
 
 use toml::from_str as toml_from_str;
 
-use util::error::Result;
-use util::error::Error;
+use util::errors::*;
 
 #[derive(Default,Serialize,Deserialize,Debug,Clone, Eq, PartialEq)]
 pub struct ServerConfig {

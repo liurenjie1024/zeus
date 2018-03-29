@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use util::error::Result;
+use util::errors::*;
 use rpc::zeus_data::ScanNode;
 use storage::BlockInputStream;
 use catalog::CatalogManager;

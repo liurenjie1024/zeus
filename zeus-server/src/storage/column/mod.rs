@@ -4,7 +4,7 @@ use std::iter::Iterator;
 use rpc::zeus_meta::FieldType;
 use rpc::zeus_data::ColumnValue;
 use util::cow_ptr::ToBoxedOwned;
-use util::error::Result;
+use util::errors::*;
 
 pub mod column_string;
 pub mod column_vector;

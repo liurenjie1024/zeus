@@ -7,7 +7,7 @@ use futures::sync::oneshot::Sender;
 
 use storage::column::Column;
 use util::cow_ptr::CowPtr;
-use util::error::Result;
+use util::errors::*;
 use rpc::zeus_data::RowResult;
 use rpc::zeus_data::QueryRequest;
 use rpc::zeus_data::PlanNode;
@@ -200,7 +200,7 @@ mod tests {
   use rpc::zeus_data::ColumnValue;
   use rpc::zeus_meta::FieldType;
   use storage::column::column_vector::ColumnVector;
-  use util::error::Result;
+  use util::errors::*;
 
   struct MemoryBlocks {
     blocks: Vec<Block>,

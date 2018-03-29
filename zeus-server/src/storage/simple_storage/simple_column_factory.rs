@@ -9,9 +9,8 @@ use storage::column::Column;
 use storage::column::{BoolColumn, ByteColumn, FloatColumn, IntColumn, LongColumn, TimestampColumn};
 use storage::column::StringColumn;
 use rpc::zeus_meta::FieldType;
-use storage::ErrorKind;
-use util::error::Result;
-use util::error::Error;
+use storage::ErrorKind as DBErrorKind;
+use util::errors::*;
 
 struct NumericColumnFactory {
   field_type: FieldType,
@@ -31,7 +30,7 @@ impl ColumnFactory for NumericColumnFactory {
       FieldType::INT32 => self.create_int_column(raw_data),
       FieldType::INT64 => self.create_long_column(raw_data),
       FieldType::TIMESTAMP => self.create_timestamp_column(raw_data),
-      FieldType::STRING => Err(Error::DBError(ErrorKind::InvalidFieldType)),
+      FieldType::STRING => bail!(ErrorKind::DB(DBErrorKind::InvalidFieldType)),
     }
   }
 }

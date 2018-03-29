@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
-use util::error::Result;
-use util::error::Error;
+use util::errors::*;
 use storage::ErrorKind as DBErrorKind;
 use server::config::ZeusConfig;
 use storage::Storage;
@@ -21,7 +20,7 @@ impl StorageFactory {
       "simple" => Ok(Arc::new(SimpleTable::new(&config.storage, table_id)?)),
       s => {
         error!("Unrecognized storage type: {}", s);
-        Err(Error::DBError(DBErrorKind::InvalidStorageType))
+        bail!(ErrorKind::DB(DBErrorKind::InvalidStorageType))
       }
     }
   }

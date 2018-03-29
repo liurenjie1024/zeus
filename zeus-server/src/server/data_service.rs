@@ -8,7 +8,7 @@ use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::RowResult;
 use rpc::zeus_data::StatusCode;
 use exec::DAGExecutor;
-use util::error::Error;
+use util::errors::*;
 
 use grpcio::RpcContext;
 use grpcio::UnarySink;

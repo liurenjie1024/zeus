@@ -9,7 +9,7 @@ use super::Column;
 use rpc::zeus_meta::FieldType;
 use rpc::zeus_data::ColumnValue;
 use util::cow_ptr::ToBoxedOwned;
-use util::error::Result;
+use util::errors::*;
 
 pub struct ColumnVector<T>
 where T: Send + Sync + Copy + Into<ColumnValue> + 'static

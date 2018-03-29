@@ -1,6 +1,5 @@
 
-use util::error::Result;
-use util::error::Error;
+use util::errors::*;
 use storage::ErrorKind as DBErrorKind;
 use storage::storage::ScanContext;
 use super::ExecNode;
@@ -37,7 +36,7 @@ impl TableScanNode {
 
       None => {
         error!("Table id {} not found.", scan_node.table_id);
-        Err(Error::DBError(DBErrorKind::TableNotFound))
+        bail!(ErrorKind::DB(DBErrorKind::TableNotFound))
       },
     }
   }

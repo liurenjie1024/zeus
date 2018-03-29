@@ -1,11 +1,11 @@
 use std::path::Path;
-use std::io::ErrorKind;
-use std::io::Error as StdIoError;
 use std::fs::File;
 use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
 use std::collections::HashMap;
+use std::io::Error as StdIoError;
+use std::io::ErrorKind as StdIoErrorKind;
 
 use bytes::{BigEndian, ByteOrder};
 use protobuf::parse_from_bytes;
@@ -18,8 +18,7 @@ use exec::ColumnWithInfo;
 use exec::ExecPhase;
 use rpc::zeus_simple_format::BlockHandles;
 use rpc::zeus_meta::FieldType;
-use util::error::Result;
-use util::error::Error;
+use util::errors::*;
 use util::cow_ptr::CowPtr;
 use storage::ErrorKind as DBErrorKind;
 use super::simple_column_factory::create_column_factory;
@@ -49,8 +48,8 @@ impl SimpleFileSegment {
     if path.exists() && path.is_file() {
       Ok(())
     } else {
-      let msg = format!("{} not found", self.path);
-      Err(Error::IoError(StdIoError::new(ErrorKind::NotFound, msg)))
+      let msg = format!("{} not found.", self.path);
+      Err(StdIoError::new(StdIoErrorKind::NotFound, msg))?
     }
   }
 
@@ -101,7 +100,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     file_ref.read_exact(&mut header)?;
 
     if &header[0..4] != MAGIC_NUM || &header[4..] != VERSION {
-      return Err(Error::DBError(DBErrorKind::InvalidHeader));
+      bail!(ErrorKind::DB(DBErrorKind::InvalidHeader))
     }
 
     let mut index_len_buf = [0 as u8; 4];
@@ -131,7 +130,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
   fn next(&mut self) -> Result<Block> {
     assert!((ExecPhase::Opened == self.phase) || (ExecPhase::Executed == self.phase));
     if self.next_block_idx >= self.blocks.get_handles().len() {
-      return Err(Error::DBError(DBErrorKind::EOF));
+      bail!(ErrorKind::DB(DBErrorKind::EOF))
     }
 
     let block_handle = self.blocks.get_handles().get(self.next_block_idx).unwrap();

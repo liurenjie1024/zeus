@@ -14,7 +14,7 @@ use std::fs::File;
 use protobuf::parse_from_reader;
 
 use server::config::ZeusConfig;
-use util::error::Result;
+use util::errors::*;
 
 pub fn load(config: &ZeusConfig) -> Result<Arc<CatalogManager>> {
   let mut schema_file_path = PathBuf::from(&config.storage.root_path);
