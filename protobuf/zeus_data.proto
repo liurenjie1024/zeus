@@ -17,6 +17,7 @@ message RowResult {
 
 enum StatusCode {
     OK = 0;
+    FAILED = 1;
 }
 
 message QueryResult {

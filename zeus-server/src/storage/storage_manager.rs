@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::collections::HashMap;
 
+use error_chain::ChainedError;
+
 use util::errors::*;
 use catalog::CatalogManager;
 use storage::Storage;
@@ -28,8 +30,8 @@ impl StorageManager {
           Ok(s) => {
             tables.insert(s.get_id(), s);
           },
-          Err(_) => {
-            info!("Failed to load storage: {}", table_schema.get_id())
+          Err(e) => {
+            info!("Failed to load storage: {}", e.display_chain())
           }
         }
       });

@@ -32,6 +32,6 @@ error_chain! {
 
 impl Into<StatusCode> for Error {
   fn into(self) -> StatusCode {
-    unimplemented!()
+    StatusCode::FAILED
   }
 }

@@ -6,8 +6,6 @@ pub mod storage;
 pub mod storage_factory;
 pub mod storage_manager;
 
-use util::errors::*;
-
 pub use self::block_input_stream::BlockInputStream;
 pub use self::storage_manager::StorageManager;
 pub use self::storage::Storage;

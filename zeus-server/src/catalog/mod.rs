@@ -20,7 +20,10 @@ pub fn load(config: &ZeusConfig) -> Result<Arc<CatalogManager>> {
   let mut schema_file_path = PathBuf::from(&config.storage.root_path);
   schema_file_path.push(&config.storage.schema_filename);
 
-  let mut file = File::open(&schema_file_path)?;
+  let err_msg = format!("Failed to load schema path: {:?}", schema_file_path);
+
+  let mut file = File::open(&schema_file_path)
+    .chain_err(|| err_msg)?;
 
   let zeus_catalog = parse_from_reader(&mut file)?;
 

@@ -1,0 +1,14 @@
+[server]
+server_addr="0.0.0.0:8899"
+grpc_concurrency = 10
+grpc_concurrent_stream = 10
+grpc_stream_init_window_size = 20
+grpc_max_send_msg_len = 10_485_760 # 10*1024*1024
+grpc_max_recv_msg_len = 10_485_760 # 10*1024*1024
+
+[storage]
+root_path="src/bin/data"
+schema_filename="test.schema"
+
+[query]
+worker_size=4

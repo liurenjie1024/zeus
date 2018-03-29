@@ -39,18 +39,26 @@ impl SimpleTable {
     playlist_path.push(table_id.to_string());
     playlist_path.push(TABLE_PLAYLIST_FILE);
 
-    let playlist_file = File::open(playlist_path)?;
+    let err_msg = format!("Failed to open playlist file: {:?}", playlist_path);
+    let playlist_file = File::open(&playlist_path)
+      .chain_err(move || err_msg)?;
     let mut playlist_file = BufReader::new(playlist_file);
 
     let mut segments = LinkedList::new();
 
     loop {
       let mut line = "".to_string();
-      let result = playlist_file.read_line(&mut line)?;
+
+      let err_msg = format!("Failed to read line from: {:?}", playlist_path);
+      let result = playlist_file.read_line(&mut line)
+        .chain_err(move || err_msg) ?;
+      debug!("read one line from {:?}: {:?}", playlist_path, line);
 
       if result == 0 {
         break;
       }
+
+      line = line.trim().to_string();
 
       let mut seg_path = PathBuf::from(&config.root_path);
       seg_path.push(table_id.to_string());

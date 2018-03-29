@@ -2,12 +2,15 @@ extern crate zeus;
 extern crate clap;
 #[macro_use]
 extern crate log;
+extern crate error_chain;
 extern crate log4rs;
+
 
 use std::sync::Arc;
 use std::process;
 
 use clap::{App, Arg};
+use error_chain::ChainedError;
 use zeus::server::config::ZeusConfig;
 use zeus::server::server::ZeusServer;
 
@@ -38,14 +41,14 @@ fn main() {
   let log_config_file = matches.value_of("log")
     .unwrap_or("log4rs.yml");
   log4rs::init_file(log_config_file, Default::default())
-    .unwrap_or_else(|e| panic!("Failed to init logger: {:?}", e));
+    .unwrap_or_else(|e| panic!("Failed to init logger: {}", e));
 
 
   let config = ZeusConfig::from_toml(matches.value_of("config").unwrap())
-    .unwrap_or_else(|e| fatal!("Failed to parse config: {:?}", e));
+    .unwrap_or_else(|e| fatal!("Failed to parse config: {}", e));
 
   let mut server = ZeusServer::new(Arc::new(config))
-    .unwrap_or_else(|e| fatal!("Failed to create server: {:?}", e));
+    .unwrap_or_else(|e| fatal!("Failed to create server: {}", e.display_chain()));
 
   server.start();
 

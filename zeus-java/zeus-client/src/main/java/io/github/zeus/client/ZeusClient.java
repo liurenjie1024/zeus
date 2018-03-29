@@ -58,22 +58,24 @@ public class ZeusClient implements AutoCloseable {
 
   public static void main(String[] args) {
     System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
-    ZeusClient client = ZeusClientBuilder.newBuilder(null, 0, "127.0.0.1", 7788)
+    ZeusClient client = ZeusClientBuilder.newBuilder(null, 0, "127.0.0.1", 8899)
       .build();
 
     PlanNode node = PlanNode.newBuilder()
       .setPlanNodeType(PlanNodeType.SCAN_NODE)
-      .setScanNode(ScanNode.newBuilder().addColumns(1).build())
+      .setScanNode(ScanNode.newBuilder()
+              .setDbId(1)
+              .setTableId(1)
+              .addColumns(1).build())
       .build();
 
     QueryPlan plan = QueryPlan.newBuilder()
-      .setPlanId(1)
+      .setPlanId(1).setRoot(node)
       .build();
 
     QueryResult result = client.query(plan);
     result.getRowsList().stream()
       .flatMap(row -> row.getColumnsList().stream())
-      .map(ColumnValue::getStringValue)
       .forEach(System.out::println);
   }
 }
