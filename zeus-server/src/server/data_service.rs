@@ -7,13 +7,16 @@ use rpc::zeus_data::QueryRequest;
 use rpc::zeus_data::QueryResult;
 use rpc::zeus_data::RowResult;
 use rpc::zeus_data::StatusCode;
+
 use exec::DAGExecutor;
+use error_chain::ChainedError;
 use util::errors::*;
 
 use grpcio::RpcContext;
 use grpcio::UnarySink;
 use protobuf::RepeatedField;
 use futures::future::Future;
+
 
 use server::ServerContext;
 
@@ -60,7 +63,10 @@ impl ZeusDataService for DataService {
             result.set_code(StatusCode::OK);
             result.set_rows(RepeatedField::from_vec(rows));
           },
-          Err(err) => result.set_code(err.into()),
+          Err(err) => {
+            info!("Query failed: {}", err.display_chain());
+            result.set_code(err.into())
+          },
         }
         result
       })

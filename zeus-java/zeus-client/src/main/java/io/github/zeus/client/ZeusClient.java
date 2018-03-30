@@ -74,6 +74,9 @@ public class ZeusClient implements AutoCloseable {
       .build();
 
     QueryResult result = client.query(plan);
+
+    System.out.println(result.getCode());
+
     result.getRowsList().stream()
       .flatMap(row -> row.getColumnsList().stream())
       .forEach(System.out::println);

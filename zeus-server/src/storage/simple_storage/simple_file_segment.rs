@@ -104,15 +104,20 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     }
 
     let mut index_len_buf = [0 as u8; 4];
-    file_ref.seek(SeekFrom::End(4))?;
+    file_ref.seek(SeekFrom::End(-4))?;
     file_ref.read_exact(&mut index_len_buf)?;
-    let index_len = BigEndian::read_u64(&index_len_buf) as usize;
+    let index_len = BigEndian::read_i32(&index_len_buf) as usize;
+    debug!("Serialized block chain size: {}", index_len);
 
     let mut block_handles_buf: Vec<u8> = Vec::with_capacity(index_len);
+    for _ in 0..index_len {
+      block_handles_buf.push(0 as u8);
+    }
     file_ref.seek(SeekFrom::Current((index_len as i64) * -1))?;
     file_ref.read_exact(&mut block_handles_buf)?;
 
     let block_handles = parse_from_bytes::<BlockHandles>(&block_handles_buf)?;
+    debug!("Block handles parsed: {:?}", block_handles);
 
     self.blocks = block_handles;
 
