@@ -100,7 +100,7 @@ class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends Table
     output.flush()
     val indexBytes = buffer.toByteArray
     println(s"Index length: ${indexBytes.length}")
-    println(s"Index bytes: ${indexBytes.mkString("[", ",", ",")}")
+    println(s"Index bytes: ${indexBytes.mkString("[", ",", "]")}")
     destination.write(indexBytes)
     destination.write(indexBytes.length)
   }

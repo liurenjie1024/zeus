@@ -113,7 +113,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     for _ in 0..index_len {
       block_handles_buf.push(0 as u8);
     }
-    file_ref.seek(SeekFrom::Current((index_len as i64) * -1))?;
+    file_ref.seek(SeekFrom::End((index_len as i64) * -1-4))?;
     file_ref.read_exact(&mut block_handles_buf)?;
     debug!("Block bytes are: {:?}", block_handles_buf);
 
