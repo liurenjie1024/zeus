@@ -115,6 +115,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     }
     file_ref.seek(SeekFrom::Current((index_len as i64) * -1))?;
     file_ref.read_exact(&mut block_handles_buf)?;
+    debug!("Block bytes are: {:?}", block_handles_buf);
 
     let block_handles = parse_from_bytes::<BlockHandles>(&block_handles_buf)?;
     debug!("Block handles parsed: {:?}", block_handles);
