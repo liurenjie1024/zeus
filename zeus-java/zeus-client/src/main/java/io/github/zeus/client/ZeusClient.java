@@ -66,7 +66,13 @@ public class ZeusClient implements AutoCloseable {
       .setScanNode(ScanNode.newBuilder()
               .setDbId(1)
               .setTableId(1)
-              .addColumns(1).build())
+              .addColumns(1)
+              .addColumns(2)
+              .addColumns(3)
+              .addColumns(4)
+              .addColumns(5)
+              .addColumns(6)
+              .build())
       .build();
 
     QueryPlan plan = QueryPlan.newBuilder()
