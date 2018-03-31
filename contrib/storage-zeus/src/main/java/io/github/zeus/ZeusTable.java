@@ -1,6 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.github.zeus;
 
-import io.github.zeus.rpc.FieldType;
+import io.github.zeus.rpc.ColumnType;
 import io.github.zeus.rpc.ZeusColumnSchema;
 import io.github.zeus.rpc.ZeusTableSchema;
 import org.apache.calcite.rel.type.RelDataType;
@@ -25,20 +43,20 @@ public class ZeusTable extends DynamicDrillTable {
 
   @Override
   public RelDataType getRowType(final RelDataTypeFactory typeFactory) {
-    List<RelDataType> dataTypes = this.tableSchema.getFieldsList().stream()
-      .map(f -> toDrillType(typeFactory, f.getFieldType()))
+    List<RelDataType> dataTypes = this.tableSchema.getColumnsMap().values().stream()
+      .map(f -> toDrillType(typeFactory, f.getColumnType()))
       .map(t -> typeFactory.createTypeWithNullability(t, false))
       .collect(Collectors.toList());
 
-    List<String> names = this.tableSchema.getFieldsList().stream()
+    List<String> names = this.tableSchema.getColumnsMap().values().stream()
       .map(ZeusColumnSchema::getName)
       .collect(Collectors.toList());
 
     return typeFactory.createStructType(dataTypes, names);
   }
 
-  private static RelDataType toDrillType(RelDataTypeFactory typeFactory, FieldType fieldType) {
-    switch (fieldType) {
+  private static RelDataType toDrillType(RelDataTypeFactory typeFactory, ColumnType columnType) {
+    switch (columnType) {
       case STRING:
         return typeFactory.createSqlType(SqlTypeName.VARCHAR);
       case FLOAT:
@@ -52,7 +70,7 @@ public class ZeusTable extends DynamicDrillTable {
       case TIMESTAMP:
         return typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
       default:
-        throw new IllegalArgumentException("Unrecognized type: " + fieldType.name());
+        throw new IllegalArgumentException("Unrecognized type: " + columnType.name());
     }
   }
 }

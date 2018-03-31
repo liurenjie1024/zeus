@@ -1,8 +1,26 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.github.zeus;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.zeus.client.ZeusClient;
-import io.github.zeus.rpc.FieldType;
+import io.github.zeus.rpc.ColumnType;
 import io.github.zeus.rpc.PlanNode;
 import io.github.zeus.rpc.PlanNodeType;
 import io.github.zeus.rpc.QueryPlan;
@@ -39,7 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.github.zeus.rpc.FieldType.INT32;
+import static io.github.zeus.rpc.ColumnType.INT32;
 
 public class ZeusRecordReader extends AbstractRecordReader {
   private static final Logger logger = LoggerFactory.getLogger(ZeusRecordReader.class);
@@ -66,13 +84,13 @@ public class ZeusRecordReader extends AbstractRecordReader {
     }
   }
 
-  static final Map<FieldType, MinorType> TYPES = ImmutableMap.<FieldType, MinorType>builder()
-    .put(FieldType.BOOL, MinorType.BIT)
-    .put(FieldType.FLOAT, MinorType.FLOAT4)
+  static final Map<ColumnType, MinorType> TYPES = ImmutableMap.<ColumnType, MinorType>builder()
+    .put(ColumnType.BOOL, MinorType.BIT)
+    .put(ColumnType.FLOAT, MinorType.FLOAT4)
     .put(INT32, MinorType.INT)
-    .put(FieldType.INT64, MinorType.BIGINT)
-    .put(FieldType.TIMESTAMP, MinorType.TIMESTAMP)
-    .put(FieldType.STRING, MinorType.VARBINARY)
+    .put(ColumnType.INT64, MinorType.BIGINT)
+    .put(ColumnType.TIMESTAMP, MinorType.TIMESTAMP)
+    .put(ColumnType.STRING, MinorType.VARBINARY)
     .build();
 
   public ZeusRecordReader(ZeusClient zeusClient, ZeusSubScan zeusSubScan,
@@ -97,14 +115,15 @@ public class ZeusRecordReader extends AbstractRecordReader {
 
     try {
       zeusDBSchema = zeusClient.getDBSchema(zeusSubScan.getDbName());
-      zeusTableSchema = zeusDBSchema.getTablesList()
+      zeusTableSchema = zeusDBSchema.getTablesMap().values()
         .stream()
         .filter(t -> t.getName().equals(zeusSubScan.getTableName()))
         .findFirst()
         .get();
 
       columnInfos = zeusTableSchema
-        .getFieldsList()
+        .getColumnsMap()
+        .values()
         .stream()
         .filter(f -> columnNames.contains(f.getName()))
         .map(f -> new ProjectColumnInfo(createValueVector(f), f))
@@ -143,7 +162,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
   }
 
   private ValueVector createValueVector(ZeusColumnSchema zeusColumnSchema) {
-    MinorType minorType = TYPES.get(zeusColumnSchema.getFieldType());
+    MinorType minorType = TYPES.get(zeusColumnSchema.getColumnType());
     MajorType majorType = Types.required(minorType);
 
     MaterializedField materializedField = MaterializedField.create(
@@ -163,20 +182,27 @@ public class ZeusRecordReader extends AbstractRecordReader {
   }
 
   private QueryPlan buildQueryPlan(Set<String> columns) {
+    List<Integer> columnIds = zeusTableSchema.getColumnsMap()
+      .values()
+      .stream()
+      .filter(f -> columns.contains(f.getName()))
+      .map(ZeusColumnSchema::getId)
+      .collect(Collectors.toList());
+
     ScanNode scanNode = ScanNode.newBuilder()
       .setDbId(zeusDBSchema.getId())
       .setTableId(zeusTableSchema.getId())
-      .addAllColumns(columns)
+      .addAllColumns(columnIds)
       .build();
 
     PlanNode planNode = PlanNode.newBuilder()
       .setScanNode(scanNode)
       .setPlanNodeType(PlanNodeType.SCAN_NODE)
-      .setChildrenNum(0)
       .build();
 
     return QueryPlan.newBuilder()
-      .addNodes(planNode)
+      .setPlanId(1)
+      .setRoot(planNode)
       .build();
   }
 
@@ -184,7 +210,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
     for (int i = 0; i < columnInfos.size(); i++) {
       ProjectColumnInfo columnInfo = columnInfos.get(i);
 
-      switch (columnInfo.zeusSchema.getFieldType()) {
+      switch (columnInfo.zeusSchema.getColumnType()) {
         case STRING: {
           ByteBuffer value = ByteBuffer.wrap(row.getColumns(i).getStringValue().getBytes());
           ((VarCharVector.Mutator) columnInfo.vv.getMutator())
