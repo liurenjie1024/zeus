@@ -516,7 +516,7 @@ pub struct ZeusTableSchema {
     // message fields
     pub name: ::std::string::String,
     pub id: i32,
-    pub fields: ::std::collections::HashMap<i32, ZeusColumnSchema>,
+    pub columns: ::std::collections::HashMap<i32, ZeusColumnSchema>,
     pub format: ::std::string::String,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
@@ -598,37 +598,37 @@ impl ZeusTableSchema {
         &mut self.id
     }
 
-    // repeated .ZeusTableSchema.FieldsEntry fields = 3;
+    // repeated .ZeusTableSchema.ColumnsEntry columns = 3;
 
-    pub fn clear_fields(&mut self) {
-        self.fields.clear();
+    pub fn clear_columns(&mut self) {
+        self.columns.clear();
     }
 
     // Param is passed by value, moved
-    pub fn set_fields(&mut self, v: ::std::collections::HashMap<i32, ZeusColumnSchema>) {
-        self.fields = v;
+    pub fn set_columns(&mut self, v: ::std::collections::HashMap<i32, ZeusColumnSchema>) {
+        self.columns = v;
     }
 
     // Mutable pointer to the field.
-    pub fn mut_fields(&mut self) -> &mut ::std::collections::HashMap<i32, ZeusColumnSchema> {
-        &mut self.fields
+    pub fn mut_columns(&mut self) -> &mut ::std::collections::HashMap<i32, ZeusColumnSchema> {
+        &mut self.columns
     }
 
     // Take field
-    pub fn take_fields(&mut self) -> ::std::collections::HashMap<i32, ZeusColumnSchema> {
-        ::std::mem::replace(&mut self.fields, ::std::collections::HashMap::new())
+    pub fn take_columns(&mut self) -> ::std::collections::HashMap<i32, ZeusColumnSchema> {
+        ::std::mem::replace(&mut self.columns, ::std::collections::HashMap::new())
     }
 
-    pub fn get_fields(&self) -> &::std::collections::HashMap<i32, ZeusColumnSchema> {
-        &self.fields
+    pub fn get_columns(&self) -> &::std::collections::HashMap<i32, ZeusColumnSchema> {
+        &self.columns
     }
 
-    fn get_fields_for_reflect(&self) -> &::std::collections::HashMap<i32, ZeusColumnSchema> {
-        &self.fields
+    fn get_columns_for_reflect(&self) -> &::std::collections::HashMap<i32, ZeusColumnSchema> {
+        &self.columns
     }
 
-    fn mut_fields_for_reflect(&mut self) -> &mut ::std::collections::HashMap<i32, ZeusColumnSchema> {
-        &mut self.fields
+    fn mut_columns_for_reflect(&mut self) -> &mut ::std::collections::HashMap<i32, ZeusColumnSchema> {
+        &mut self.columns
     }
 
     // string format = 4;
@@ -686,7 +686,7 @@ impl ::protobuf::Message for ZeusTableSchema {
                     self.id = tmp;
                 },
                 3 => {
-                    ::protobuf::rt::read_map_into::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ZeusColumnSchema>>(wire_type, is, &mut self.fields)?;
+                    ::protobuf::rt::read_map_into::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ZeusColumnSchema>>(wire_type, is, &mut self.columns)?;
                 },
                 4 => {
                     ::protobuf::rt::read_singular_proto3_string_into(wire_type, is, &mut self.format)?;
@@ -709,7 +709,7 @@ impl ::protobuf::Message for ZeusTableSchema {
         if self.id != 0 {
             my_size += ::protobuf::rt::value_size(2, self.id, ::protobuf::wire_format::WireTypeVarint);
         }
-        my_size += ::protobuf::rt::compute_map_size::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ZeusColumnSchema>>(3, &self.fields);
+        my_size += ::protobuf::rt::compute_map_size::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ZeusColumnSchema>>(3, &self.columns);
         if !self.format.is_empty() {
             my_size += ::protobuf::rt::string_size(4, &self.format);
         }
@@ -725,7 +725,7 @@ impl ::protobuf::Message for ZeusTableSchema {
         if self.id != 0 {
             os.write_int32(2, self.id)?;
         }
-        ::protobuf::rt::write_map_with_cached_sizes::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ZeusColumnSchema>>(3, &self.fields, os)?;
+        ::protobuf::rt::write_map_with_cached_sizes::<::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ZeusColumnSchema>>(3, &self.columns, os)?;
         if !self.format.is_empty() {
             os.write_string(4, &self.format)?;
         }
@@ -784,9 +784,9 @@ impl ::protobuf::MessageStatic for ZeusTableSchema {
                     ZeusTableSchema::mut_id_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_map_accessor::<_, ::protobuf::types::ProtobufTypeInt32, ::protobuf::types::ProtobufTypeMessage<ZeusColumnSchema>>(
-                    "fields",
-                    ZeusTableSchema::get_fields_for_reflect,
-                    ZeusTableSchema::mut_fields_for_reflect,
+                    "columns",
+                    ZeusTableSchema::get_columns_for_reflect,
+                    ZeusTableSchema::mut_columns_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "format",
@@ -807,7 +807,7 @@ impl ::protobuf::Clear for ZeusTableSchema {
     fn clear(&mut self) {
         self.clear_name();
         self.clear_id();
-        self.clear_fields();
+        self.clear_columns();
         self.clear_format();
         self.unknown_fields.clear();
     }
@@ -830,7 +830,7 @@ pub struct ZeusColumnSchema {
     // message fields
     pub name: ::std::string::String,
     pub id: i32,
-    pub field_type: FieldType,
+    pub column_type: ColumnType,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -911,27 +911,27 @@ impl ZeusColumnSchema {
         &mut self.id
     }
 
-    // .FieldType field_type = 3;
+    // .ColumnType column_type = 3;
 
-    pub fn clear_field_type(&mut self) {
-        self.field_type = FieldType::STRING;
+    pub fn clear_column_type(&mut self) {
+        self.column_type = ColumnType::STRING;
     }
 
     // Param is passed by value, moved
-    pub fn set_field_type(&mut self, v: FieldType) {
-        self.field_type = v;
+    pub fn set_column_type(&mut self, v: ColumnType) {
+        self.column_type = v;
     }
 
-    pub fn get_field_type(&self) -> FieldType {
-        self.field_type
+    pub fn get_column_type(&self) -> ColumnType {
+        self.column_type
     }
 
-    fn get_field_type_for_reflect(&self) -> &FieldType {
-        &self.field_type
+    fn get_column_type_for_reflect(&self) -> &ColumnType {
+        &self.column_type
     }
 
-    fn mut_field_type_for_reflect(&mut self) -> &mut FieldType {
-        &mut self.field_type
+    fn mut_column_type_for_reflect(&mut self) -> &mut ColumnType {
+        &mut self.column_type
     }
 }
 
@@ -959,7 +959,7 @@ impl ::protobuf::Message for ZeusColumnSchema {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
                     let tmp = is.read_enum()?;
-                    self.field_type = tmp;
+                    self.column_type = tmp;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -979,8 +979,8 @@ impl ::protobuf::Message for ZeusColumnSchema {
         if self.id != 0 {
             my_size += ::protobuf::rt::value_size(2, self.id, ::protobuf::wire_format::WireTypeVarint);
         }
-        if self.field_type != FieldType::STRING {
-            my_size += ::protobuf::rt::enum_size(3, self.field_type);
+        if self.column_type != ColumnType::STRING {
+            my_size += ::protobuf::rt::enum_size(3, self.column_type);
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -994,8 +994,8 @@ impl ::protobuf::Message for ZeusColumnSchema {
         if self.id != 0 {
             os.write_int32(2, self.id)?;
         }
-        if self.field_type != FieldType::STRING {
-            os.write_enum(3, self.field_type.value())?;
+        if self.column_type != ColumnType::STRING {
+            os.write_enum(3, self.column_type.value())?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -1051,10 +1051,10 @@ impl ::protobuf::MessageStatic for ZeusColumnSchema {
                     ZeusColumnSchema::get_id_for_reflect,
                     ZeusColumnSchema::mut_id_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeEnum<FieldType>>(
-                    "field_type",
-                    ZeusColumnSchema::get_field_type_for_reflect,
-                    ZeusColumnSchema::mut_field_type_for_reflect,
+                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeEnum<ColumnType>>(
+                    "column_type",
+                    ZeusColumnSchema::get_column_type_for_reflect,
+                    ZeusColumnSchema::mut_column_type_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<ZeusColumnSchema>(
                     "ZeusColumnSchema",
@@ -1070,7 +1070,7 @@ impl ::protobuf::Clear for ZeusColumnSchema {
     fn clear(&mut self) {
         self.clear_name();
         self.clear_id();
-        self.clear_field_type();
+        self.clear_column_type();
         self.unknown_fields.clear();
     }
 }
@@ -1455,7 +1455,7 @@ impl ::protobuf::reflect::ProtobufValue for GetSchemaResponse {
 }
 
 #[derive(Clone,PartialEq,Eq,Debug,Hash)]
-pub enum FieldType {
+pub enum ColumnType {
     STRING = 0,
     BOOL = 1,
     FLOAT = 2,
@@ -1465,60 +1465,60 @@ pub enum FieldType {
     BYTE = 6,
 }
 
-impl ::protobuf::ProtobufEnum for FieldType {
+impl ::protobuf::ProtobufEnum for ColumnType {
     fn value(&self) -> i32 {
         *self as i32
     }
 
-    fn from_i32(value: i32) -> ::std::option::Option<FieldType> {
+    fn from_i32(value: i32) -> ::std::option::Option<ColumnType> {
         match value {
-            0 => ::std::option::Option::Some(FieldType::STRING),
-            1 => ::std::option::Option::Some(FieldType::BOOL),
-            2 => ::std::option::Option::Some(FieldType::FLOAT),
-            3 => ::std::option::Option::Some(FieldType::INT32),
-            4 => ::std::option::Option::Some(FieldType::INT64),
-            5 => ::std::option::Option::Some(FieldType::TIMESTAMP),
-            6 => ::std::option::Option::Some(FieldType::BYTE),
+            0 => ::std::option::Option::Some(ColumnType::STRING),
+            1 => ::std::option::Option::Some(ColumnType::BOOL),
+            2 => ::std::option::Option::Some(ColumnType::FLOAT),
+            3 => ::std::option::Option::Some(ColumnType::INT32),
+            4 => ::std::option::Option::Some(ColumnType::INT64),
+            5 => ::std::option::Option::Some(ColumnType::TIMESTAMP),
+            6 => ::std::option::Option::Some(ColumnType::BYTE),
             _ => ::std::option::Option::None
         }
     }
 
     fn values() -> &'static [Self] {
-        static values: &'static [FieldType] = &[
-            FieldType::STRING,
-            FieldType::BOOL,
-            FieldType::FLOAT,
-            FieldType::INT32,
-            FieldType::INT64,
-            FieldType::TIMESTAMP,
-            FieldType::BYTE,
+        static values: &'static [ColumnType] = &[
+            ColumnType::STRING,
+            ColumnType::BOOL,
+            ColumnType::FLOAT,
+            ColumnType::INT32,
+            ColumnType::INT64,
+            ColumnType::TIMESTAMP,
+            ColumnType::BYTE,
         ];
         values
     }
 
-    fn enum_descriptor_static(_: ::std::option::Option<FieldType>) -> &'static ::protobuf::reflect::EnumDescriptor {
+    fn enum_descriptor_static(_: ::std::option::Option<ColumnType>) -> &'static ::protobuf::reflect::EnumDescriptor {
         static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::lazy::Lazy {
             lock: ::protobuf::lazy::ONCE_INIT,
             ptr: 0 as *const ::protobuf::reflect::EnumDescriptor,
         };
         unsafe {
             descriptor.get(|| {
-                ::protobuf::reflect::EnumDescriptor::new("FieldType", file_descriptor_proto())
+                ::protobuf::reflect::EnumDescriptor::new("ColumnType", file_descriptor_proto())
             })
         }
     }
 }
 
-impl ::std::marker::Copy for FieldType {
+impl ::std::marker::Copy for ColumnType {
 }
 
-impl ::std::default::Default for FieldType {
+impl ::std::default::Default for ColumnType {
     fn default() -> Self {
-        FieldType::STRING
+        ColumnType::STRING
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for FieldType {
+impl ::protobuf::reflect::ProtobufValue for ColumnType {
     fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
         ::protobuf::reflect::ProtobufValueRef::Enum(self.descriptor())
     }
@@ -1532,104 +1532,104 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     DBSchema.TablesEntryR\x06tables\x12\x18\n\x07version\x18\x04\x20\x01(\rR\
     \x07version\x1aK\n\x0bTablesEntry\x12\x10\n\x03key\x18\x01\x20\x01(\x05R\
     \x03key\x12&\n\x05value\x18\x02\x20\x01(\x0b2\x10.ZeusTableSchemaR\x05va\
-    lue:\x028\x01\"\xd1\x01\n\x0fZeusTableSchema\x12\x12\n\x04name\x18\x01\
-    \x20\x01(\tR\x04name\x12\x0e\n\x02id\x18\x02\x20\x01(\x05R\x02id\x124\n\
-    \x06fields\x18\x03\x20\x03(\x0b2\x1c.ZeusTableSchema.FieldsEntryR\x06fie\
-    lds\x12\x16\n\x06format\x18\x04\x20\x01(\tR\x06format\x1aL\n\x0bFieldsEn\
-    try\x12\x10\n\x03key\x18\x01\x20\x01(\x05R\x03key\x12'\n\x05value\x18\
-    \x02\x20\x01(\x0b2\x11.ZeusColumnSchemaR\x05value:\x028\x01\"a\n\x10Zeus\
-    ColumnSchema\x12\x12\n\x04name\x18\x01\x20\x01(\tR\x04name\x12\x0e\n\x02\
-    id\x18\x02\x20\x01(\x05R\x02id\x12)\n\nfield_type\x18\x03\x20\x01(\x0e2\
-    \n.FieldTypeR\tfieldType\"+\n\x10GetSchemaRequest\x12\x17\n\x07db_name\
-    \x18\x01\x20\x01(\tR\x06dbName\"?\n\x11GetSchemaResponse\x12*\n\tdb_sche\
-    ma\x18\x01\x20\x01(\x0b2\r.ZeusDBSchemaR\x08dbSchema*[\n\tFieldType\x12\
-    \n\n\x06STRING\x10\0\x12\x08\n\x04BOOL\x10\x01\x12\t\n\x05FLOAT\x10\x02\
-    \x12\t\n\x05INT32\x10\x03\x12\t\n\x05INT64\x10\x04\x12\r\n\tTIMESTAMP\
-    \x10\x05\x12\x08\n\x04BYTE\x10\x062I\n\x0fZeusMetaService\x126\n\x0bGetD\
-    BSchema\x12\x11.GetSchemaRequest\x1a\x12.GetSchemaResponse\"\0B\x16\n\
-    \x12io.github.zeus.rpcP\x01J\xb6\r\n\x06\x12\x04\0\01\x01\n\x08\n\x01\
-    \x0c\x12\x03\0\0\x10\n\x08\n\x01\x08\x12\x03\x02\0+\n\x0b\n\x04\x08\xe7\
-    \x07\0\x12\x03\x02\0+\n\x0c\n\x05\x08\xe7\x07\0\x02\x12\x03\x02\x07\x13\
-    \n\r\n\x06\x08\xe7\x07\0\x02\0\x12\x03\x02\x07\x13\n\x0e\n\x07\x08\xe7\
-    \x07\0\x02\0\x01\x12\x03\x02\x07\x13\n\x0c\n\x05\x08\xe7\x07\0\x07\x12\
-    \x03\x02\x16*\n\x08\n\x01\x08\x12\x03\x03\0\"\n\x0b\n\x04\x08\xe7\x07\
-    \x01\x12\x03\x03\0\"\n\x0c\n\x05\x08\xe7\x07\x01\x02\x12\x03\x03\x07\x1a\
-    \n\r\n\x06\x08\xe7\x07\x01\x02\0\x12\x03\x03\x07\x1a\n\x0e\n\x07\x08\xe7\
-    \x07\x01\x02\0\x01\x12\x03\x03\x07\x1a\n\x0c\n\x05\x08\xe7\x07\x01\x03\
-    \x12\x03\x03\x1d!\n\n\n\x02\x04\0\x12\x04\x05\0\x07\x01\n\n\n\x03\x04\0\
-    \x01\x12\x03\x05\x08\x13\n\x0b\n\x04\x04\0\x02\0\x12\x03\x06\x04)\n\x0c\
-    \n\x05\x04\0\x02\0\x04\x12\x03\x06\x04\x0c\n\x0c\n\x05\x04\0\x02\0\x06\
-    \x12\x03\x06\r\x19\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x06\x1a$\n\x0c\n\
-    \x05\x04\0\x02\0\x03\x12\x03\x06'(\n\n\n\x02\x04\x01\x12\x04\t\0\x0e\x01\
-    \n\n\n\x03\x04\x01\x01\x12\x03\t\x08\x14\n\x0b\n\x04\x04\x01\x02\0\x12\
-    \x03\n\x04\x14\n\r\n\x05\x04\x01\x02\0\x04\x12\x04\n\x04\t\x16\n\x0c\n\
-    \x05\x04\x01\x02\0\x05\x12\x03\n\x04\n\n\x0c\n\x05\x04\x01\x02\0\x01\x12\
-    \x03\n\x0b\x0f\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\n\x12\x13\n\x0b\n\
-    \x04\x04\x01\x02\x01\x12\x03\x0b\x04\x11\n\r\n\x05\x04\x01\x02\x01\x04\
-    \x12\x04\x0b\x04\n\x14\n\x0c\n\x05\x04\x01\x02\x01\x05\x12\x03\x0b\x04\t\
-    \n\x0c\n\x05\x04\x01\x02\x01\x01\x12\x03\x0b\n\x0c\n\x0c\n\x05\x04\x01\
-    \x02\x01\x03\x12\x03\x0b\x0f\x10\n\x0b\n\x04\x04\x01\x02\x02\x12\x03\x0c\
-    \x04+\n\r\n\x05\x04\x01\x02\x02\x04\x12\x04\x0c\x04\x0b\x11\n\x0c\n\x05\
-    \x04\x01\x02\x02\x06\x12\x03\x0c\x04\x1f\n\x0c\n\x05\x04\x01\x02\x02\x01\
-    \x12\x03\x0c\x20&\n\x0c\n\x05\x04\x01\x02\x02\x03\x12\x03\x0c)*\n\x0b\n\
-    \x04\x04\x01\x02\x03\x12\x03\r\x04\x17\n\r\n\x05\x04\x01\x02\x03\x04\x12\
-    \x04\r\x04\x0c+\n\x0c\n\x05\x04\x01\x02\x03\x05\x12\x03\r\x04\n\n\x0c\n\
-    \x05\x04\x01\x02\x03\x01\x12\x03\r\x0b\x12\n\x0c\n\x05\x04\x01\x02\x03\
-    \x03\x12\x03\r\x15\x16\n\n\n\x02\x04\x02\x12\x04\x10\0\x15\x01\n\n\n\x03\
-    \x04\x02\x01\x12\x03\x10\x08\x17\n\x0b\n\x04\x04\x02\x02\0\x12\x03\x11\
-    \x04\x14\n\r\n\x05\x04\x02\x02\0\x04\x12\x04\x11\x04\x10\x19\n\x0c\n\x05\
-    \x04\x02\x02\0\x05\x12\x03\x11\x04\n\n\x0c\n\x05\x04\x02\x02\0\x01\x12\
-    \x03\x11\x0b\x0f\n\x0c\n\x05\x04\x02\x02\0\x03\x12\x03\x11\x12\x13\n\x0b\
-    \n\x04\x04\x02\x02\x01\x12\x03\x12\x04\x11\n\r\n\x05\x04\x02\x02\x01\x04\
-    \x12\x04\x12\x04\x11\x14\n\x0c\n\x05\x04\x02\x02\x01\x05\x12\x03\x12\x04\
-    \t\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03\x12\n\x0c\n\x0c\n\x05\x04\x02\
-    \x02\x01\x03\x12\x03\x12\x0f\x10\n\x0b\n\x04\x04\x02\x02\x02\x12\x03\x13\
-    \x04,\n\r\n\x05\x04\x02\x02\x02\x04\x12\x04\x13\x04\x12\x11\n\x0c\n\x05\
-    \x04\x02\x02\x02\x06\x12\x03\x13\x04\x20\n\x0c\n\x05\x04\x02\x02\x02\x01\
-    \x12\x03\x13!'\n\x0c\n\x05\x04\x02\x02\x02\x03\x12\x03\x13*+\n\"\n\x04\
-    \x04\x02\x02\x03\x12\x03\x14\x04\x16\"\x15\x20storage\x20engine\x20name\
-    \n\n\r\n\x05\x04\x02\x02\x03\x04\x12\x04\x14\x04\x13,\n\x0c\n\x05\x04\
-    \x02\x02\x03\x05\x12\x03\x14\x04\n\n\x0c\n\x05\x04\x02\x02\x03\x01\x12\
-    \x03\x14\x0b\x11\n\x0c\n\x05\x04\x02\x02\x03\x03\x12\x03\x14\x14\x15\n\n\
-    \n\x02\x05\0\x12\x04\x17\0\x1f\x01\n\n\n\x03\x05\0\x01\x12\x03\x17\x05\
-    \x0e\n\x0b\n\x04\x05\0\x02\0\x12\x03\x18\x04\x0f\n\x0c\n\x05\x05\0\x02\0\
-    \x01\x12\x03\x18\x04\n\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x18\r\x0e\n\
-    \x0b\n\x04\x05\0\x02\x01\x12\x03\x19\x04\r\n\x0c\n\x05\x05\0\x02\x01\x01\
-    \x12\x03\x19\x04\x08\n\x0c\n\x05\x05\0\x02\x01\x02\x12\x03\x19\x0b\x0c\n\
-    \x0b\n\x04\x05\0\x02\x02\x12\x03\x1a\x04\x0e\n\x0c\n\x05\x05\0\x02\x02\
-    \x01\x12\x03\x1a\x04\t\n\x0c\n\x05\x05\0\x02\x02\x02\x12\x03\x1a\x0c\r\n\
-    \x0b\n\x04\x05\0\x02\x03\x12\x03\x1b\x04\x0e\n\x0c\n\x05\x05\0\x02\x03\
-    \x01\x12\x03\x1b\x04\t\n\x0c\n\x05\x05\0\x02\x03\x02\x12\x03\x1b\x0c\r\n\
-    \x0b\n\x04\x05\0\x02\x04\x12\x03\x1c\x04\x0e\n\x0c\n\x05\x05\0\x02\x04\
-    \x01\x12\x03\x1c\x04\t\n\x0c\n\x05\x05\0\x02\x04\x02\x12\x03\x1c\x0c\r\n\
-    \x0b\n\x04\x05\0\x02\x05\x12\x03\x1d\x04\x12\n\x0c\n\x05\x05\0\x02\x05\
-    \x01\x12\x03\x1d\x04\r\n\x0c\n\x05\x05\0\x02\x05\x02\x12\x03\x1d\x10\x11\
-    \n\x0b\n\x04\x05\0\x02\x06\x12\x03\x1e\x04\r\n\x0c\n\x05\x05\0\x02\x06\
-    \x01\x12\x03\x1e\x04\x08\n\x0c\n\x05\x05\0\x02\x06\x02\x12\x03\x1e\x0b\
-    \x0c\n\n\n\x02\x04\x03\x12\x04!\0%\x01\n\n\n\x03\x04\x03\x01\x12\x03!\
-    \x08\x18\n\x0b\n\x04\x04\x03\x02\0\x12\x03\"\x04\x14\n\r\n\x05\x04\x03\
-    \x02\0\x04\x12\x04\"\x04!\x1a\n\x0c\n\x05\x04\x03\x02\0\x05\x12\x03\"\
-    \x04\n\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\"\x0b\x0f\n\x0c\n\x05\x04\
+    lue:\x028\x01\"\xd5\x01\n\x0fZeusTableSchema\x12\x12\n\x04name\x18\x01\
+    \x20\x01(\tR\x04name\x12\x0e\n\x02id\x18\x02\x20\x01(\x05R\x02id\x127\n\
+    \x07columns\x18\x03\x20\x03(\x0b2\x1d.ZeusTableSchema.ColumnsEntryR\x07c\
+    olumns\x12\x16\n\x06format\x18\x04\x20\x01(\tR\x06format\x1aM\n\x0cColum\
+    nsEntry\x12\x10\n\x03key\x18\x01\x20\x01(\x05R\x03key\x12'\n\x05value\
+    \x18\x02\x20\x01(\x0b2\x11.ZeusColumnSchemaR\x05value:\x028\x01\"d\n\x10\
+    ZeusColumnSchema\x12\x12\n\x04name\x18\x01\x20\x01(\tR\x04name\x12\x0e\n\
+    \x02id\x18\x02\x20\x01(\x05R\x02id\x12,\n\x0bcolumn_type\x18\x03\x20\x01\
+    (\x0e2\x0b.ColumnTypeR\ncolumnType\"+\n\x10GetSchemaRequest\x12\x17\n\
+    \x07db_name\x18\x01\x20\x01(\tR\x06dbName\"?\n\x11GetSchemaResponse\x12*\
+    \n\tdb_schema\x18\x01\x20\x01(\x0b2\r.ZeusDBSchemaR\x08dbSchema*\\\n\nCo\
+    lumnType\x12\n\n\x06STRING\x10\0\x12\x08\n\x04BOOL\x10\x01\x12\t\n\x05FL\
+    OAT\x10\x02\x12\t\n\x05INT32\x10\x03\x12\t\n\x05INT64\x10\x04\x12\r\n\tT\
+    IMESTAMP\x10\x05\x12\x08\n\x04BYTE\x10\x062I\n\x0fZeusMetaService\x126\n\
+    \x0bGetDBSchema\x12\x11.GetSchemaRequest\x1a\x12.GetSchemaResponse\"\0B\
+    \x16\n\x12io.github.zeus.rpcP\x01J\xb6\r\n\x06\x12\x04\0\01\x01\n\x08\n\
+    \x01\x0c\x12\x03\0\0\x10\n\x08\n\x01\x08\x12\x03\x02\0+\n\x0b\n\x04\x08\
+    \xe7\x07\0\x12\x03\x02\0+\n\x0c\n\x05\x08\xe7\x07\0\x02\x12\x03\x02\x07\
+    \x13\n\r\n\x06\x08\xe7\x07\0\x02\0\x12\x03\x02\x07\x13\n\x0e\n\x07\x08\
+    \xe7\x07\0\x02\0\x01\x12\x03\x02\x07\x13\n\x0c\n\x05\x08\xe7\x07\0\x07\
+    \x12\x03\x02\x16*\n\x08\n\x01\x08\x12\x03\x03\0\"\n\x0b\n\x04\x08\xe7\
+    \x07\x01\x12\x03\x03\0\"\n\x0c\n\x05\x08\xe7\x07\x01\x02\x12\x03\x03\x07\
+    \x1a\n\r\n\x06\x08\xe7\x07\x01\x02\0\x12\x03\x03\x07\x1a\n\x0e\n\x07\x08\
+    \xe7\x07\x01\x02\0\x01\x12\x03\x03\x07\x1a\n\x0c\n\x05\x08\xe7\x07\x01\
+    \x03\x12\x03\x03\x1d!\n\n\n\x02\x04\0\x12\x04\x05\0\x07\x01\n\n\n\x03\
+    \x04\0\x01\x12\x03\x05\x08\x13\n\x0b\n\x04\x04\0\x02\0\x12\x03\x06\x04)\
+    \n\x0c\n\x05\x04\0\x02\0\x04\x12\x03\x06\x04\x0c\n\x0c\n\x05\x04\0\x02\0\
+    \x06\x12\x03\x06\r\x19\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x06\x1a$\n\
+    \x0c\n\x05\x04\0\x02\0\x03\x12\x03\x06'(\n\n\n\x02\x04\x01\x12\x04\t\0\
+    \x0e\x01\n\n\n\x03\x04\x01\x01\x12\x03\t\x08\x14\n\x0b\n\x04\x04\x01\x02\
+    \0\x12\x03\n\x04\x14\n\r\n\x05\x04\x01\x02\0\x04\x12\x04\n\x04\t\x16\n\
+    \x0c\n\x05\x04\x01\x02\0\x05\x12\x03\n\x04\n\n\x0c\n\x05\x04\x01\x02\0\
+    \x01\x12\x03\n\x0b\x0f\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\n\x12\x13\n\
+    \x0b\n\x04\x04\x01\x02\x01\x12\x03\x0b\x04\x11\n\r\n\x05\x04\x01\x02\x01\
+    \x04\x12\x04\x0b\x04\n\x14\n\x0c\n\x05\x04\x01\x02\x01\x05\x12\x03\x0b\
+    \x04\t\n\x0c\n\x05\x04\x01\x02\x01\x01\x12\x03\x0b\n\x0c\n\x0c\n\x05\x04\
+    \x01\x02\x01\x03\x12\x03\x0b\x0f\x10\n\x0b\n\x04\x04\x01\x02\x02\x12\x03\
+    \x0c\x04+\n\r\n\x05\x04\x01\x02\x02\x04\x12\x04\x0c\x04\x0b\x11\n\x0c\n\
+    \x05\x04\x01\x02\x02\x06\x12\x03\x0c\x04\x1f\n\x0c\n\x05\x04\x01\x02\x02\
+    \x01\x12\x03\x0c\x20&\n\x0c\n\x05\x04\x01\x02\x02\x03\x12\x03\x0c)*\n\
+    \x0b\n\x04\x04\x01\x02\x03\x12\x03\r\x04\x17\n\r\n\x05\x04\x01\x02\x03\
+    \x04\x12\x04\r\x04\x0c+\n\x0c\n\x05\x04\x01\x02\x03\x05\x12\x03\r\x04\n\
+    \n\x0c\n\x05\x04\x01\x02\x03\x01\x12\x03\r\x0b\x12\n\x0c\n\x05\x04\x01\
+    \x02\x03\x03\x12\x03\r\x15\x16\n\n\n\x02\x04\x02\x12\x04\x10\0\x15\x01\n\
+    \n\n\x03\x04\x02\x01\x12\x03\x10\x08\x17\n\x0b\n\x04\x04\x02\x02\0\x12\
+    \x03\x11\x04\x14\n\r\n\x05\x04\x02\x02\0\x04\x12\x04\x11\x04\x10\x19\n\
+    \x0c\n\x05\x04\x02\x02\0\x05\x12\x03\x11\x04\n\n\x0c\n\x05\x04\x02\x02\0\
+    \x01\x12\x03\x11\x0b\x0f\n\x0c\n\x05\x04\x02\x02\0\x03\x12\x03\x11\x12\
+    \x13\n\x0b\n\x04\x04\x02\x02\x01\x12\x03\x12\x04\x11\n\r\n\x05\x04\x02\
+    \x02\x01\x04\x12\x04\x12\x04\x11\x14\n\x0c\n\x05\x04\x02\x02\x01\x05\x12\
+    \x03\x12\x04\t\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03\x12\n\x0c\n\x0c\n\
+    \x05\x04\x02\x02\x01\x03\x12\x03\x12\x0f\x10\n\x0b\n\x04\x04\x02\x02\x02\
+    \x12\x03\x13\x04-\n\r\n\x05\x04\x02\x02\x02\x04\x12\x04\x13\x04\x12\x11\
+    \n\x0c\n\x05\x04\x02\x02\x02\x06\x12\x03\x13\x04\x20\n\x0c\n\x05\x04\x02\
+    \x02\x02\x01\x12\x03\x13!(\n\x0c\n\x05\x04\x02\x02\x02\x03\x12\x03\x13+,\
+    \n\"\n\x04\x04\x02\x02\x03\x12\x03\x14\x04\x16\"\x15\x20storage\x20engin\
+    e\x20name\n\n\r\n\x05\x04\x02\x02\x03\x04\x12\x04\x14\x04\x13-\n\x0c\n\
+    \x05\x04\x02\x02\x03\x05\x12\x03\x14\x04\n\n\x0c\n\x05\x04\x02\x02\x03\
+    \x01\x12\x03\x14\x0b\x11\n\x0c\n\x05\x04\x02\x02\x03\x03\x12\x03\x14\x14\
+    \x15\n\n\n\x02\x05\0\x12\x04\x17\0\x1f\x01\n\n\n\x03\x05\0\x01\x12\x03\
+    \x17\x05\x0f\n\x0b\n\x04\x05\0\x02\0\x12\x03\x18\x04\x0f\n\x0c\n\x05\x05\
+    \0\x02\0\x01\x12\x03\x18\x04\n\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x18\r\
+    \x0e\n\x0b\n\x04\x05\0\x02\x01\x12\x03\x19\x04\r\n\x0c\n\x05\x05\0\x02\
+    \x01\x01\x12\x03\x19\x04\x08\n\x0c\n\x05\x05\0\x02\x01\x02\x12\x03\x19\
+    \x0b\x0c\n\x0b\n\x04\x05\0\x02\x02\x12\x03\x1a\x04\x0e\n\x0c\n\x05\x05\0\
+    \x02\x02\x01\x12\x03\x1a\x04\t\n\x0c\n\x05\x05\0\x02\x02\x02\x12\x03\x1a\
+    \x0c\r\n\x0b\n\x04\x05\0\x02\x03\x12\x03\x1b\x04\x0e\n\x0c\n\x05\x05\0\
+    \x02\x03\x01\x12\x03\x1b\x04\t\n\x0c\n\x05\x05\0\x02\x03\x02\x12\x03\x1b\
+    \x0c\r\n\x0b\n\x04\x05\0\x02\x04\x12\x03\x1c\x04\x0e\n\x0c\n\x05\x05\0\
+    \x02\x04\x01\x12\x03\x1c\x04\t\n\x0c\n\x05\x05\0\x02\x04\x02\x12\x03\x1c\
+    \x0c\r\n\x0b\n\x04\x05\0\x02\x05\x12\x03\x1d\x04\x12\n\x0c\n\x05\x05\0\
+    \x02\x05\x01\x12\x03\x1d\x04\r\n\x0c\n\x05\x05\0\x02\x05\x02\x12\x03\x1d\
+    \x10\x11\n\x0b\n\x04\x05\0\x02\x06\x12\x03\x1e\x04\r\n\x0c\n\x05\x05\0\
+    \x02\x06\x01\x12\x03\x1e\x04\x08\n\x0c\n\x05\x05\0\x02\x06\x02\x12\x03\
+    \x1e\x0b\x0c\n\n\n\x02\x04\x03\x12\x04!\0%\x01\n\n\n\x03\x04\x03\x01\x12\
+    \x03!\x08\x18\n\x0b\n\x04\x04\x03\x02\0\x12\x03\"\x04\x14\n\r\n\x05\x04\
+    \x03\x02\0\x04\x12\x04\"\x04!\x1a\n\x0c\n\x05\x04\x03\x02\0\x05\x12\x03\
+    \"\x04\n\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\"\x0b\x0f\n\x0c\n\x05\x04\
     \x03\x02\0\x03\x12\x03\"\x12\x13\n\x0b\n\x04\x04\x03\x02\x01\x12\x03#\
     \x04\x11\n\r\n\x05\x04\x03\x02\x01\x04\x12\x04#\x04\"\x14\n\x0c\n\x05\
     \x04\x03\x02\x01\x05\x12\x03#\x04\t\n\x0c\n\x05\x04\x03\x02\x01\x01\x12\
     \x03#\n\x0c\n\x0c\n\x05\x04\x03\x02\x01\x03\x12\x03#\x0f\x10\n\x0b\n\x04\
-    \x04\x03\x02\x02\x12\x03$\x04\x1d\n\r\n\x05\x04\x03\x02\x02\x04\x12\x04$\
-    \x04#\x11\n\x0c\n\x05\x04\x03\x02\x02\x06\x12\x03$\x04\r\n\x0c\n\x05\x04\
-    \x03\x02\x02\x01\x12\x03$\x0e\x18\n\x0c\n\x05\x04\x03\x02\x02\x03\x12\
-    \x03$\x1b\x1c\n\n\n\x02\x04\x04\x12\x04'\0)\x01\n\n\n\x03\x04\x04\x01\
-    \x12\x03'\x08\x18\n\x0b\n\x04\x04\x04\x02\0\x12\x03(\x04\x17\n\r\n\x05\
-    \x04\x04\x02\0\x04\x12\x04(\x04'\x1a\n\x0c\n\x05\x04\x04\x02\0\x05\x12\
-    \x03(\x04\n\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03(\x0b\x12\n\x0c\n\x05\
-    \x04\x04\x02\0\x03\x12\x03(\x15\x16\n\n\n\x02\x04\x05\x12\x04+\0-\x01\n\
-    \n\n\x03\x04\x05\x01\x12\x03+\x08\x19\n\x0b\n\x04\x04\x05\x02\0\x12\x03,\
-    \x04\x1f\n\r\n\x05\x04\x05\x02\0\x04\x12\x04,\x04+\x1b\n\x0c\n\x05\x04\
-    \x05\x02\0\x06\x12\x03,\x04\x10\n\x0c\n\x05\x04\x05\x02\0\x01\x12\x03,\
-    \x11\x1a\n\x0c\n\x05\x04\x05\x02\0\x03\x12\x03,\x1d\x1e\n\n\n\x02\x06\0\
-    \x12\x04/\01\x01\n\n\n\x03\x06\0\x01\x12\x03/\x08\x17\n\x0b\n\x04\x06\0\
-    \x02\0\x12\x030\x04C\n\x0c\n\x05\x06\0\x02\0\x01\x12\x030\x08\x13\n\x0c\
-    \n\x05\x06\0\x02\0\x02\x12\x030\x14$\n\x0c\n\x05\x06\0\x02\0\x03\x12\x03\
-    0/@b\x06proto3\
+    \x04\x03\x02\x02\x12\x03$\x04\x1f\n\r\n\x05\x04\x03\x02\x02\x04\x12\x04$\
+    \x04#\x11\n\x0c\n\x05\x04\x03\x02\x02\x06\x12\x03$\x04\x0e\n\x0c\n\x05\
+    \x04\x03\x02\x02\x01\x12\x03$\x0f\x1a\n\x0c\n\x05\x04\x03\x02\x02\x03\
+    \x12\x03$\x1d\x1e\n\n\n\x02\x04\x04\x12\x04'\0)\x01\n\n\n\x03\x04\x04\
+    \x01\x12\x03'\x08\x18\n\x0b\n\x04\x04\x04\x02\0\x12\x03(\x04\x17\n\r\n\
+    \x05\x04\x04\x02\0\x04\x12\x04(\x04'\x1a\n\x0c\n\x05\x04\x04\x02\0\x05\
+    \x12\x03(\x04\n\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03(\x0b\x12\n\x0c\n\
+    \x05\x04\x04\x02\0\x03\x12\x03(\x15\x16\n\n\n\x02\x04\x05\x12\x04+\0-\
+    \x01\n\n\n\x03\x04\x05\x01\x12\x03+\x08\x19\n\x0b\n\x04\x04\x05\x02\0\
+    \x12\x03,\x04\x1f\n\r\n\x05\x04\x05\x02\0\x04\x12\x04,\x04+\x1b\n\x0c\n\
+    \x05\x04\x05\x02\0\x06\x12\x03,\x04\x10\n\x0c\n\x05\x04\x05\x02\0\x01\
+    \x12\x03,\x11\x1a\n\x0c\n\x05\x04\x05\x02\0\x03\x12\x03,\x1d\x1e\n\n\n\
+    \x02\x06\0\x12\x04/\01\x01\n\n\n\x03\x06\0\x01\x12\x03/\x08\x17\n\x0b\n\
+    \x04\x06\0\x02\0\x12\x030\x04C\n\x0c\n\x05\x06\0\x02\0\x01\x12\x030\x08\
+    \x13\n\x0c\n\x05\x06\0\x02\0\x02\x12\x030\x14$\n\x0c\n\x05\x06\0\x02\0\
+    \x03\x12\x030/@b\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

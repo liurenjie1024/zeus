@@ -3,7 +3,7 @@ use std::any::Any;
 use std::sync::Arc;
 use std::iter::Iterator;
 
-use rpc::zeus_meta::FieldType;
+use rpc::zeus_meta::ColumnType;
 use rpc::zeus_data::ColumnValue;
 use storage::column::Column;
 use storage::column::ColumnValueIter;
@@ -20,8 +20,8 @@ impl Column for ColumnString {
     self.offsets.len()
   }
 
-  fn field_type(&self) -> FieldType {
-    FieldType::STRING
+  fn field_type(&self) -> ColumnType {
+    ColumnType::STRING
   }
   fn into_iter(&self) -> ColumnValueIter {
     box ColumnStringIterator {

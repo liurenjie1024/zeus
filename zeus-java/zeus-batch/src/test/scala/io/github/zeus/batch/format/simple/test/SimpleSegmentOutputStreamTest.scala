@@ -8,7 +8,7 @@ import com.google.protobuf.CodedInputStream
 import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream._
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.format.simple.BlockHandles
-import io.github.zeus.rpc.{FieldType, ZeusColumnSchema, ZeusTableSchema}
+import io.github.zeus.rpc.{ColumnType, ZeusColumnSchema, ZeusTableSchema}
 import org.scalatest.{FunSuite, Matchers}
 
 /**
@@ -17,37 +17,37 @@ import org.scalatest.{FunSuite, Matchers}
 class SimpleSegmentOutputStreamTest extends FunSuite with Matchers {
   test("Output Content") {
     val boolColumnSchema = ZeusColumnSchema.newBuilder()
-      .setFieldType(FieldType.BOOL)
+      .setColumnType(ColumnType.BOOL)
       .setId(1)
       .setName("bool")
       .build()
 
     val byteColumnSchema = ZeusColumnSchema.newBuilder()
-      .setFieldType(FieldType.BYTE)
+      .setColumnType(ColumnType.BYTE)
       .setId(2)
       .setName("byte")
       .build()
 
     val floatColumnSchema = ZeusColumnSchema.newBuilder()
-      .setFieldType(FieldType.FLOAT)
+      .setColumnType(ColumnType.FLOAT)
       .setId(3)
       .setName("float")
       .build()
 
     val intColumnSchema = ZeusColumnSchema.newBuilder()
-      .setFieldType(FieldType.INT32)
+      .setColumnType(ColumnType.INT32)
       .setId(4)
       .setName("int")
       .build()
 
     val longColumnSchema = ZeusColumnSchema.newBuilder()
-      .setFieldType(FieldType.INT64)
+      .setColumnType(ColumnType.INT64)
       .setId(5)
       .setName("long")
       .build()
 
     val stringColumnSchema = ZeusColumnSchema.newBuilder()
-      .setFieldType(FieldType.STRING)
+      .setColumnType(ColumnType.STRING)
       .setId(6)
       .setName("string")
       .build()
@@ -56,12 +56,12 @@ class SimpleSegmentOutputStreamTest extends FunSuite with Matchers {
       .setFormat("simple")
       .setId(1)
       .setName("table")
-      .putFields(1, boolColumnSchema)
-      .putFields(2, byteColumnSchema)
-      .putFields(3, floatColumnSchema)
-      .putFields(4, intColumnSchema)
-      .putFields(5, longColumnSchema)
-      .putFields(6, stringColumnSchema)
+      .putColumns(1, boolColumnSchema)
+      .putColumns(2, byteColumnSchema)
+      .putColumns(3, floatColumnSchema)
+      .putColumns(4, intColumnSchema)
+      .putColumns(5, longColumnSchema)
+      .putColumns(6, stringColumnSchema)
       .build()
 
     val props = new Properties()

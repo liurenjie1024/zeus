@@ -13,7 +13,7 @@ pub struct TableSchema {
 impl TableSchema {
   pub fn new(zeus_table_schema: ZeusTableSchema) -> TableSchema {
     let mut column_schemas =  HashMap::new();
-    zeus_table_schema.get_fields()
+    zeus_table_schema.get_columns()
       .values()
       .map(|f| f.clone())
       .map(|f| ColumnSchema::new(f))

@@ -1,15 +1,15 @@
 package io.github.zeus.batch.format.simple
 
 import io.github.zeus.batch.format.simple.serde._
-import io.github.zeus.rpc.FieldType
-import io.github.zeus.rpc.FieldType._
+import io.github.zeus.rpc.ColumnType
+import io.github.zeus.rpc.ColumnType._
 
 
 /**
   * Created by liurenjie on 24/03/2018.
   */
 object FieldHelper {
-  implicit class FieldImprovement(private val filedType: FieldType) {
+  implicit class FieldImprovement(private val filedType: ColumnType) {
     def serialize(values: Iterator[Any], output: ColumnOutputStream): Int = {
       filedType match {
         case BOOL => BooleanColumnSerde.serialize(values.map(_.asInstanceOf[Boolean]), output)

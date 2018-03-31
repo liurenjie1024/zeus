@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use rpc::zeus_meta::FieldType;
+use rpc::zeus_meta::ColumnType;
 use rpc::zeus_meta::ZeusColumnSchema;
 
 pub struct ColumnSchema {
@@ -20,7 +20,7 @@ impl ColumnSchema {
   pub fn get_name(&self) -> String {
     self.inner.get_name().to_string()
   }
-  pub fn get_type(&self) -> FieldType {
-    self.inner.get_field_type()
+  pub fn get_type(&self) -> ColumnType {
+    self.inner.get_column_type()
   }
 }

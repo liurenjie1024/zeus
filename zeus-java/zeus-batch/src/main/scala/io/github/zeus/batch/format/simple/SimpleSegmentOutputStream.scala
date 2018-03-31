@@ -60,13 +60,13 @@ class SimpleSegmentOutputStream(builder: TableOutputStreamBuilder) extends Table
       .setStart(blockStart)
 
     var columnStart = blockStart
-    for (columnId <- builder.tableSchema.getFieldsMap.keySet().asScala) {
-      val columnSchema = builder.tableSchema.getFieldsOrThrow(columnId)
+    for (columnId <- builder.tableSchema.getColumnsMap.keySet().asScala) {
+      val columnSchema = builder.tableSchema.getColumnsOrThrow(columnId)
       val column = nonEmptyBlocks
         .map(_.getColumnValue(columnId).get)
         .iterator
 
-      val bytesWritten = columnSchema.getFieldType
+      val bytesWritten = columnSchema.getColumnType
         .serialize(column, destination)
 
       val columnHandle = ColumnHandle.newBuilder()

@@ -1,32 +1,32 @@
-use rpc::zeus_meta::FieldType;
+use rpc::zeus_meta::ColumnType;
 
 pub trait FieldTypeInfo {
   fn field_size(&self) -> Option<usize>;
   fn is_fixed_size(&self) -> bool;
 }
 
-impl FieldTypeInfo for FieldType {
+impl FieldTypeInfo for ColumnType {
   fn field_size(&self) -> Option<usize> {
     match *self {
-      FieldType::STRING => None,
-      FieldType::BOOL => Some(1),
-      FieldType::BYTE => Some(1),
-      FieldType::FLOAT => Some(4),
-      FieldType::INT32 => Some(4),
-      FieldType::INT64 => Some(8),
-      FieldType::TIMESTAMP => Some(8),
+      ColumnType::STRING => None,
+      ColumnType::BOOL => Some(1),
+      ColumnType::BYTE => Some(1),
+      ColumnType::FLOAT => Some(4),
+      ColumnType::INT32 => Some(4),
+      ColumnType::INT64 => Some(8),
+      ColumnType::TIMESTAMP => Some(8),
     }
   }
 
   fn is_fixed_size(&self) -> bool {
     match *self {
-      FieldType::STRING => false,
-      FieldType::BOOL => true,
-      FieldType::BYTE => true,
-      FieldType::FLOAT => true,
-      FieldType::INT32 => true,
-      FieldType::INT64 => true,
-      FieldType::TIMESTAMP => true,
+      ColumnType::STRING => false,
+      ColumnType::BOOL => true,
+      ColumnType::BYTE => true,
+      ColumnType::FLOAT => true,
+      ColumnType::INT32 => true,
+      ColumnType::INT64 => true,
+      ColumnType::TIMESTAMP => true,
     }
   }
 }

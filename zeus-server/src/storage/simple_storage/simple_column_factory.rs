@@ -8,12 +8,12 @@ use storage::column::ColumnFactory;
 use storage::column::Column;
 use storage::column::{BoolColumn, ByteColumn, FloatColumn, IntColumn, LongColumn, TimestampColumn};
 use storage::column::StringColumn;
-use rpc::zeus_meta::FieldType;
+use rpc::zeus_meta::ColumnType;
 use storage::ErrorKind as DBErrorKind;
 use util::errors::*;
 
 struct NumericColumnFactory {
-  field_type: FieldType,
+  field_type: ColumnType,
   column_size: usize,
 }
 
@@ -24,13 +24,13 @@ impl ColumnFactory for NumericColumnFactory {
   ) -> Result<Box<Column>>
   {
     match self.field_type {
-      FieldType::BOOL => self.create_bool_column(raw_data),
-      FieldType::BYTE => self.create_byte_column(raw_data),
-      FieldType::FLOAT => self.create_float_column(raw_data),
-      FieldType::INT32 => self.create_int_column(raw_data),
-      FieldType::INT64 => self.create_long_column(raw_data),
-      FieldType::TIMESTAMP => self.create_timestamp_column(raw_data),
-      FieldType::STRING => bail!(ErrorKind::DB(DBErrorKind::InvalidFieldType)),
+      ColumnType::BOOL => self.create_bool_column(raw_data),
+      ColumnType::BYTE => self.create_byte_column(raw_data),
+      ColumnType::FLOAT => self.create_float_column(raw_data),
+      ColumnType::INT32 => self.create_int_column(raw_data),
+      ColumnType::INT64 => self.create_long_column(raw_data),
+      ColumnType::TIMESTAMP => self.create_timestamp_column(raw_data),
+      ColumnType::STRING => bail!(ErrorKind::DB(DBErrorKind::InvalidFieldType)),
     }
   }
 }
@@ -157,20 +157,20 @@ impl ColumnFactory for StringColumnFactory {
 }
 
 pub fn create_column_factory(
-  field_type: FieldType,
+  field_type: ColumnType,
   column_size: usize,
 ) -> Box<ColumnFactory>
 {
   match field_type {
-    FieldType::STRING => Box::new(StringColumnFactory {
+    ColumnType::STRING => Box::new(StringColumnFactory {
       column_size,
     }),
-    FieldType::BOOL
-    | FieldType::BYTE
-    | FieldType::FLOAT
-    | FieldType::INT32
-    | FieldType::INT64
-    | FieldType::TIMESTAMP => Box::new(NumericColumnFactory {
+    ColumnType::BOOL
+    | ColumnType::BYTE
+    | ColumnType::FLOAT
+    | ColumnType::INT32
+    | ColumnType::INT64
+    | ColumnType::TIMESTAMP => Box::new(NumericColumnFactory {
       field_type,
       column_size,
     }),

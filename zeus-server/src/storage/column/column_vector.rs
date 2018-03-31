@@ -6,7 +6,7 @@ use std::any::Any;
 use std::convert::Into;
 
 use super::Column;
-use rpc::zeus_meta::FieldType;
+use rpc::zeus_meta::ColumnType;
 use rpc::zeus_data::ColumnValue;
 use util::cow_ptr::ToBoxedOwned;
 use util::errors::*;
@@ -14,7 +14,7 @@ use util::errors::*;
 pub struct ColumnVector<T>
 where T: Send + Sync + Copy + Into<ColumnValue> + 'static
 {
-  field_type: FieldType,
+  field_type: ColumnType,
   data: Arc<Vec<T>>,
 }
 
@@ -44,7 +44,7 @@ where T: Send + Sync + Copy + Into<ColumnValue> + 'static
     self.data.len()
   }
 
-  fn field_type(&self) -> FieldType {
+  fn field_type(&self) -> ColumnType {
     self.field_type
   }
   fn into_iter(&self) -> Box<Iterator<Item = ColumnValue>> {
@@ -70,7 +70,7 @@ impl<T> ColumnVector<T>
 where T: Send + Sync + Copy + Into<ColumnValue> + 'static
 {
   pub fn create(
-    field_type: FieldType,
+    field_type: ColumnType,
     data: Vec<T>,
   ) -> Result<ColumnVector<T>>
   {
@@ -85,7 +85,7 @@ where T: Send + Sync + Copy + Into<ColumnValue> + 'static
 mod tests {
 
   use rpc::zeus_data::ColumnValue;
-  use rpc::zeus_meta::FieldType;
+  use rpc::zeus_meta::ColumnType;
   use super::Column;
   use super::ColumnVector;
 
@@ -93,7 +93,7 @@ mod tests {
   fn test_column_iterator() {
     let data = vec![1i32, 4i32, 8i32];
 
-    let vector = ColumnVector::create(FieldType::INT32, data).ok().unwrap();
+    let vector = ColumnVector::create(ColumnType::INT32, data).ok().unwrap();
 
     let transformed: Vec<ColumnValue>= vector.into_iter()
       .collect();

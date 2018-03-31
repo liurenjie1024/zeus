@@ -198,7 +198,7 @@ mod tests {
   use super::DAGExecutor;
   use rpc::zeus_data::RowResult;
   use rpc::zeus_data::ColumnValue;
-  use rpc::zeus_meta::FieldType;
+  use rpc::zeus_meta::ColumnType;
   use storage::column::column_vector::ColumnVector;
   use util::errors::*;
 
@@ -230,13 +230,13 @@ mod tests {
 
   #[test]
   fn test_run() {
-    let column1 = ColumnVector::create(FieldType::BOOL, vec![true, false]).ok().unwrap();
-    let column2 = ColumnVector::create(FieldType::INT64, vec![12i64, 14i64]).ok().unwrap();
+    let column1 = ColumnVector::create(ColumnType::BOOL, vec![true, false]).ok().unwrap();
+    let column2 = ColumnVector::create(ColumnType::INT64, vec![12i64, 14i64]).ok().unwrap();
     let block1 = vec![ColumnWithInfo::from(box column1), ColumnWithInfo::from(box column2)];
     let block1 = Block::from(block1);
 
-    let column3 = ColumnVector::create(FieldType::BOOL, vec![false, true]).ok().unwrap();
-    let column4 = ColumnVector::create(FieldType::INT64, vec![100000i64, 54321i64]).ok().unwrap();
+    let column3 = ColumnVector::create(ColumnType::BOOL, vec![false, true]).ok().unwrap();
+    let column4 = ColumnVector::create(ColumnType::INT64, vec![100000i64, 54321i64]).ok().unwrap();
     let block2 = vec![ColumnWithInfo::from(box column3), ColumnWithInfo::from(box column4)];
     let block2 = Block::from(block2);
 

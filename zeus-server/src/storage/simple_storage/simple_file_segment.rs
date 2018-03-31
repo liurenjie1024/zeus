@@ -17,7 +17,7 @@ use exec::Block;
 use exec::ColumnWithInfo;
 use exec::ExecPhase;
 use rpc::zeus_simple_format::BlockHandles;
-use rpc::zeus_meta::FieldType;
+use rpc::zeus_meta::ColumnType;
 use util::errors::*;
 use util::cow_ptr::CowPtr;
 use storage::ErrorKind as DBErrorKind;
@@ -35,7 +35,7 @@ struct FileSegmentBlockInputStream {
   path: String,
   file: Option<File>,
   blocks: BlockHandles,
-  column_types: HashMap<i32, FieldType>,
+  column_types: HashMap<i32, ColumnType>,
   column_names: HashMap<i32, String>,
   column_factories: HashMap<i32, Box<ColumnFactory>>,
 }
@@ -62,7 +62,7 @@ impl SimpleFileSegment {
 
     let scan_node = context.scan_node;
 
-    let mut column_types: HashMap<i32, FieldType> = HashMap::new();
+    let mut column_types: HashMap<i32, ColumnType> = HashMap::new();
     let mut column_names: HashMap<i32, String> = HashMap::new();
 
     let table_schema =
