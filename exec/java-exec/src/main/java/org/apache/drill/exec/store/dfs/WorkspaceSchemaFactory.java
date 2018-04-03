@@ -69,7 +69,6 @@ import org.apache.drill.exec.util.DrillFileSystemUtil;
 import org.apache.drill.exec.util.ImpersonationUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -171,7 +170,7 @@ public class WorkspaceSchemaFactory {
        * In other cases, we use access method since it is cheaper.
        */
       if (SystemUtils.IS_OS_WINDOWS && fs.getUri().getScheme().equalsIgnoreCase(FileSystemSchemaFactory.LOCAL_FS_SCHEME)) {
-      fs.listStatus(wsPath);
+        fs.listStatus(wsPath);
       }
       else {
         fs.access(wsPath, FsAction.READ);
@@ -192,7 +191,7 @@ public class WorkspaceSchemaFactory {
   public WorkspaceSchema createSchema(List<String> parentSchemaPath, SchemaConfig schemaConfig, DrillFileSystem fs) throws IOException {
     if (!accessible(fs)) {
       return null;
-  }
+    }
     return new WorkspaceSchema(parentSchemaPath, schemaName, schemaConfig, fs);
   }
 
@@ -599,14 +598,13 @@ public class WorkspaceSchemaFactory {
     }
 
     private DrillTable isReadable(FormatMatcher m, FileSelection fileSelection) throws IOException {
-      return m.isReadable(getFS(), fileSelection, plugin, storageEngineName, schemaConfig.getUserName());
+      return m.isReadable(getFS(), fileSelection, plugin, storageEngineName, schemaConfig);
     }
 
     @Override
     public DrillTable create(TableInstance key) {
       try {
-        final FileSelection fileSelection = FileSelection
-            .create(getFS(), config.getLocation(), key.sig.name, config.allowAccessOutsideWorkspace());
+        final FileSelection fileSelection = FileSelection.create(getFS(), config.getLocation(), key.sig.name, config.allowAccessOutsideWorkspace());
         if (fileSelection == null) {
           return null;
         }
@@ -621,7 +619,7 @@ public class WorkspaceSchemaFactory {
         if (hasDirectories) {
           for (final FormatMatcher matcher : dirMatchers) {
             try {
-              DrillTable table = matcher.isReadable(getFS(), fileSelection, plugin, storageEngineName, schemaConfig.getUserName());
+              DrillTable table = matcher.isReadable(getFS(), fileSelection, plugin, storageEngineName, schemaConfig);
               if (table != null) {
                 return table;
               }
@@ -633,11 +631,13 @@ public class WorkspaceSchemaFactory {
 
         final FileSelection newSelection = hasDirectories ? fileSelection.minusDirectories(getFS()) : fileSelection;
         if (newSelection == null) {
-          return null;
+          // empty directory / selection means that this is the empty and schemaless table
+          fileSelection.setEmptyDirectoryStatus();
+          return new DynamicDrillTable(plugin, storageEngineName, schemaConfig.getUserName(), fileSelection);
         }
 
         for (final FormatMatcher matcher : fileMatchers) {
-          DrillTable table = matcher.isReadable(getFS(), newSelection, plugin, storageEngineName, schemaConfig.getUserName());
+          DrillTable table = matcher.isReadable(getFS(), newSelection, plugin, storageEngineName, schemaConfig);
           if (table != null) {
             return table;
           }
@@ -685,8 +685,7 @@ public class WorkspaceSchemaFactory {
      * @throws IOException is case of problems accessing table files
      */
     private boolean isHomogeneous(String tableName) throws IOException {
-      FileSelection fileSelection =
-          FileSelection.create(getFS(), config.getLocation(), tableName, config.allowAccessOutsideWorkspace());
+      FileSelection fileSelection = FileSelection.create(getFS(), config.getLocation(), tableName, config.allowAccessOutsideWorkspace());
 
       if (fileSelection == null) {
         throw UserException

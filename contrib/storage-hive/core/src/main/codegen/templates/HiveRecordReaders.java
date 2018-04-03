@@ -40,9 +40,9 @@ import java.util.Properties;
 import org.apache.drill.common.exceptions.DrillRuntimeException;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
-import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.store.hive.HivePartition;
 import org.apache.drill.exec.store.hive.HiveTableWithColumnCache;
+import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.vector.AllocationHelper;
 import org.apache.drill.exec.vector.ValueVector;
 import org.apache.hadoop.io.Writable;
@@ -130,7 +130,7 @@ public class Hive${entry.hiveReader}Reader extends HiveAbstractReader {
       while (!recordsInspector.isBatchFull() && hasNextValue(recordsInspector.getValueHolder())) {
         Object value = recordsInspector.getNextValue();
         if (value != null) {
-          Object deSerializedValue = partitionSerDe.deserialize((Writable) value);
+          Object deSerializedValue = partitionDeserializer.deserialize((Writable) value);
           if (partTblObjectInspectorConverter != null) {
             deSerializedValue = partTblObjectInspectorConverter.convert(deSerializedValue);
           }
@@ -159,7 +159,7 @@ public class Hive${entry.hiveReader}Reader extends HiveAbstractReader {
     try {
       int recordCount = 0;
       while (recordCount < TARGET_RECORD_COUNT && hasNextValue(value)) {
-        Object deSerializedValue = partitionSerDe.deserialize((Writable) value);
+        Object deSerializedValue = partitionDeserializer.deserialize((Writable) value);
         if (partTblObjectInspectorConverter != null) {
           deSerializedValue = partTblObjectInspectorConverter.convert(deSerializedValue);
         }

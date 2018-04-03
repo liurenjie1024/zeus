@@ -18,6 +18,7 @@
 package org.apache.drill.exec.store.hive;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -28,7 +29,7 @@ import org.apache.drill.common.AutoCloseables;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.exec.ExecConstants;
-import org.apache.drill.exec.ops.FragmentContext;
+import org.apache.drill.exec.ops.ExecutorFragmentContext;
 import org.apache.drill.exec.ops.OperatorContext;
 import org.apache.drill.exec.physical.impl.BatchCreator;
 import org.apache.drill.exec.physical.impl.ScanBatch;
@@ -57,9 +58,10 @@ import com.google.common.collect.Maps;
 
 @SuppressWarnings("unused")
 public class HiveDrillNativeScanBatchCreator implements BatchCreator<HiveDrillNativeParquetSubScan> {
+  private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HiveDrillNativeScanBatchCreator.class);
 
   @Override
-  public ScanBatch getBatch(FragmentContext context, HiveDrillNativeParquetSubScan config, List<RecordBatch> children)
+  public ScanBatch getBatch(ExecutorFragmentContext context, HiveDrillNativeParquetSubScan config, List<RecordBatch> children)
       throws ExecutionSetupException {
     final HiveTableWithColumnCache table = config.getTable();
     final List<List<InputSplit>> splits = config.getInputSplits();
@@ -74,11 +76,11 @@ public class HiveDrillNativeScanBatchCreator implements BatchCreator<HiveDrillNa
 
     final List<String[]> partitionColumns = Lists.newArrayList();
     final List<Integer> selectedPartitionColumns = Lists.newArrayList();
-    List<SchemaPath> newColumns = columns;
+    List<SchemaPath> tableColumns = columns;
     if (!selectAllQuery) {
       // Separate out the partition and non-partition columns. Non-partition columns are passed directly to the
       // ParquetRecordReader. Partition columns are passed to ScanBatch.
-      newColumns = Lists.newArrayList();
+      tableColumns = Lists.newArrayList();
       Pattern pattern = Pattern.compile(String.format("%s[0-9]+", partitionDesignator));
       for (SchemaPath column : columns) {
         Matcher m = pattern.matcher(column.getRootSegmentPath());
@@ -86,7 +88,7 @@ public class HiveDrillNativeScanBatchCreator implements BatchCreator<HiveDrillNa
           selectedPartitionColumns.add(
               Integer.parseInt(column.getRootSegmentPath().substring(partitionDesignator.length())));
         } else {
-          newColumns.add(column);
+          tableColumns.add(column);
         }
       }
     }
@@ -94,7 +96,7 @@ public class HiveDrillNativeScanBatchCreator implements BatchCreator<HiveDrillNa
     final OperatorContext oContext = context.newOperatorContext(config);
 
     int currentPartitionIndex = 0;
-    final List<RecordReader> readers = Lists.newArrayList();
+    final List<RecordReader> readers = new LinkedList<>();
 
     final HiveConf conf = config.getHiveConf();
 
@@ -137,7 +139,7 @@ public class HiveDrillNativeScanBatchCreator implements BatchCreator<HiveDrillNa
                 CodecFactory.createDirectCodecFactory(fs.getConf(),
                     new ParquetDirectByteBufferAllocator(oContext.getAllocator()), 0),
                 parquetMetadata,
-                newColumns,
+                tableColumns,
                 containsCorruptDates)
             );
             Map<String, String> implicitValues = Maps.newLinkedHashMap();
@@ -172,11 +174,11 @@ public class HiveDrillNativeScanBatchCreator implements BatchCreator<HiveDrillNa
     // If there are no readers created (which is possible when the table is empty or no row groups are matched),
     // create an empty RecordReader to output the schema
     if (readers.size() == 0) {
-      readers.add(new HiveDefaultReader(table, null, null, columns, context, conf,
+      readers.add(new HiveDefaultReader(table, null, null, tableColumns, context, conf,
         ImpersonationUtil.createProxyUgi(config.getUserName(), context.getQueryUserName())));
     }
 
-    return new ScanBatch(config, context, oContext, readers, implicitColumns);
+    return new ScanBatch(context, oContext, readers, implicitColumns);
   }
 
   /**

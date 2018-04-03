@@ -118,7 +118,7 @@ SqlNode SqlDescribeTable() :
         E()
     )
     {
-        return new SqlDescribeTable(pos, table, column, columnPattern);
+        return new DrillSqlDescribeTable(pos, table, column, columnPattern);
     }
 }
 
@@ -154,19 +154,19 @@ SqlNodeList ParseOptionalFieldList(String relType) :
 /** Parses a required field list and makes sure no field is a "*". */
 SqlNodeList ParseRequiredFieldList(String relType) :
 {
-    SqlNodeList fieldList;
+    Pair<SqlNodeList, SqlNodeList> fieldList;
 }
 {
     <LPAREN>
-    fieldList = SimpleIdentifierCommaList()
+    fieldList = ParenthesizedCompoundIdentifierList()
     <RPAREN>
     {
-        for(SqlNode node : fieldList)
+        for(SqlNode node : fieldList.left)
         {
-            if (((SqlIdentifier)node).isStar())
+            if (((SqlIdentifier) node).isStar())
                 throw new ParseException(String.format("%s's field list has a '*', which is invalid.", relType));
         }
-        return fieldList;
+        return fieldList.left;
     }
 }
 
@@ -352,3 +352,22 @@ SqlNode SqlDropFunction() :
        return new SqlDropFunction(pos, jar);
    }
 }
+
+<#if !parser.includeCompoundIdentifier >
+/**
+* Parses a comma-separated list of simple identifiers.
+*/
+Pair<SqlNodeList, SqlNodeList> ParenthesizedCompoundIdentifierList() :
+{
+    List<SqlIdentifier> list = new ArrayList<SqlIdentifier>();
+    SqlIdentifier id;
+}
+{
+    id = SimpleIdentifier() {list.add(id);}
+    (
+   <COMMA> id = SimpleIdentifier() {list.add(id);}) *
+    {
+       return Pair.of(new SqlNodeList(list, getPos()), null);
+    }
+}
+</#if>

@@ -17,11 +17,12 @@
  */
 package org.apache.drill.exec.store.kafka;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
-import org.apache.drill.exec.ops.FragmentContext;
+import org.apache.drill.exec.ops.ExecutorFragmentContext;
 import org.apache.drill.exec.physical.base.GroupScan;
 import org.apache.drill.exec.physical.impl.BatchCreator;
 import org.apache.drill.exec.physical.impl.ScanBatch;
@@ -32,18 +33,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 public class KafkaScanBatchCreator implements BatchCreator<KafkaSubScan> {
   static final Logger logger = LoggerFactory.getLogger(KafkaScanBatchCreator.class);
 
   @Override
-  public CloseableRecordBatch getBatch(FragmentContext context, KafkaSubScan subScan, List<RecordBatch> children)
+  public CloseableRecordBatch getBatch(ExecutorFragmentContext context, KafkaSubScan subScan, List<RecordBatch> children)
       throws ExecutionSetupException {
     Preconditions.checkArgument(children.isEmpty());
     List<SchemaPath> columns = subScan.getColumns() != null ? subScan.getColumns() : GroupScan.ALL_COLUMNS;
 
-    List<RecordReader> readers = Lists.newArrayListWithCapacity(subScan.getPartitionSubScanSpecList().size());
+    List<RecordReader> readers = new LinkedList<>();
     for (KafkaSubScan.KafkaSubScanSpec scanSpec : subScan.getPartitionSubScanSpecList()) {
       readers.add(new KafkaRecordReader(scanSpec, columns, context, subScan.getKafkaStoragePlugin()));
     }

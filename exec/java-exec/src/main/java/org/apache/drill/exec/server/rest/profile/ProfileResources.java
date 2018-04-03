@@ -123,16 +123,16 @@ public class ProfileResources {
 
     public String getLink() { return link; }
 
-    @Override
-    public int compareTo(ProfileInfo other) {
-      return time.compareTo(other.time);
-    }
-
     public String getForeman() { return foreman; }
 
     public double getTotalCost() { return totalCost; }
 
     public String getQueueName() { return queueName; }
+
+    @Override
+    public int compareTo(ProfileInfo other) {
+      return time.compareTo(other.time);
+    }
 
     /**
      * Generates link which will return query profile in json representation.
@@ -370,7 +370,7 @@ public class ProfileResources {
   @Path("/profiles/{queryid}")
   @Produces(MediaType.TEXT_HTML)
   public Viewable getProfile(@PathParam("queryid") String queryId){
-    ProfileWrapper wrapper = new ProfileWrapper(getQueryProfile(queryId));
+    ProfileWrapper wrapper = new ProfileWrapper(getQueryProfile(queryId), work.getContext().getConfig());
     return ViewableWithPermissions.create(authEnabled.get(), "/rest/profile/profile.ftl", sc, wrapper);
   }
 
@@ -383,10 +383,7 @@ public class ProfileResources {
     QueryId id = QueryIdHelper.getQueryIdFromString(queryId);
 
     // first check local running
-    Foreman f = work.getBee().getForemanForQueryId(id);
-    if(f != null){
-      checkOrThrowQueryCancelAuthorization(f.getQueryContext().getQueryUserName(), queryId);
-      f.cancel();
+    if (work.getBee().cancelForeman(id, principal)) {
       return String.format("Cancelled query %s on locally running node.", queryId);
     }
 
