@@ -1,0 +1,9 @@
+{
+  "storage":{
+    zeus: {
+      type:"zeus",
+      masterAddresses: "0.0.0.0",
+      enabled: false
+    }
+  }
+}
