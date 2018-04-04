@@ -1,19 +1,13 @@
 package io.github.zeus.client;
 
-import io.github.zeus.rpc.ColumnValue;
-import io.github.zeus.rpc.GetSchemaRequest;
-import io.github.zeus.rpc.PlanNode;
-import io.github.zeus.rpc.PlanNodeType;
-import io.github.zeus.rpc.QueryPlan;
-import io.github.zeus.rpc.QueryRequest;
-import io.github.zeus.rpc.QueryResult;
-import io.github.zeus.rpc.ScanNode;
-import io.github.zeus.rpc.ZeusDBSchema;
+import io.github.zeus.rpc.*;
 import io.github.zeus.rpc.ZeusDataServiceGrpc.ZeusDataServiceBlockingStub;
 import io.github.zeus.rpc.ZeusMetaServiceGrpc.ZeusMetaServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Created by liurenjie on 24/01/2018.
@@ -21,28 +15,25 @@ import org.slf4j.LoggerFactory;
 public class ZeusClient implements AutoCloseable {
   private static final Logger logger = LoggerFactory.getLogger(ZeusClient.class);
 
-  private final ManagedChannel metaChannel;
-  private final ZeusMetaServiceBlockingStub metaRpcClient;
+  private final ZeusCatalog catalog;
   private final ManagedChannel dataChannel;
   private final ZeusDataServiceBlockingStub dataRpcClient;
 
-  public ZeusClient(ManagedChannel metaChannel,
-                    ZeusMetaServiceBlockingStub metaRpcClient,
+  public ZeusClient(ZeusCatalog catalog,
                     ManagedChannel dataChannel,
                     ZeusDataServiceBlockingStub dataRpcClient) {
-    this.metaChannel = metaChannel;
-    this.metaRpcClient = metaRpcClient;
+    this.catalog = catalog;
     this.dataChannel = dataChannel;
     this.dataRpcClient = dataRpcClient;
   }
 
 
   public ZeusDBSchema getDBSchema(String db) {
-    GetSchemaRequest request = GetSchemaRequest.newBuilder()
-      .setDbName(db)
-      .build();
-    return metaRpcClient.getDBSchema(request)
-      .getDbSchema();
+    return catalog.getDbSchemasList()
+        .stream()
+        .filter(s -> s.getName().equals(db))
+        .findFirst()
+        .get();
   }
 
   public QueryResult query(QueryPlan plan) {
@@ -52,13 +43,12 @@ public class ZeusClient implements AutoCloseable {
   }
 
   public void close() throws Exception {
-    metaChannel.shutdownNow();
     dataChannel.shutdownNow();
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
-    ZeusClient client = ZeusClientBuilder.newBuilder(null, 0, "127.0.0.1", 8899)
+    ZeusClient client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Workspace/MyCodes/zeus/zeus-server/src/bin/data/test.schema", "127.0.0.1", 8899)
       .build();
 
     PlanNode node = PlanNode.newBuilder()

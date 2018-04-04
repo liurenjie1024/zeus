@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.Properties
 
-import com.google.protobuf.CodedInputStream
+import io.github.zeus.com.google.protobuf.CodedInputStream
 import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream._
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.format.simple.BlockHandles

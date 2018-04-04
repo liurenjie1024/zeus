@@ -3,7 +3,7 @@ package io.github.zeus.batch.tool
 import java.io.FileOutputStream
 import java.util.Properties
 
-import com.google.protobuf.CodedOutputStream
+import io.github.zeus.com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.rpc._
 
