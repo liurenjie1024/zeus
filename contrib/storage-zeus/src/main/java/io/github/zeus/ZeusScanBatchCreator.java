@@ -19,6 +19,7 @@
 package io.github.zeus;
 
 import org.apache.drill.common.exceptions.ExecutionSetupException;
+import org.apache.drill.exec.ops.ExecutorFragmentContext;
 import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.physical.impl.BatchCreator;
 import org.apache.drill.exec.physical.impl.ScanBatch;
@@ -34,10 +35,11 @@ import java.util.List;
  */
 public class ZeusScanBatchCreator implements BatchCreator<ZeusSubScan> {
   @Override
-  public CloseableRecordBatch getBatch(FragmentContext context, ZeusSubScan subScan,
+  public CloseableRecordBatch getBatch(ExecutorFragmentContext context,
+                                       ZeusSubScan subScan,
                                        List<RecordBatch> children) throws ExecutionSetupException {
     ZeusRecordReader recordReader = new ZeusRecordReader(subScan.getPlugin().getClient(),
-      subScan, subScan.getColumns());
+        subScan, subScan.getColumns());
     return new ScanBatch(subScan, context, Collections.singletonList(recordReader));
   }
 }

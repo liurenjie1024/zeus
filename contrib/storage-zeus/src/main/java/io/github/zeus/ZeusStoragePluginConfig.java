@@ -31,30 +31,23 @@ public class ZeusStoragePluginConfig extends StoragePluginConfigBase {
 
   public static final String NAME = "zeus";
 
-  private final String metaHostname;
-  private final int meataPort;
+  private final String schemaPath;
   private final String dataHostname;
   private final int dataPort;
 
   @JsonCreator
-  public ZeusStoragePluginConfig(@JsonProperty("metaHostname") String metaHostname,
-                                 @JsonProperty("meataPort") int meataPort,
+  public ZeusStoragePluginConfig(@JsonProperty("schemaPath") String schemaPath,
                                  @JsonProperty("dataHostname") String dataHostname,
                                  @JsonProperty("dataPort") int dataPort) {
-    this.metaHostname = metaHostname;
-    this.meataPort = meataPort;
+    this.schemaPath = schemaPath;
     this.dataHostname = dataHostname;
     this.dataPort = dataPort;
   }
 
-  @JsonProperty
-  public String getMetaHostname() {
-    return metaHostname;
-  }
 
   @JsonProperty
-  public int getMeataPort() {
-    return meataPort;
+  public String getSchemaPath() {
+    return schemaPath;
   }
 
   @JsonProperty
@@ -72,15 +65,23 @@ public class ZeusStoragePluginConfig extends StoragePluginConfigBase {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     ZeusStoragePluginConfig that = (ZeusStoragePluginConfig) o;
-    return getMeataPort() == that.getMeataPort() &&
-      getDataPort() == that.getDataPort() &&
-      Objects.equals(getMetaHostname(), that.getMetaHostname()) &&
-      Objects.equals(getDataHostname(), that.getDataHostname());
+    return getDataPort() == that.getDataPort() &&
+      Objects.equals(getDataHostname(), that.getDataHostname()) &&
+        Objects.equals(getSchemaPath(), that.getSchemaPath());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getMetaHostname(), getMeataPort(),
+    return Objects.hash(getSchemaPath(),
       getDataHostname(), getDataPort());
+  }
+
+  @Override
+  public String toString() {
+    return "ZeusStoragePluginConfig{" +
+        "schemaPath='" + schemaPath + '\'' +
+        ", dataHostname='" + dataHostname + '\'' +
+        ", dataPort=" + dataPort +
+        '}';
   }
 }

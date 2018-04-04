@@ -1,9 +1,11 @@
 {
   "storage":{
     zeus: {
-      type:"zeus",
-      masterAddresses: "0.0.0.0",
-      enabled: false
+      "type":"zeus",
+      "schemaPath": "~/Downloads/xx.s",
+      "dataHostname": "localhost",
+      "dataPort": 8899,
+      "enabled": false
     }
   }
 }

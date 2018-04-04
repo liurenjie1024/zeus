@@ -24,6 +24,7 @@ import io.github.zeus.client.ZeusClient;
 import io.github.zeus.client.ZeusClientBuilder;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.drill.common.JSONOptions;
+import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.logical.StoragePluginConfig;
 import org.apache.drill.exec.server.DrillbitContext;
 import org.apache.drill.exec.store.AbstractStoragePlugin;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by liurenjie on 24/01/2018.
@@ -48,6 +50,8 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
     this.config = config;
     this.context = context;
     this.name = name;
+
+    logger.error("Zeus storage plugin created, name: {}, config: {}", name, config);
   }
 
 
@@ -64,12 +68,17 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   }
 
   @Override
-  public void start() {
-    client = ZeusClientBuilder.newBuilder(config.getMetaHostname(),
-      config.getMeataPort(),
-      config.getDataHostname(),
-      config.getDataPort())
-      .build();
+  public void start() throws IOException {
+    logger.error("Starting zeus storage plugin");
+    try {
+      client = ZeusClientBuilder.newBuilder(config.getSchemaPath(),
+          config.getDataHostname(),
+          config.getDataPort())
+          .build();
+    } catch (Throwable t) {
+      logger.error("Failed to start zeus plugin.", t);
+    }
+    logger.error("Succeeded to start zeus plugin.");
   }
 
   public ZeusClient getClient() {
@@ -87,19 +96,21 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   }
 
   @Override
-  public ZeusGroupScan getPhysicalScan(String userName, JSONOptions selection) throws IOException {
-    ZeusGroupScanSpec scanSpec = selection.getListWith(new ObjectMapper(),
-      new TypeReference<ZeusGroupScanSpec>() {});
+  public ZeusGroupScan getPhysicalScan(String userName,
+                                       JSONOptions selection,
+                                       List<SchemaPath> paths) throws IOException {
 
     return new ZeusGroupScan(name, scanSpec.getTableName(), null, config, this);
   }
+
   @Override
   public void close() {
     if (client != null) {
       try {
         client.close();
-      } catch (Exception e) {
-        logger.error("Failed to close zeus client.", e);
+        logger.error("Zeus plugin stopped.");
+      } catch (Throwable t) {
+        logger.error("Failed to close zeus client.", t);
       }
     }
   }

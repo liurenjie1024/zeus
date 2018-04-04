@@ -69,6 +69,8 @@ public class ZeusTable extends DynamicDrillTable {
         return typeFactory.createSqlType(SqlTypeName.BOOLEAN);
       case TIMESTAMP:
         return typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
+      case BYTE:
+        return typeFactory.createSqlType(SqlTypeName.INTEGER);
       default:
         throw new IllegalArgumentException("Unrecognized type: " + columnType.name());
     }

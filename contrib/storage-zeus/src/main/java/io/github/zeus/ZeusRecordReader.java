@@ -91,6 +91,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
     .put(ColumnType.INT64, MinorType.BIGINT)
     .put(ColumnType.TIMESTAMP, MinorType.TIMESTAMP)
     .put(ColumnType.STRING, MinorType.VARBINARY)
+    .put(ColumnType.BYTE, MinorType.INT)
     .build();
 
   public ZeusRecordReader(ZeusClient zeusClient, ZeusSubScan zeusSubScan,
@@ -235,6 +236,10 @@ public class ZeusRecordReader extends AbstractRecordReader {
         case TIMESTAMP: {
           ((TimeStampVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getI64Value());
+        }
+        case BYTE: {
+          ((IntVector.Mutator) columnInfo.vv.getMutator())
+              .setSafe(rowIndex, 0);
         }
       }
     }
