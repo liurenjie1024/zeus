@@ -99,7 +99,8 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   public ZeusGroupScan getPhysicalScan(String userName,
                                        JSONOptions selection,
                                        List<SchemaPath> paths) throws IOException {
-
+    ZeusGroupScanSpec scanSpec = selection.getListWith(new ObjectMapper(),
+      new TypeReference<ZeusGroupScanSpec>(){});
     return new ZeusGroupScan(name, scanSpec.getTableName(), null, config, this);
   }
 

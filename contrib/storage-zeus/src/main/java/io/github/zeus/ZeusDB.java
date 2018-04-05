@@ -59,7 +59,7 @@ public class ZeusDB extends AbstractSchema {
       .stream()
       .filter(t -> t.getName().equals(name))
       .findFirst()
-      .map(t -> new ZeusTable(plugin, storageEngineName, null, t))
+      .map(t -> new ZeusTable(plugin, storageEngineName, new ZeusGroupScanSpec(name), t))
       .get();
   }
 }
