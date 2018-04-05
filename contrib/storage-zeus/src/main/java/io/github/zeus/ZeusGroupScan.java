@@ -28,6 +28,7 @@ import org.apache.drill.common.logical.StoragePluginConfig;
 import org.apache.drill.exec.physical.PhysicalOperatorSetupException;
 import org.apache.drill.exec.physical.base.AbstractGroupScan;
 import org.apache.drill.exec.physical.base.PhysicalOperator;
+import org.apache.drill.exec.physical.base.ScanStats;
 import org.apache.drill.exec.physical.base.SubScan;
 import org.apache.drill.exec.proto.CoordinationProtos.DrillbitEndpoint;
 import org.apache.drill.exec.store.StoragePluginRegistry;
@@ -75,6 +76,11 @@ public class ZeusGroupScan extends AbstractGroupScan {
   @Override
   public SubScan getSpecificScan(int minorFragmentId) throws ExecutionSetupException {
     return new ZeusSubScan(dbName, tableName, columns, config, plugin);
+  }
+
+  @Override
+  public ScanStats getScanStats() {
+    return ScanStats.TRIVIAL_TABLE;
   }
 
   @Override
