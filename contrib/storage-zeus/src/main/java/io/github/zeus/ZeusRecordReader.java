@@ -193,7 +193,8 @@ public class ZeusRecordReader extends AbstractRecordReader {
     ScanNode scanNode = ScanNode.newBuilder()
       .setDbId(zeusDBSchema.getId())
       .setTableId(zeusTableSchema.getId())
-      .addAllColumns(columnIds)
+      .addColumns(1)
+//      .addAllColumns(columnIds)
       .build();
 
     PlanNode planNode = PlanNode.newBuilder()
