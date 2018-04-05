@@ -183,29 +183,44 @@ public class ZeusRecordReader extends AbstractRecordReader {
   }
 
   private QueryPlan buildQueryPlan(Set<String> columns) {
-    List<Integer> columnIds = zeusTableSchema.getColumnsMap()
-      .values()
-      .stream()
-      .filter(f -> columns.contains(f.getName()))
-      .map(ZeusColumnSchema::getId)
-      .collect(Collectors.toList());
+//    List<Integer> columnIds = zeusTableSchema.getColumnsMap()
+//      .values()
+//      .stream()
+//      .filter(f -> columns.contains(f.getName()))
+//      .map(ZeusColumnSchema::getId)
+//      .collect(Collectors.toList());
+//
+//    ScanNode scanNode = ScanNode.newBuilder()
+//      .setDbId(1)
+//      .setTableId(1)
+//      .addColumns(1)
+////      .addAllColumns(columnIds)
+//      .build();
+//
+//    PlanNode planNode = PlanNode.newBuilder()
+//      .setScanNode(scanNode)
+//      .setPlanNodeType(PlanNodeType.SCAN_NODE)
+//      .build();
 
-    ScanNode scanNode = ScanNode.newBuilder()
-      .setDbId(zeusDBSchema.getId())
-      .setTableId(zeusTableSchema.getId())
-      .addColumns(1)
-//      .addAllColumns(columnIds)
-      .build();
-
-    PlanNode planNode = PlanNode.newBuilder()
-      .setScanNode(scanNode)
+    PlanNode node = PlanNode.newBuilder()
       .setPlanNodeType(PlanNodeType.SCAN_NODE)
+      .setScanNode(ScanNode.newBuilder()
+        .setDbId(1)
+        .setTableId(1)
+        .addColumns(1)
+        .addColumns(2)
+        .addColumns(3)
+        .addColumns(4)
+        .addColumns(5)
+        .addColumns(6)
+        .build())
       .build();
 
-    return QueryPlan.newBuilder()
-      .setPlanId(1)
-      .setRoot(planNode)
+    QueryPlan plan = QueryPlan.newBuilder()
+      .setPlanId(1).setRoot(node)
       .build();
+
+    return plan;
   }
 
   private void addResult(RowResult row, int rowIndex) {
