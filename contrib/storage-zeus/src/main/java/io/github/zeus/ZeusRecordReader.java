@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static io.github.zeus.rpc.ColumnType.INT32;
 
@@ -98,7 +100,10 @@ public class ZeusRecordReader extends AbstractRecordReader {
                           List<SchemaPath> projectedColumns) {
     this.zeusClient = zeusClient;
     this.zeusSubScan = zeusSubScan;
-    setColumns(projectedColumns);
+    List<SchemaPath> s = Stream.of("bool", "byte", "float", "int", "long", "string")
+      .map(SchemaPath::getSimplePath)
+      .collect(Collectors.toList());
+    setColumns(s);
   }
 
 
