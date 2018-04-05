@@ -1,8 +1,14 @@
 package io.github.zeus.client;
 
-import io.github.zeus.rpc.*;
+import io.github.zeus.rpc.PlanNode;
+import io.github.zeus.rpc.PlanNodeType;
+import io.github.zeus.rpc.QueryPlan;
+import io.github.zeus.rpc.QueryRequest;
+import io.github.zeus.rpc.QueryResult;
+import io.github.zeus.rpc.ScanNode;
+import io.github.zeus.rpc.ZeusCatalog;
+import io.github.zeus.rpc.ZeusDBSchema;
 import io.github.zeus.rpc.ZeusDataServiceGrpc.ZeusDataServiceBlockingStub;
-import io.github.zeus.rpc.ZeusMetaServiceGrpc.ZeusMetaServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
