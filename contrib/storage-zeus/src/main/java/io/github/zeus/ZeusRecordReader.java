@@ -100,7 +100,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
                           List<SchemaPath> projectedColumns) {
     this.zeusClient = zeusClient;
     this.zeusSubScan = zeusSubScan;
-    List<SchemaPath> s = Stream.of("bool", "byte", "float", "int", "long", "string")
+    List<SchemaPath> s = Stream.of("`bool`", "`byte`", "`float`", "`int`", "`long`", "`string`")
       .map(SchemaPath::getSimplePath)
       .collect(Collectors.toList());
     setColumns(s);
