@@ -46,7 +46,7 @@ import org.apache.drill.exec.vector.Float4Vector;
 import org.apache.drill.exec.vector.IntVector;
 import org.apache.drill.exec.vector.TimeStampVector;
 import org.apache.drill.exec.vector.ValueVector;
-import org.apache.drill.exec.vector.VarCharVector;
+import org.apache.drill.exec.vector.VarBinaryVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static io.github.zeus.rpc.ColumnType.INT32;
 
@@ -235,7 +234,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
       switch (columnInfo.zeusSchema.getColumnType()) {
         case STRING: {
           ByteBuffer value = ByteBuffer.wrap(row.getColumns(i).getStringValue().getBytes());
-          ((VarCharVector.Mutator) columnInfo.vv.getMutator())
+          ((VarBinaryVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, value, 0, value.remaining());
         }
         break;
