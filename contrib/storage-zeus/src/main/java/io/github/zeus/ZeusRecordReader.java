@@ -238,30 +238,37 @@ public class ZeusRecordReader extends AbstractRecordReader {
           ((VarCharVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, value, 0, value.remaining());
         }
+        break;
         case BOOL: {
           ((BitVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getBoolValue() ? 1 : 0);
         }
+        break;
         case INT32: {
           ((IntVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getI32Value());
         }
+        break;
         case INT64: {
           ((BigIntVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getI64Value());
         }
+        break;
         case FLOAT: {
           ((Float4Vector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getFloatValue());
         }
+        break;
         case TIMESTAMP: {
           ((TimeStampVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getI64Value());
         }
+        break;
         case BYTE: {
           ((IntVector.Mutator) columnInfo.vv.getMutator())
               .setSafe(rowIndex, 0);
         }
+        break;
       }
     }
   }
