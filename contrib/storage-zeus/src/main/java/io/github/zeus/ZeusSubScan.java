@@ -20,6 +20,7 @@ package io.github.zeus;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
@@ -84,6 +85,7 @@ public class ZeusSubScan extends AbstractSubScan {
     return config;
   }
 
+  @JsonIgnore
   public ZeusStoragePlugin getPlugin() {
     return plugin;
   }
