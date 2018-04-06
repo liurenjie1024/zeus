@@ -1,14 +1,12 @@
 package io.github.zeus.client;
 
+import io.github.zeus.client.impl.ZeusClientImpl;
 import io.github.zeus.rpc.ZeusCatalog;
 import io.github.zeus.rpc.ZeusDataServiceGrpc;
-import io.github.zeus.rpc.ZeusMetaServiceGrpc;
-import io.github.zeus.rpc.ZeusMetaServiceGrpc.ZeusMetaServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -30,13 +28,13 @@ public class ZeusClientBuilder {
     return new ZeusClientBuilder(schemaPath, dataHost, dataPort);
   }
 
-  public ZeusClient build() throws IOException {
+  public ZeusClientImpl build() throws IOException {
     try (FileInputStream f = new FileInputStream(this.schemaPath)) {
       ZeusCatalog catalog = ZeusCatalog.parseFrom(f);
       ManagedChannel dataChannel = ManagedChannelBuilder.forAddress(dataHost, dataPort)
           .usePlaintext(true)
           .build();
-      return new ZeusClient(catalog,
+      return new ZeusClientImpl(catalog,
           dataChannel,
           ZeusDataServiceGrpc.newBlockingStub(dataChannel));
     }

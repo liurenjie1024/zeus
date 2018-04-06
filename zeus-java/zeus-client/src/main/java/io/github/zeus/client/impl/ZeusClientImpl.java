@@ -1,0 +1,88 @@
+package io.github.zeus.client.impl;
+
+import io.github.zeus.client.ZeusClient;
+import io.github.zeus.client.ZeusClientBuilder;
+import io.github.zeus.rpc.PlanNode;
+import io.github.zeus.rpc.PlanNodeType;
+import io.github.zeus.rpc.QueryPlan;
+import io.github.zeus.rpc.QueryRequest;
+import io.github.zeus.rpc.QueryResult;
+import io.github.zeus.rpc.ScanNode;
+import io.github.zeus.rpc.ZeusCatalog;
+import io.github.zeus.rpc.ZeusDBSchema;
+import io.github.zeus.rpc.ZeusDataServiceGrpc.ZeusDataServiceBlockingStub;
+import io.grpc.ManagedChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Optional;
+
+/**
+ * Created by liurenjie on 24/01/2018.
+ */
+public class ZeusClientImpl implements ZeusClient {
+  private static final Logger logger = LoggerFactory.getLogger(ZeusClientImpl.class);
+
+  private final ZeusCatalog catalog;
+  private final ManagedChannel dataChannel;
+  private final ZeusDataServiceBlockingStub dataRpcClient;
+
+  public ZeusClientImpl(ZeusCatalog catalog,
+                        ManagedChannel dataChannel,
+                        ZeusDataServiceBlockingStub dataRpcClient) {
+    this.catalog = catalog;
+    this.dataChannel = dataChannel;
+    this.dataRpcClient = dataRpcClient;
+  }
+
+
+  public Optional<ZeusDBSchema > getDBSchema(String db) {
+    return catalog.getDbSchemasList()
+        .stream()
+        .filter(s -> s.getName().equals(db))
+        .findFirst();
+  }
+
+  public QueryResult query(QueryPlan plan) {
+    return dataRpcClient.query(QueryRequest.newBuilder()
+      .setPlan(plan)
+      .build());
+  }
+
+  public void close() throws Exception {
+    dataChannel.shutdownNow();
+  }
+
+  public static void main(String[] args) throws IOException {
+    System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
+    ZeusClientImpl client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Workspace/MyCodes/zeus/zeus-server/src/bin/data/test.schema", "127.0.0.1", 8899)
+      .build();
+
+    PlanNode node = PlanNode.newBuilder()
+      .setPlanNodeType(PlanNodeType.SCAN_NODE)
+      .setScanNode(ScanNode.newBuilder()
+              .setDbId(1)
+              .setTableId(1)
+              .addColumns(1)
+              .addColumns(2)
+              .addColumns(3)
+              .addColumns(4)
+              .addColumns(5)
+              .addColumns(6)
+              .build())
+      .build();
+
+    QueryPlan plan = QueryPlan.newBuilder()
+      .setPlanId(1).setRoot(node)
+      .build();
+
+    QueryResult result = client.query(plan);
+
+    System.out.println(result.getCode());
+
+    result.getRowsList().stream()
+      .flatMap(row -> row.getColumnsList().stream())
+      .forEach(System.out::println);
+  }
+}
