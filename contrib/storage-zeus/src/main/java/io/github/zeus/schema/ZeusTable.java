@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package io.github.zeus;
+package io.github.zeus.schema;
 
 import io.github.zeus.rpc.ColumnType;
 import io.github.zeus.rpc.ZeusColumnSchema;
@@ -28,6 +28,9 @@ import org.apache.drill.exec.planner.logical.DynamicDrillTable;
 import org.apache.drill.exec.store.StoragePlugin;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +57,28 @@ public class ZeusTable extends DynamicDrillTable {
 
     return typeFactory.createStructType(dataTypes, names);
   }
+
+  public int getId() {
+    return tableSchema.getId();
+  }
+
+  public Optional<Integer> getColumnId(String columnName) {
+    return tableSchema.getColumnsMap()
+      .values()
+      .stream()
+      .filter(c -> c.getName().equals(columnName))
+      .findFirst()
+      .map(ZeusColumnSchema::getId);
+  }
+
+  public Set<String> getAllColumnNames() {
+    return tableSchema.getColumnsMap()
+      .values()
+      .stream()
+      .map(ZeusColumnSchema::getName)
+      .collect(Collectors.toSet());
+  }
+
 
   private static RelDataType toDrillType(RelDataTypeFactory typeFactory, ColumnType columnType) {
     switch (columnType) {

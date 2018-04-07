@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zeus.client.ZeusClient;
 import io.github.zeus.client.ZeusClientBuilder;
+import io.github.zeus.schema.ZeusDB;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.drill.common.JSONOptions;
 import org.apache.drill.common.expression.SchemaPath;
@@ -35,9 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Created by liurenjie on 24/01/2018.
- */
 public class ZeusStoragePlugin extends AbstractStoragePlugin {
   private static final Logger logger = LoggerFactory.getLogger(ZeusStoragePlugin.class);
 
@@ -45,20 +43,19 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   private final DrillbitContext context;
   private final String name;
   private ZeusClient client;
+  private ZeusDB schema;
 
   public ZeusStoragePlugin(ZeusStoragePluginConfig config, DrillbitContext context, String name) {
     this.config = config;
     this.context = context;
     this.name = name;
 
-    logger.error("Zeus storage plugin created, name: {}, config: {}", name, config);
+    logger.info("Zeus storage plugin created, name: {}, config: {}", name, config);
   }
 
 
   @Override
   public void registerSchemas(SchemaConfig schemaConfig, SchemaPlus parent) throws IOException {
-    ZeusDB schema = new ZeusDB(this, name, client.getDBSchema(name));
-
     parent.add(name, schema);
   }
 
@@ -69,20 +66,26 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
 
   @Override
   public void start() throws IOException {
-    logger.error("Starting zeus storage plugin");
+    logger.info("Starting zeus storage plugin");
     try {
       client = ZeusClientBuilder.newBuilder(config.getSchemaPath(),
           config.getDataHostname(),
           config.getDataPort())
           .build();
+      schema = new ZeusDB(this, name, client.getDBSchema(name).get());
     } catch (Throwable t) {
       logger.error("Failed to start zeus plugin.", t);
+      throw t;
     }
-    logger.error("Succeeded to start zeus plugin.");
+    logger.info("Succeeded to start zeus plugin.");
   }
 
   public ZeusClient getClient() {
     return client;
+  }
+
+  public ZeusDB getSchema() {
+    return schema;
   }
 
   @Override
@@ -101,7 +104,7 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
                                        List<SchemaPath> paths) throws IOException {
     ZeusGroupScanSpec scanSpec = selection.getListWith(new ObjectMapper(),
       new TypeReference<ZeusGroupScanSpec>(){});
-    return new ZeusGroupScan(name, scanSpec.getTableName(), null, config, this);
+    return new ZeusGroupScan(name, scanSpec.getTableName(), paths, config, this);
   }
 
   @Override
@@ -109,7 +112,7 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
     if (client != null) {
       try {
         client.close();
-        logger.error("Zeus plugin stopped.");
+        logger.info("Zeus plugin stopped.");
       } catch (Throwable t) {
         logger.error("Failed to close zeus client.", t);
       }

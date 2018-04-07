@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 
-package io.github.zeus;
+package io.github.zeus.schema;
 
 
 import com.google.common.collect.ImmutableList;
+import io.github.zeus.ZeusGroupScanSpec;
+import io.github.zeus.ZeusStoragePlugin;
 import io.github.zeus.rpc.ZeusDBSchema;
 import io.github.zeus.rpc.ZeusTableSchema;
 import org.apache.calcite.schema.Table;
@@ -54,12 +56,17 @@ public class ZeusDB extends AbstractSchema {
       .collect(Collectors.toSet());
   }
 
-  public Table getTable(String name) {
+  @Override
+  public ZeusTable getTable(String name) {
     return zeusDBSchema.getTablesMap().values()
       .stream()
       .filter(t -> t.getName().equals(name))
       .findFirst()
       .map(t -> new ZeusTable(plugin, storageEngineName, new ZeusGroupScanSpec(name), t))
-      .get();
+      .orElse(null);
+  }
+
+  public int getId() {
+    return zeusDBSchema.getId();
   }
 }

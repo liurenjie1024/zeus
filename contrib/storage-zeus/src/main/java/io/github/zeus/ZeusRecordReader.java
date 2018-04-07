@@ -29,6 +29,7 @@ import io.github.zeus.rpc.ScanNode;
 import io.github.zeus.rpc.ZeusColumnSchema;
 import io.github.zeus.rpc.ZeusDBSchema;
 import io.github.zeus.rpc.ZeusTableSchema;
+import io.github.zeus.schema.ZeusDB;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.types.TypeProtos.MajorType;
@@ -51,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -67,8 +69,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
   private final ZeusClient zeusClient;
   private final ZeusSubScan zeusSubScan;
 
-  private ZeusDBSchema zeusDBSchema;
-  private ZeusTableSchema zeusTableSchema;
+  private ZeusDB schema;
   private OperatorContext context;
   private OutputMutator output;
   private List<ProjectColumnInfo> columnInfos;
@@ -99,12 +100,21 @@ public class ZeusRecordReader extends AbstractRecordReader {
                           List<SchemaPath> projectedColumns) {
     this.zeusClient = zeusClient;
     this.zeusSubScan = zeusSubScan;
-    List<SchemaPath> s = Stream.of("bool", "byte", "float", "int", "long", "string")
-      .map(SchemaPath::getSimplePath)
-      .collect(Collectors.toList());
-    setColumns(s);
+    setColumns(projectedColumns);
   }
 
+  @Override
+  protected Collection<SchemaPath> transformColumns(Collection<SchemaPath> projected) {
+    if (isStarQuery()) {
+      return schema.getTable(zeusSubScan.getTableName())
+        .getAllColumnNames()
+        .stream()
+        .map(SchemaPath::getSimplePath)
+        .collect(Collectors.toList());
+    } else {
+      return projected;
+    }
+  }
 
   @Override
   public void setup(OperatorContext context, OutputMutator output) throws ExecutionSetupException {
