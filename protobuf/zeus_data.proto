@@ -45,7 +45,7 @@ message PlanNode {
 }
 
 message QueryPlan {
-    int32 plan_id = 1;
+    string plan_id = 1;
     PlanNode root = 2;
 }
 

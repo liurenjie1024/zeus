@@ -28,7 +28,7 @@ public class ZeusClientBuilder {
     return new ZeusClientBuilder(schemaPath, dataHost, dataPort);
   }
 
-  public ZeusClientImpl build() throws IOException {
+  public ZeusClient build() throws IOException {
     try (FileInputStream f = new FileInputStream(this.schemaPath)) {
       ZeusCatalog catalog = ZeusCatalog.parseFrom(f);
       ManagedChannel dataChannel = ManagedChannelBuilder.forAddress(dataHost, dataPort)

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Created by liurenjie on 24/01/2018.
@@ -56,7 +57,7 @@ public class ZeusClientImpl implements ZeusClient {
 
   public static void main(String[] args) throws IOException {
     System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
-    ZeusClientImpl client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Workspace/MyCodes/zeus/zeus-server/src/bin/data/test.schema", "127.0.0.1", 8899)
+    ZeusClient client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Workspace/MyCodes/zeus/zeus-server/src/bin/data/test.schema", "127.0.0.1", 8899)
       .build();
 
     PlanNode node = PlanNode.newBuilder()
@@ -74,7 +75,7 @@ public class ZeusClientImpl implements ZeusClient {
       .build();
 
     QueryPlan plan = QueryPlan.newBuilder()
-      .setPlanId(1).setRoot(node)
+      .setPlanId(UUID.randomUUID().toString()).setRoot(node)
       .build();
 
     QueryResult result = client.query(plan);
