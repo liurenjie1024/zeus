@@ -27,10 +27,7 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.drill.exec.planner.logical.DynamicDrillTable;
 import org.apache.drill.exec.store.StoragePlugin;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -77,6 +74,10 @@ public class ZeusTable extends DynamicDrillTable {
       .stream()
       .map(ZeusColumnSchema::getName)
       .collect(Collectors.toSet());
+  }
+
+  public Collection<ZeusColumnSchema> getAllColumnSchemas() {
+    return tableSchema.getColumnsMap().values();
   }
 
 

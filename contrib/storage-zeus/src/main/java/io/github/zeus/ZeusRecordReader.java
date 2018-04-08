@@ -20,16 +20,9 @@ package io.github.zeus;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.zeus.client.ZeusClient;
-import io.github.zeus.rpc.ColumnType;
-import io.github.zeus.rpc.PlanNode;
-import io.github.zeus.rpc.PlanNodeType;
-import io.github.zeus.rpc.QueryPlan;
-import io.github.zeus.rpc.RowResult;
-import io.github.zeus.rpc.ScanNode;
-import io.github.zeus.rpc.ZeusColumnSchema;
-import io.github.zeus.rpc.ZeusDBSchema;
-import io.github.zeus.rpc.ZeusTableSchema;
+import io.github.zeus.rpc.*;
 import io.github.zeus.schema.ZeusDB;
+import io.github.zeus.schema.ZeusTable;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.types.TypeProtos.MajorType;
@@ -41,38 +34,50 @@ import org.apache.drill.exec.ops.OperatorContext;
 import org.apache.drill.exec.physical.impl.OutputMutator;
 import org.apache.drill.exec.record.MaterializedField;
 import org.apache.drill.exec.store.AbstractRecordReader;
-import org.apache.drill.exec.vector.BigIntVector;
-import org.apache.drill.exec.vector.BitVector;
-import org.apache.drill.exec.vector.Float4Vector;
-import org.apache.drill.exec.vector.IntVector;
-import org.apache.drill.exec.vector.TimeStampVector;
-import org.apache.drill.exec.vector.ValueVector;
-import org.apache.drill.exec.vector.VarBinaryVector;
+import org.apache.drill.exec.vector.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static io.github.zeus.rpc.ColumnType.INT32;
+import static io.github.zeus.rpc.ColumnType.*;
 
 public class ZeusRecordReader extends AbstractRecordReader {
   private static final Logger logger = LoggerFactory.getLogger(ZeusRecordReader.class);
   private static final int MAX_BATCH_COUNT = 4000;
+  private static final String hostname;
+
+  static {
+    String tmp = "UnknownHost";
+
+    try {
+      InetAddress address = InetAddress.getLocalHost();
+
+      try {
+        tmp = address.getHostName();
+      } catch (Exception e) {
+        logger.error("Failed to get hostname, use address.", e);
+        tmp = address.getHostAddress();
+      }
+    } catch (Exception e) {
+      logger.error("Failed to get hostname or address.", e);
+    }
+
+    hostname = tmp;
+  }
 
   private final ZeusClient zeusClient;
   private final ZeusSubScan zeusSubScan;
-
   private ZeusDB schema;
+
+
   private OperatorContext context;
   private OutputMutator output;
   private List<ProjectColumnInfo> columnInfos;
+  private QueryPlan plan;
   private Iterator<RowResult> queryResult;
 
 
@@ -87,19 +92,22 @@ public class ZeusRecordReader extends AbstractRecordReader {
   }
 
   static final Map<ColumnType, MinorType> TYPES = ImmutableMap.<ColumnType, MinorType>builder()
-    .put(ColumnType.BOOL, MinorType.BIT)
-    .put(ColumnType.FLOAT, MinorType.FLOAT4)
+    .put(BOOL, MinorType.BIT)
+    .put(FLOAT, MinorType.FLOAT4)
     .put(INT32, MinorType.INT)
-    .put(ColumnType.INT64, MinorType.BIGINT)
-    .put(ColumnType.TIMESTAMP, MinorType.TIMESTAMP)
-    .put(ColumnType.STRING, MinorType.VARBINARY)
-    .put(ColumnType.BYTE, MinorType.INT)
+    .put(INT64, MinorType.BIGINT)
+    .put(TIMESTAMP, MinorType.TIMESTAMP)
+    .put(STRING, MinorType.VARCHAR)
+    .put(BYTE, MinorType.TINYINT)
     .build();
 
-  public ZeusRecordReader(ZeusClient zeusClient, ZeusSubScan zeusSubScan,
+  public ZeusRecordReader(ZeusClient zeusClient,
+                          ZeusSubScan zeusSubScan,
+                          ZeusDB schema,
                           List<SchemaPath> projectedColumns) {
     this.zeusClient = zeusClient;
     this.zeusSubScan = zeusSubScan;
+    this.schema = schema;
     setColumns(projectedColumns);
   }
 
@@ -129,20 +137,15 @@ public class ZeusRecordReader extends AbstractRecordReader {
     context.getStats().startWait();
 
     try {
-      zeusDBSchema = zeusClient.getDBSchema(zeusSubScan.getDbName());
-      zeusTableSchema = zeusDBSchema.getTablesMap().values()
-        .stream()
-        .filter(t -> t.getName().equals(zeusSubScan.getTableName()))
-        .findFirst()
-        .get();
-
-      columnInfos = zeusTableSchema
-        .getColumnsMap()
-        .values()
+      columnInfos = schema.getTable(zeusSubScan.getTableName())
+        .getAllColumnSchemas()
         .stream()
         .filter(f -> columnNames.contains(f.getName()))
         .map(f -> new ProjectColumnInfo(createValueVector(f), f))
         .collect(Collectors.toList());
+
+      plan = buildQueryPlan();
+      logger.info("Query plan is: {}", plan);
     } finally {
       context.getStats().stopWait();
     }
@@ -151,15 +154,11 @@ public class ZeusRecordReader extends AbstractRecordReader {
   @Override
   public int next() {
     if (queryResult == null) {
-      Set<String> columnNames = this.getColumns()
-        .stream()
-        .map(SchemaPath::getRootSegmentPath)
-        .collect(Collectors.toSet());
-
       context.getStats().startWait();
       try {
-        queryResult = zeusClient.query(buildQueryPlan(columnNames))
-          .getRowsList().iterator();
+        queryResult = zeusClient.query(plan)
+          .getRowsList()
+          .iterator();
       } finally {
         context.getStats().stopWait();
       }
@@ -196,42 +195,31 @@ public class ZeusRecordReader extends AbstractRecordReader {
     return vector;
   }
 
-  private QueryPlan buildQueryPlan(Set<String> columns) {
-//    List<Integer> columnIds = zeusTableSchema.getColumnsMap()
-//      .values()
-//      .stream()
-//      .filter(f -> columns.contains(f.getName()))
-//      .map(ZeusColumnSchema::getId)
-//      .collect(Collectors.toList());
-//
-//    ScanNode scanNode = ScanNode.newBuilder()
-//      .setDbId(1)
-//      .setTableId(1)
-//      .addColumns(1)
-////      .addAllColumns(columnIds)
-//      .build();
-//
-//    PlanNode planNode = PlanNode.newBuilder()
-//      .setScanNode(scanNode)
-//      .setPlanNodeType(PlanNodeType.SCAN_NODE)
-//      .build();
+  private QueryPlan buildQueryPlan() {
+    ZeusTable table = schema.getTable(zeusSubScan.getTableName());
 
-    PlanNode node = PlanNode.newBuilder()
+    List<Integer> columnIds = getColumns()
+      .stream()
+      .map(SchemaPath::rootName)
+      .map(table::getColumnId)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .collect(Collectors.toList());
+
+    ScanNode scanNode = ScanNode.newBuilder()
+      .setDbId(schema.getId())
+      .setTableId(table.getId())
+      .addAllColumns(columnIds)
+      .build();
+
+    PlanNode planNode = PlanNode.newBuilder()
+      .setScanNode(scanNode)
       .setPlanNodeType(PlanNodeType.SCAN_NODE)
-      .setScanNode(ScanNode.newBuilder()
-        .setDbId(1)
-        .setTableId(1)
-        .addColumns(1)
-        .addColumns(2)
-        .addColumns(3)
-        .addColumns(4)
-        .addColumns(5)
-        .addColumns(6)
-        .build())
       .build();
 
     QueryPlan plan = QueryPlan.newBuilder()
-      .setPlanId(1).setRoot(node)
+      .setPlanId(generatePlanId())
+      .setRoot(planNode)
       .build();
 
     return plan;
@@ -244,7 +232,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
       switch (columnInfo.zeusSchema.getColumnType()) {
         case STRING: {
           ByteBuffer value = ByteBuffer.wrap(row.getColumns(i).getStringValue().getBytes());
-          ((VarBinaryVector.Mutator) columnInfo.vv.getMutator())
+          ((VarCharVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, value, 0, value.remaining());
         }
         break;
@@ -274,11 +262,15 @@ public class ZeusRecordReader extends AbstractRecordReader {
         }
         break;
         case BYTE: {
-          ((IntVector.Mutator) columnInfo.vv.getMutator())
-              .setSafe(rowIndex, 0);
+          ((SmallIntVector.Mutator) columnInfo.vv.getMutator())
+              .setSafe(rowIndex, row.getColumns(i).getI32Value());
         }
         break;
       }
     }
+  }
+
+  private String generatePlanId() {
+    return String.format("%s-%s", hostname, UUID.randomUUID().toString());
   }
 }

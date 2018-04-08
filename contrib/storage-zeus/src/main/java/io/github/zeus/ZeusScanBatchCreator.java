@@ -38,8 +38,11 @@ public class ZeusScanBatchCreator implements BatchCreator<ZeusSubScan> {
   public CloseableRecordBatch getBatch(ExecutorFragmentContext context,
                                        ZeusSubScan subScan,
                                        List<RecordBatch> children) throws ExecutionSetupException {
-    ZeusRecordReader recordReader = new ZeusRecordReader(subScan.getPlugin().getClient(),
-        subScan, subScan.getColumns());
+    ZeusRecordReader recordReader = new ZeusRecordReader(
+      subScan.getPlugin().getClient(),
+      subScan,
+      subScan.getPlugin().getSchema(),
+      subScan.getColumns());
     return new ScanBatch(subScan, context, Collections.singletonList(recordReader));
   }
 }

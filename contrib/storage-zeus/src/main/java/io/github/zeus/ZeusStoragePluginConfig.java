@@ -19,10 +19,15 @@
 package io.github.zeus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.annotations.VisibleForTesting;
+import io.github.zeus.client.ZeusClient;
+import io.github.zeus.client.ZeusClientBuilder;
 import org.apache.drill.common.logical.StoragePluginConfigBase;
 
+import java.io.IOException;
 import java.util.Objects;
 
 @JsonTypeName(ZeusStoragePluginConfig.NAME)
@@ -34,6 +39,8 @@ public class ZeusStoragePluginConfig extends StoragePluginConfigBase {
   private final String schemaPath;
   private final String dataHostname;
   private final int dataPort;
+
+  private ZeusClient client; // Only for testing, in the future we will disable set client directly
 
   @JsonCreator
   public ZeusStoragePluginConfig(@JsonProperty("schemaPath") String schemaPath,
@@ -58,6 +65,24 @@ public class ZeusStoragePluginConfig extends StoragePluginConfigBase {
   @JsonProperty
   public int getDataPort() {
     return dataPort;
+  }
+
+  @JsonIgnore
+  public ZeusClient getClient() throws IOException {
+    if (client != null) {
+      return client;
+    } else {
+      client = ZeusClientBuilder.newBuilder(getSchemaPath(),
+        getDataHostname(),
+        getDataPort())
+        .build();
+      return client;
+    }
+  }
+
+  @VisibleForTesting
+  void setClient(ZeusClient client) {
+    this.client = client;
   }
 
   @Override

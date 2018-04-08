@@ -68,10 +68,7 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   public void start() throws IOException {
     logger.info("Starting zeus storage plugin");
     try {
-      client = ZeusClientBuilder.newBuilder(config.getSchemaPath(),
-          config.getDataHostname(),
-          config.getDataPort())
-          .build();
+      client = config.getClient();
       schema = new ZeusDB(this, name, client.getDBSchema(name).get());
     } catch (Throwable t) {
       logger.error("Failed to start zeus plugin.", t);
