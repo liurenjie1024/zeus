@@ -10,8 +10,6 @@ extern crate grpcio;
 extern crate log;
 extern crate prometheus;
 extern crate protobuf;
-#[macro_use]
-extern crate quick_error;
 extern crate serde;
 extern crate serde_json;
 #[macro_use]

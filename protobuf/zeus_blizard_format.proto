@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_package="io.github.zeus.format.blizard";
+option java_multiple_files=true;
+
+message SegmentIndex {
+    int32 format_version = 1;
+    int32 magic_number = 2;
+    repeated BlockNode block_handle = 3;
+    repeated BlockIndex block_index = 4;
+}
+
+message ColumnNode {
+    int64 start = 1;
+    int64 end = 2; // exclusive
+}
+
+message ColumnRangeIndex {
+    int64 min_number_value = 1;
+    int64 max_number_value = 2;
+    string min_string_value = 3;
+    string max_string_value = 4;
+}
+
+message BlockNode {
+    int64 start = 1;
+    int64 end = 2; // exclusive
+    map<int32, ColumnNode> column_handles = 3;
+    int32 block_column_size = 4;
+}
+
+message BlockIndex {
+    map<int32, ColumnRangeIndex> column_range_index = 1;
+}
+

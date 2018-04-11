@@ -21,6 +21,7 @@ macro_rules! fatal {
   })
 }
 
+#[allow(unused_must_use)]
 fn main() {
   let matches = App::new("Zeus Server")
     .about("A time-series database written in rust!")

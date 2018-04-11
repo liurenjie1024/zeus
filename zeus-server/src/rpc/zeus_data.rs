@@ -1376,7 +1376,7 @@ impl ::protobuf::reflect::ProtobufValue for PlanNode {
 #[derive(PartialEq,Clone,Default)]
 pub struct QueryPlan {
     // message fields
-    pub plan_id: i32,
+    pub plan_id: ::std::string::String,
     pub root: ::protobuf::SingularPtrField<PlanNode>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
@@ -1401,26 +1401,37 @@ impl QueryPlan {
         }
     }
 
-    // int32 plan_id = 1;
+    // string plan_id = 1;
 
     pub fn clear_plan_id(&mut self) {
-        self.plan_id = 0;
+        self.plan_id.clear();
     }
 
     // Param is passed by value, moved
-    pub fn set_plan_id(&mut self, v: i32) {
+    pub fn set_plan_id(&mut self, v: ::std::string::String) {
         self.plan_id = v;
     }
 
-    pub fn get_plan_id(&self) -> i32 {
-        self.plan_id
+    // Mutable pointer to the field.
+    // If field is not initialized, it is initialized with default value first.
+    pub fn mut_plan_id(&mut self) -> &mut ::std::string::String {
+        &mut self.plan_id
     }
 
-    fn get_plan_id_for_reflect(&self) -> &i32 {
+    // Take field
+    pub fn take_plan_id(&mut self) -> ::std::string::String {
+        ::std::mem::replace(&mut self.plan_id, ::std::string::String::new())
+    }
+
+    pub fn get_plan_id(&self) -> &str {
         &self.plan_id
     }
 
-    fn mut_plan_id_for_reflect(&mut self) -> &mut i32 {
+    fn get_plan_id_for_reflect(&self) -> &::std::string::String {
+        &self.plan_id
+    }
+
+    fn mut_plan_id_for_reflect(&mut self) -> &mut ::std::string::String {
         &mut self.plan_id
     }
 
@@ -1481,11 +1492,7 @@ impl ::protobuf::Message for QueryPlan {
             let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_int32()?;
-                    self.plan_id = tmp;
+                    ::protobuf::rt::read_singular_proto3_string_into(wire_type, is, &mut self.plan_id)?;
                 },
                 2 => {
                     ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.root)?;
@@ -1502,8 +1509,8 @@ impl ::protobuf::Message for QueryPlan {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        if self.plan_id != 0 {
-            my_size += ::protobuf::rt::value_size(1, self.plan_id, ::protobuf::wire_format::WireTypeVarint);
+        if !self.plan_id.is_empty() {
+            my_size += ::protobuf::rt::string_size(1, &self.plan_id);
         }
         if let Some(ref v) = self.root.as_ref() {
             let len = v.compute_size();
@@ -1515,8 +1522,8 @@ impl ::protobuf::Message for QueryPlan {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if self.plan_id != 0 {
-            os.write_int32(1, self.plan_id)?;
+        if !self.plan_id.is_empty() {
+            os.write_string(1, &self.plan_id)?;
         }
         if let Some(ref v) = self.root.as_ref() {
             os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
@@ -1567,7 +1574,7 @@ impl ::protobuf::MessageStatic for QueryPlan {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
+                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
                     "plan_id",
                     QueryPlan::get_plan_id_for_reflect,
                     QueryPlan::mut_plan_id_for_reflect,
@@ -2133,8 +2140,8 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x0b2\t.PlanNodeR\x08children\x123\n\x0eplan_node_type\x18\x03\x20\x01(\
     \x0e2\r.PlanNodeTypeR\x0cplanNodeType\x12&\n\tscan_node\x18\x04\x20\x01(\
     \x0b2\t.ScanNodeR\x08scanNode\"C\n\tQueryPlan\x12\x17\n\x07plan_id\x18\
-    \x01\x20\x01(\x05R\x06planId\x12\x1d\n\x04root\x18\x02\x20\x01(\x0b2\t.P\
-    lanNodeR\x04root\".\n\x0cQueryRequest\x12\x1e\n\x04plan\x18\x01\x20\x01(\
+    \x01\x20\x01(\tR\x06planId\x12\x1d\n\x04root\x18\x02\x20\x01(\x0b2\t.Pla\
+    nNodeR\x04root\".\n\x0cQueryRequest\x12\x1e\n\x04plan\x18\x01\x20\x01(\
     \x0b2\n.QueryPlanR\x04plan\"5\n\x03Row\x12\x13\n\x05db_id\x18\x01\x20\
     \x01(\x05R\x04dbId\x12\x19\n\x08table_id\x18\x02\x20\x01(\x05R\x07tableI\
     d*\x20\n\nStatusCode\x12\x06\n\x02OK\x10\0\x12\n\n\x06FAILED\x10\x01*\
@@ -2214,29 +2221,29 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x12\x04+\x04)$\n\x0c\n\x05\x04\x04\x02\x03\x06\x12\x03+\x04\x0c\n\x0c\n\
     \x05\x04\x04\x02\x03\x01\x12\x03+\r\x16\n\x0c\n\x05\x04\x04\x02\x03\x03\
     \x12\x03+\x19\x1a\n\n\n\x02\x04\x05\x12\x04.\01\x01\n\n\n\x03\x04\x05\
-    \x01\x12\x03.\x08\x11\n\x0b\n\x04\x04\x05\x02\0\x12\x03/\x04\x16\n\r\n\
+    \x01\x12\x03.\x08\x11\n\x0b\n\x04\x04\x05\x02\0\x12\x03/\x04\x17\n\r\n\
     \x05\x04\x05\x02\0\x04\x12\x04/\x04.\x13\n\x0c\n\x05\x04\x05\x02\0\x05\
-    \x12\x03/\x04\t\n\x0c\n\x05\x04\x05\x02\0\x01\x12\x03/\n\x11\n\x0c\n\x05\
-    \x04\x05\x02\0\x03\x12\x03/\x14\x15\n\x0b\n\x04\x04\x05\x02\x01\x12\x030\
-    \x04\x16\n\r\n\x05\x04\x05\x02\x01\x04\x12\x040\x04/\x16\n\x0c\n\x05\x04\
-    \x05\x02\x01\x06\x12\x030\x04\x0c\n\x0c\n\x05\x04\x05\x02\x01\x01\x12\
-    \x030\r\x11\n\x0c\n\x05\x04\x05\x02\x01\x03\x12\x030\x14\x15\n\n\n\x02\
-    \x04\x06\x12\x043\05\x01\n\n\n\x03\x04\x06\x01\x12\x033\x08\x14\n\x0b\n\
-    \x04\x04\x06\x02\0\x12\x034\x04\x17\n\r\n\x05\x04\x06\x02\0\x04\x12\x044\
-    \x043\x16\n\x0c\n\x05\x04\x06\x02\0\x06\x12\x034\x04\r\n\x0c\n\x05\x04\
-    \x06\x02\0\x01\x12\x034\x0e\x12\n\x0c\n\x05\x04\x06\x02\0\x03\x12\x034\
-    \x15\x16\n'\n\x02\x04\x07\x12\x048\0;\x01\x1a\x1b\x20TODO:\x20Remove\x20\
-    this\x20message\n\n\n\n\x03\x04\x07\x01\x12\x038\x08\x0b\n\x0b\n\x04\x04\
-    \x07\x02\0\x12\x039\x04\x14\n\r\n\x05\x04\x07\x02\0\x04\x12\x049\x048\r\
-    \n\x0c\n\x05\x04\x07\x02\0\x05\x12\x039\x04\t\n\x0c\n\x05\x04\x07\x02\0\
-    \x01\x12\x039\n\x0f\n\x0c\n\x05\x04\x07\x02\0\x03\x12\x039\x12\x13\n\x0b\
-    \n\x04\x04\x07\x02\x01\x12\x03:\x04\x17\n\r\n\x05\x04\x07\x02\x01\x04\
-    \x12\x04:\x049\x14\n\x0c\n\x05\x04\x07\x02\x01\x05\x12\x03:\x04\t\n\x0c\
-    \n\x05\x04\x07\x02\x01\x01\x12\x03:\n\x12\n\x0c\n\x05\x04\x07\x02\x01\
-    \x03\x12\x03:\x15\x16\n\n\n\x02\x06\0\x12\x04=\0?\x01\n\n\n\x03\x06\0\
-    \x01\x12\x03=\x08\x17\n\x0b\n\x04\x06\0\x02\0\x12\x03>\x044\n\x0c\n\x05\
-    \x06\0\x02\0\x01\x12\x03>\x08\r\n\x0c\n\x05\x06\0\x02\0\x02\x12\x03>\x0e\
-    \x1a\n\x0c\n\x05\x06\0\x02\0\x03\x12\x03>%0b\x06proto3\
+    \x12\x03/\x04\n\n\x0c\n\x05\x04\x05\x02\0\x01\x12\x03/\x0b\x12\n\x0c\n\
+    \x05\x04\x05\x02\0\x03\x12\x03/\x15\x16\n\x0b\n\x04\x04\x05\x02\x01\x12\
+    \x030\x04\x16\n\r\n\x05\x04\x05\x02\x01\x04\x12\x040\x04/\x17\n\x0c\n\
+    \x05\x04\x05\x02\x01\x06\x12\x030\x04\x0c\n\x0c\n\x05\x04\x05\x02\x01\
+    \x01\x12\x030\r\x11\n\x0c\n\x05\x04\x05\x02\x01\x03\x12\x030\x14\x15\n\n\
+    \n\x02\x04\x06\x12\x043\05\x01\n\n\n\x03\x04\x06\x01\x12\x033\x08\x14\n\
+    \x0b\n\x04\x04\x06\x02\0\x12\x034\x04\x17\n\r\n\x05\x04\x06\x02\0\x04\
+    \x12\x044\x043\x16\n\x0c\n\x05\x04\x06\x02\0\x06\x12\x034\x04\r\n\x0c\n\
+    \x05\x04\x06\x02\0\x01\x12\x034\x0e\x12\n\x0c\n\x05\x04\x06\x02\0\x03\
+    \x12\x034\x15\x16\n'\n\x02\x04\x07\x12\x048\0;\x01\x1a\x1b\x20TODO:\x20R\
+    emove\x20this\x20message\n\n\n\n\x03\x04\x07\x01\x12\x038\x08\x0b\n\x0b\
+    \n\x04\x04\x07\x02\0\x12\x039\x04\x14\n\r\n\x05\x04\x07\x02\0\x04\x12\
+    \x049\x048\r\n\x0c\n\x05\x04\x07\x02\0\x05\x12\x039\x04\t\n\x0c\n\x05\
+    \x04\x07\x02\0\x01\x12\x039\n\x0f\n\x0c\n\x05\x04\x07\x02\0\x03\x12\x039\
+    \x12\x13\n\x0b\n\x04\x04\x07\x02\x01\x12\x03:\x04\x17\n\r\n\x05\x04\x07\
+    \x02\x01\x04\x12\x04:\x049\x14\n\x0c\n\x05\x04\x07\x02\x01\x05\x12\x03:\
+    \x04\t\n\x0c\n\x05\x04\x07\x02\x01\x01\x12\x03:\n\x12\n\x0c\n\x05\x04\
+    \x07\x02\x01\x03\x12\x03:\x15\x16\n\n\n\x02\x06\0\x12\x04=\0?\x01\n\n\n\
+    \x03\x06\0\x01\x12\x03=\x08\x17\n\x0b\n\x04\x06\0\x02\0\x12\x03>\x044\n\
+    \x0c\n\x05\x06\0\x02\0\x01\x12\x03>\x08\r\n\x0c\n\x05\x06\0\x02\0\x02\
+    \x12\x03>\x0e\x1a\n\x0c\n\x05\x06\0\x02\0\x03\x12\x03>%0b\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

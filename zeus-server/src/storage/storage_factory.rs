@@ -5,6 +5,7 @@ use storage::ErrorKind as DBErrorKind;
 use server::config::ZeusConfig;
 use storage::Storage;
 use storage::simple_storage::SimpleTable;
+use storage::blizard_storage::blizard_table::BlizardTable;
 
 #[allow(dead_code)]
 pub struct StorageFactory {}
@@ -18,6 +19,7 @@ impl StorageFactory {
   ) -> Result<Arc<Storage>> {
     match storage_type {
       "simple" => Ok(Arc::new(SimpleTable::new(&config.storage, table_id)?)),
+      "blizard" => Ok(Arc::new(BlizardTable::open(&config, table_id)?)),
       s => {
         error!("Unrecognized storage type: {}", s);
         bail!(ErrorKind::DB(DBErrorKind::InvalidStorageType))
