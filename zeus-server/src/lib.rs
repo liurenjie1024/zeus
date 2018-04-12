@@ -17,6 +17,7 @@ extern crate serde_derive;
 extern crate toml;
 #[macro_use]
 extern crate error_chain;
+extern crate arrow;
 
 pub mod exec;
 pub mod rpc;

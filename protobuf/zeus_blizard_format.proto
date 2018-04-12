@@ -6,7 +6,7 @@ option java_multiple_files=true;
 message SegmentIndex {
     int32 format_version = 1;
     int32 magic_number = 2;
-    repeated BlockNode block_handle = 3;
+    repeated BlockNode block_node = 3;
     repeated BlockIndex block_index = 4;
 }
 
@@ -25,7 +25,7 @@ message ColumnRangeIndex {
 message BlockNode {
     int64 start = 1;
     int64 end = 2; // exclusive
-    map<int32, ColumnNode> column_handles = 3;
+    map<int32, ColumnNode> column_node = 3;
     int32 block_column_size = 4;
 }
 

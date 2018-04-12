@@ -8,6 +8,7 @@ use util::errors::*;
 
 pub mod column_string;
 pub mod column_vector;
+pub mod arrow_column;
 mod field;
 
 pub type BoolColumn = column_vector::ColumnVector<bool>;
