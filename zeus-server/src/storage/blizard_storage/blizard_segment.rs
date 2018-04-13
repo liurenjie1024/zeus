@@ -55,7 +55,7 @@ impl BlizardSegment {
     if !path.exists() {
       let err_msg = format!("Data file \"{:?}\" not found.", path);
       error!("{}", err_msg);
-      return Error(StdIoError::new(StdIoErrorKind::NotFound, err_msg));
+      return Err(Error(StdIoError::new(StdIoErrorKind::NotFound, err_msg)));
     }
 
     Ok(BlizardSegment {
