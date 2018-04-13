@@ -38,8 +38,13 @@ impl BlizardTable {
     let mut segments = LinkedList::new();
 
     for line in playlist_file.lines() {
-      let name = line.chain_err(move || "Failed to read line")?
-        .trim();
+      let name = line.chain_err(|| {
+        let err_msg = "Failed to read line";
+        error!("{}", err_msg);
+        err_msg
+      })?;
+
+      name.trim();
 
       let err_msg = format!("Failed to open segment \"{:?}\" in table root \"{:?}\"", name, table_root);
       let segment = BlizardSegment::open(&table_root, name)
