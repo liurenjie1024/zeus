@@ -148,7 +148,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     let mut columns: Vec<ColumnWithInfo> = Vec::new();
     for column_id in &sorted_column_ids {
       let column_handle = block_handle.get_column_node().get(column_id).unwrap();
-      let column = box FileSegmentBlockInputStream::load_column(&mut self.reader, *column_id, &column_handle)?;
+      let column = box FileSegmentBlockInputStream::load_column(&mut self.reader.unwrap(), *column_id, &column_handle)?;
 //      let column_start = column_handle.get_start() as u64;
 //      let mut column_factory = self.column_factories.get_mut(column_id).unwrap();
 //      //TODO: Optimize this
