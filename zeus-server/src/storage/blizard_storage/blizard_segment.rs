@@ -142,16 +142,13 @@ impl BlockInputStream for FileSegmentBlockInputStream {
               "Column {:?} doesn't exist in {:?}.", x, self.path);
     }
 
-    let mut sorted_column_ids;
-    {
-      sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
-      sorted_column_ids.sort_by_key(|id| block_handle.column_node[id].start);
-    }
+    let mut sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
+    sorted_column_ids.sort_by_key(|id| block_handle.column_node[id].start);
 
     let mut columns: Vec<ColumnWithInfo> = Vec::new();
     for column_id in &sorted_column_ids {
       let column_handle = block_handle.get_column_node().get(column_id).unwrap();
-      let column = box self.load_column(*column_id, &column_handle)?;
+      let column = box FileSegmentBlockInputStream::load_column(&mut self.reader, *column_id, &column_handle)?;
 //      let column_start = column_handle.get_start() as u64;
 //      let mut column_factory = self.column_factories.get_mut(column_id).unwrap();
 //      //TODO: Optimize this
@@ -192,7 +189,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 }
 
 impl FileSegmentBlockInputStream {
-  fn load_column(&mut self, column_id: i32, column_node: &ColumnNode) -> Result<ArrowColumn> {
+  fn load_column(reader: &mut Read, column_id: i32, column_node: &ColumnNode) -> Result<ArrowColumn> {
     unimplemented!()
   }
 }
