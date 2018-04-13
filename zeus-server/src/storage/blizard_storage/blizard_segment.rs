@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::path::PathBuf;
 use std::borrow::ToOwned;
-use std::fs::File;
 use std::io::Read;
+use std::fs::File;
 use std::sync::Arc;
 use std::io::Error as StdIoError;
 use std::io::ErrorKind as StdIoErrorKind;
@@ -24,9 +24,13 @@ use storage::column::arrow_column::ArrowColumn;
 use util::cow_ptr::CowPtr;
 use util::errors::*;
 
+const EXT_INDEX: &'static str = "idx";
+const EXT_DATA: &'static str = "bin";
+
 pub(super) struct BlizardSegment {
   index: Arc<SegmentIndex>,
-  data_path: Box<Path>
+  data_path: Box<Path>,
+  name: String
 }
 
 impl BlizardSegment {
@@ -36,27 +40,28 @@ impl BlizardSegment {
     path.set_file_name(name);
 
     // Read index
-    path.set_extension("idx");
+    path.set_extension(EXT_INDEX);
     let err_msg = format!("Failed to parse open index file: \"{:?}\"", path);
     let mut file = File::open(&path)
       .chain_err(move || {
         error!("{}", err_msg);
         err_msg
-      });
+      })?;
     let index = parse_from_reader::<SegmentIndex>(&mut file)?;
     debug!("Segment index read:{:?}", index);
 
     // Check file data eixsts
-    path.set_extension("data");
+    path.set_extension(EXT_DATA);
     if !path.exists() {
       let err_msg = format!("Data file \"{:?}\" not found.", path);
       error!("{}", err_msg);
-      Err(StdIoError::new(StdIoErrorKind::NotFound, err_msg))
+      return Error(StdIoError::new(StdIoErrorKind::NotFound, err_msg));
     }
 
     Ok(BlizardSegment {
-      index,
-      data_path: path.into_boxed_path()
+      index: Arc::new(index),
+      data_path: path.into_boxed_path(),
+      name: name.to_string()
     })
   }
 }
@@ -64,7 +69,7 @@ impl BlizardSegment {
 struct FileSegmentBlockInputStream {
   phase: ExecPhase,
   next_block_idx: usize,
-  path: Arc<Path> ,
+  path: Arc<PathBuf> ,
   reader: Option<File>,
   index: Arc<SegmentIndex>,
   column_types: HashMap<i32, ColumnType>,
@@ -90,11 +95,14 @@ impl BlizardSegment {
       column_names.insert(*column_id, column_schema.get_name());
     }
 
+    let mut path = self.data_path.into_path_buf();
+    path.set_file_name(self.name);
+    path.set_extension(EXT_DATA);
 
     Ok(Box::new(FileSegmentBlockInputStream {
       phase: ExecPhase::UnInited,
       next_block_idx: 0,
-      path: Arc::new(self.path.clone()),
+      path: Arc::new(path),
       reader: None,
       index: self.index.clone(),
       column_types,
@@ -108,7 +116,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     assert_eq!(ExecPhase::UnInited, self.phase);
 
     let path = self.path.clone();
-    let reader = Some(File::open(path.clone())
+    let reader = Some(File::open(&*(path.clone()))
       .chain_err(move || {
         let err_msg = format!("Failed to open file: \"{:?}\"", path);
         error!("{:?}", err_msg);
@@ -131,7 +139,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 
     for x in self.column_names.keys() {
       assert!(block_handle.get_column_node().contains_key(x),
-              "Column {} doesn't exist in {}.", x, self.path);
+              "Column {:?} doesn't exist in {:?}.", x, self.path);
     }
 
     let mut sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
@@ -166,7 +174,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 
     Ok(Block {
       columns,
-      eof: self.next_block_idx >= self.blocks.get_handles().len(),
+      eof: self.next_block_idx >= self.index.get_block_node().len(),
     })
   }
 
@@ -180,7 +188,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
   }
 }
 
-impl BlizardSegment {
+impl FileSegmentBlockInputStream {
   fn load_column(&mut self, column_id: i32, column_node: &ColumnNode) -> Result<ArrowColumn> {
     unimplemented!()
   }
