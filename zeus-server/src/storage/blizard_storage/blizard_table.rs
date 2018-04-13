@@ -47,7 +47,7 @@ impl BlizardTable {
       name.trim();
 
       let err_msg = format!("Failed to open segment \"{:?}\" in table root \"{:?}\"", name, table_root);
-      let segment = BlizardSegment::open(&table_root, name)
+      let segment = BlizardSegment::open(&table_root, &name)
         .chain_err(move || err_msg)?;
 
       segments.push_back(segment);

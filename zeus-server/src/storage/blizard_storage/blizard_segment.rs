@@ -18,7 +18,6 @@ use storage::BlockInputStream;
 use storage::ErrorKind as DBErrorKind;
 use rpc::zeus_meta::ColumnType;
 use rpc::zeus_blizard_format::SegmentIndex;
-use rpc::zeus_blizard_format::BlockNode;
 use rpc::zeus_blizard_format::ColumnNode;
 use storage::column::arrow_column::ArrowColumn;
 use util::cow_ptr::CowPtr;
