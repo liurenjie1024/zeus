@@ -95,8 +95,8 @@ impl BlizardSegment {
       column_names.insert(*column_id, column_schema.get_name());
     }
 
-    let mut path = self.data_path.into_path_buf();
-    path.set_file_name(self.name);
+    let mut path = self.data_path.to_path_buf();
+    path.set_file_name(&self.name);
     path.set_extension(EXT_DATA);
 
     Ok(Box::new(FileSegmentBlockInputStream {
@@ -142,8 +142,11 @@ impl BlockInputStream for FileSegmentBlockInputStream {
               "Column {:?} doesn't exist in {:?}.", x, self.path);
     }
 
-    let mut sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
-    sorted_column_ids.sort_by_key(|id| block_handle.column_node[id].start);
+    let mut sorted_column_ids;
+    {
+      sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
+      sorted_column_ids.sort_by_key(|id| block_handle.column_node[id].start);
+    }
 
     let mut columns: Vec<ColumnWithInfo> = Vec::new();
     for column_id in &sorted_column_ids {
