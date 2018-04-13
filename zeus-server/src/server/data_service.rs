@@ -43,7 +43,7 @@ impl ZeusDataService for DataService {
     sink: UnarySink<QueryResult>,
   )
   {
-    let plan_id = req.get_plan().get_plan_id();
+    let plan_id = req.get_plan().get_plan_id().to_string();
     debug!("Begin to query, plan id is: {}", plan_id);
 
     let (sender, receiver) = channel();

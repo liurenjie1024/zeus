@@ -33,7 +33,7 @@ impl BlizardTable {
     let err_msg = format!("Failed to open playlist file: {:?}", playlist_path);
     let playlist_file = File::open(&playlist_path)
       .chain_err(move || err_msg)?;
-    let mut playlist_file = BufReader::new(playlist_file);
+    let playlist_file = BufReader::new(playlist_file);
 
     let mut segments = LinkedList::new();
 
