@@ -1,6 +1,5 @@
 pub mod block_input_stream;
 pub mod column;
-pub mod data_type;
 mod simple_storage;
 mod blizard_storage;
 pub mod storage;
