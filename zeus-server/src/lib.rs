@@ -18,6 +18,7 @@ extern crate toml;
 #[macro_use]
 extern crate error_chain;
 extern crate arrow;
+extern crate byteorder;
 
 pub mod exec;
 pub mod rpc;

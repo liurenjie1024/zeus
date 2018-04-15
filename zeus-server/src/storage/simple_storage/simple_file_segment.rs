@@ -168,7 +168,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
       columns.push(ColumnWithInfo {
         name: self.column_names.get(column_id).unwrap().clone(),
         id: Some(*column_id),
-        column: CowPtr::Owned(column),
+        column: column,
       });
     }
 

@@ -37,7 +37,7 @@ where T: Copy + Into<ColumnValue>
   }
 }
 
-impl<T> Column for ColumnVector<T>
+impl<T> ColumnVector<T>
 where T: Send + Sync + Copy + Into<ColumnValue> + 'static
 {
   fn size(&self) -> usize {

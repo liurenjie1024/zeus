@@ -1,25 +1,33 @@
 use std::path::Path;
 use std::path::PathBuf;
 use std::borrow::ToOwned;
-use std::io::Read;
 use std::fs::File;
+use std::io::Read;
+use std::io::SeekFrom;
+use std::io::Seek;
 use std::sync::Arc;
 use std::io::Error as StdIoError;
 use std::io::ErrorKind as StdIoErrorKind;
 use std::collections::HashMap;
 
+use byteorder::ReadBytesExt;
+use byteorder::LittleEndian;
 use protobuf::parse_from_reader;
 
 use exec::ExecPhase;
 use exec::Block;
 use exec::ColumnWithInfo;
+use storage::column::Column;
+use storage::column::column_data::ColumnData;
+use storage::column::column_data::Datum;
+use storage::column::column_vector::ColumnVector;
+use storage::column::column_string::ColumnString;
 use storage::ScanContext;
 use storage::BlockInputStream;
 use storage::ErrorKind as DBErrorKind;
 use rpc::zeus_meta::ColumnType;
 use rpc::zeus_blizard_format::SegmentIndex;
 use rpc::zeus_blizard_format::ColumnNode;
-use storage::column::arrow_column::ArrowColumn;
 use util::cow_ptr::CowPtr;
 use util::errors::*;
 
@@ -147,7 +155,12 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     let mut columns: Vec<ColumnWithInfo> = Vec::new();
     for column_id in &sorted_column_ids {
       let column_handle = block_handle.get_column_node().get(column_id).unwrap();
-      let column = box FileSegmentBlockInputStream::load_column(&mut self.reader.as_mut().unwrap(), *column_id, &column_handle)?;
+      let column = FileSegmentBlockInputStream::load_column(
+        &mut self.reader.as_mut().unwrap(),
+        *column_id,
+        &column_handle,
+        self.column_types[column_id],
+        block_handle.block_column_size as usize)?;
 //      let column_start = column_handle.get_start() as u64;
 //      let mut column_factory = self.column_factories.get_mut(column_id).unwrap();
 //      //TODO: Optimize this
@@ -165,7 +178,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
       columns.push(ColumnWithInfo {
         name: self.column_names.get(column_id).unwrap().clone(),
         id: Some(*column_id),
-        column: CowPtr::Owned(column),
+        column,
       });
     }
 
@@ -187,8 +200,126 @@ impl BlockInputStream for FileSegmentBlockInputStream {
   }
 }
 
+macro_rules! create_vector {
+  ($reader: ident, $dest_type: ident, $endian: ty, $len: expr) => {
+    {
+      let mut buf = Vec::with_capacity($len);
+      for _ in 0..$len {
+        let v = ReadBytesExt::$dest_type::<$endian>($reader).
+          chain_err(|| {
+            let err_msg = "Failed to read vector data.";
+            error!("{}", err_msg);
+            err_msg
+          })?;
+        buf.push(v);
+      }
+      buf
+    }
+  };
+  ($reader: ident, $dest_type: ident, $len: expr) => {
+    {
+      let mut buf = Vec::with_capacity($len);
+      for _ in 0..$len {
+        let v = ReadBytesExt::$dest_type($reader).
+          chain_err(|| {
+            let err_msg = "Failed to read vector data.";
+            error!("{}", err_msg);
+            err_msg
+          })?;
+        buf.push(v);
+      }
+      buf
+    }
+  };
+}
+
 impl FileSegmentBlockInputStream {
-  fn load_column(_reader: &mut Read, _column_id: i32, _column_node: &ColumnNode) -> Result<ArrowColumn> {
-    unimplemented!()
+  /// We required that data stored is little endian.
+  fn load_column(reader: &mut File,
+                 column_id: i32,
+                 column_node: &ColumnNode,
+                 column_type: ColumnType,
+                 column_len: usize) -> Result<Column> {
+    assert!(column_len > 0);
+
+    let start = column_node.get_start() as u64;
+        
+    reader.seek(SeekFrom::Start(start))
+      .chain_err(|| {
+        let err_msg = format!("Failed to seek to {}", start);
+        error!("{}", err_msg);
+        err_msg
+      })?;
+
+    let column = match column_type {
+      ColumnType::BOOL => {
+        let ret = create_vector!(reader, read_u8, column_len)
+          .into_iter()
+          .map(|x| x>0)
+          .collect::<Vec<bool>>();
+
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::INT8 => {
+        let ret = create_vector!(reader, read_i8, column_len);
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::INT16 => {
+        let ret = create_vector!(reader, read_i16, LittleEndian, column_len);
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::INT32 => {
+        let ret = create_vector!(reader, read_i32, LittleEndian, column_len);
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::INT64 => {
+        let ret = create_vector!(reader, read_i64, LittleEndian, column_len);
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::FLOAT4 => {
+        let ret = create_vector!(reader, read_f32, LittleEndian, column_len);
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::FLOAT8 => {
+        let ret = create_vector!(reader, read_f64, LittleEndian, column_len);
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::TIMESTAMP => {
+        let ret = create_vector!(reader, read_i64, LittleEndian, column_len);
+        Column::new(column_type, ColumnData::from(ret))
+      },
+      ColumnType::STRING => {
+        let offsets = create_vector!(reader, read_i32, LittleEndian, column_len + 1)
+          .into_iter()
+          .map(|s| s as usize)
+          .collect::<Vec<usize>>();
+
+        let mut strs: Vec<String> = Vec::new();
+        for i in 1..offsets.len() {
+          let total_string_size = offsets[i] - offsets[i-1];
+          let mut chars = Vec::with_capacity(total_string_size);
+          chars.resize(total_string_size, 0 as u8);
+          reader.read_exact(&mut chars)
+            .chain_err(|| {
+              let err_msg = "Failed to read string.";
+              error!("{}", err_msg);
+              err_msg
+            })?;
+          
+          let utf8 = String::from_utf8(chars)
+            .chain_err(|| {
+              let  err_msg = "Failed to parse string";
+              error!("{}", err_msg);
+              err_msg
+            })?;
+          strs.push(utf8)
+        }
+
+        Column::new(column_type, ColumnData::from(strs))
+      }
+    };
+
+    Ok(column)
   }
 }
+

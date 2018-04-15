@@ -9,6 +9,7 @@ message ColumnValue {
     int32 i32_value = 3;
     int64 i64_value = 4;
     bool bool_value = 5;
+    double double_value = 6;
 }
 
 message RowResult {

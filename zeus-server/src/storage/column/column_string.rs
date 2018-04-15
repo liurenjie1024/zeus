@@ -15,7 +15,7 @@ pub struct ColumnString {
   chars: Arc<Vec<u8>>,
 }
 
-impl Column for ColumnString {
+impl ColumnString {
   fn size(&self) -> usize {
     self.offsets.len()
   }
@@ -23,8 +23,8 @@ impl Column for ColumnString {
   fn field_type(&self) -> ColumnType {
     ColumnType::STRING
   }
-  fn into_iter(&self) -> ColumnValueIter {
-    box ColumnStringIterator {
+  fn into_iter(&self) -> ColumnStringIterator {
+    ColumnStringIterator {
       cur_pos: 1usize,
       offsets: self.offsets.clone(),
       chars: self.chars.clone()

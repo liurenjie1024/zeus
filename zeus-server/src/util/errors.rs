@@ -20,6 +20,7 @@ error_chain! {
     FutureOneShotCancelled(::futures::sync::oneshot::Canceled);
     TomlSer(::toml::ser::Error);
     TomlDe(::toml::de::Error);
+    UTF8(::std::string::FromUtf8Error);
   }
 
   errors {

@@ -21,15 +21,15 @@ use exec::table_scan_node::TableScanNode;
 pub struct ColumnWithInfo {
   pub name: String,
   pub id: Option<i32>,
-  pub column: CowPtr<Column>,
+  pub column: Column,
 }
 
 impl ColumnWithInfo {
-  pub fn from(column: Box<Column>) -> ColumnWithInfo {
+  pub fn from(column: Column) -> ColumnWithInfo {
     ColumnWithInfo {
       name: "".to_string(),
       id: None,
-      column: CowPtr::Owned(column),
+      column: column,
     }
   }
 }
@@ -149,7 +149,7 @@ impl DAGExecutor {
       let block = self.root.next()?;
 
       let mut column_iterators: Vec<ColumnValueIter> =
-        block.columns.iter().map(|c| c.column.into_iter()).collect();
+        block.columns.iter().map(|c| c.column.iter()).collect();
 
       loop {
         let mut incomplete = 0usize;
@@ -199,6 +199,8 @@ mod tests {
   use rpc::zeus_data::RowResult;
   use rpc::zeus_data::ColumnValue;
   use rpc::zeus_meta::ColumnType;
+  use storage::column::Column;
+  use storage::column::column_data::ColumnData;
   use storage::column::column_vector::ColumnVector;
   use util::errors::*;
 
@@ -230,14 +232,14 @@ mod tests {
 
   #[test]
   fn test_run() {
-    let column1 = ColumnVector::create(ColumnType::BOOL, vec![true, false]).ok().unwrap();
-    let column2 = ColumnVector::create(ColumnType::INT64, vec![12i64, 14i64]).ok().unwrap();
-    let block1 = vec![ColumnWithInfo::from(box column1), ColumnWithInfo::from(box column2)];
+    let column1 = Column::new(ColumnType::BOOL, ColumnData::from(vec![true, false]));
+    let column2 = Column::new(ColumnType::INT64, ColumnData::from(vec![12i64, 14i64]));
+    let block1 = vec![ColumnWithInfo::from(column1), ColumnWithInfo::from(column2)];
     let block1 = Block::from(block1);
 
-    let column3 = ColumnVector::create(ColumnType::BOOL, vec![false, true]).ok().unwrap();
-    let column4 = ColumnVector::create(ColumnType::INT64, vec![100000i64, 54321i64]).ok().unwrap();
-    let block2 = vec![ColumnWithInfo::from(box column3), ColumnWithInfo::from(box column4)];
+    let column3 = Column::new(ColumnType::BOOL, ColumnData::from(vec![false, true]));
+    let column4 = Column::new(ColumnType::INT64, ColumnData::from(vec![100000i64, 54321i64]));
+    let block2 = vec![ColumnWithInfo::from(column3), ColumnWithInfo::from(column4)];
     let block2 = Block::from(block2);
 
     let mem_blocks = box MemoryBlocks {
