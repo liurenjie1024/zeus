@@ -19,16 +19,12 @@ use exec::Block;
 use exec::ColumnWithInfo;
 use storage::column::Column;
 use storage::column::column_data::ColumnData;
-use storage::column::column_data::Datum;
-use storage::column::column_vector::ColumnVector;
-use storage::column::column_string::ColumnString;
 use storage::ScanContext;
 use storage::BlockInputStream;
 use storage::ErrorKind as DBErrorKind;
 use rpc::zeus_meta::ColumnType;
 use rpc::zeus_blizard_format::SegmentIndex;
 use rpc::zeus_blizard_format::ColumnNode;
-use util::cow_ptr::CowPtr;
 use util::errors::*;
 
 const EXT_INDEX: &'static str = "idx";
@@ -157,7 +153,6 @@ impl BlockInputStream for FileSegmentBlockInputStream {
       let column_handle = block_handle.get_column_node().get(column_id).unwrap();
       let column = FileSegmentBlockInputStream::load_column(
         &mut self.reader.as_mut().unwrap(),
-        *column_id,
         &column_handle,
         self.column_types[column_id],
         block_handle.block_column_size as usize)?;
@@ -222,7 +217,6 @@ macro_rules! create_vector {
 impl FileSegmentBlockInputStream {
   /// We required that data stored is little endian.
   fn load_column(reader: &mut File,
-                 column_id: i32,
                  column_node: &ColumnNode,
                  column_type: ColumnType,
                  column_len: usize) -> Result<Column> {

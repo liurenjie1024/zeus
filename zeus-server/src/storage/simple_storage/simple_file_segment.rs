@@ -19,7 +19,6 @@ use exec::ExecPhase;
 use rpc::zeus_simple_format::BlockHandles;
 use rpc::zeus_meta::ColumnType;
 use util::errors::*;
-use util::cow_ptr::CowPtr;
 use storage::ErrorKind as DBErrorKind;
 use super::simple_column_factory::create_column_factory;
 

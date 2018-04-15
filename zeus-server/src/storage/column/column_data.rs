@@ -2,7 +2,6 @@ use std::vec::Vec;
 use std::clone::Clone;
 use std::convert::From;
 use std::convert::Into;
-use std::slice::Iter;
 
 use rpc::zeus_data::ColumnValue;
 

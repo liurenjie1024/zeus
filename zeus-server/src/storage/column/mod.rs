@@ -1,9 +1,5 @@
-pub mod column_string;
-pub mod column_vector;
 pub mod column_data;
-mod field;
 
-use std::boxed::Box;
 use std::iter::Iterator;
 use std::slice::Iter;
 
@@ -11,19 +7,8 @@ use self::column_data::ColumnData;
 use self::column_data::Datum;
 use rpc::zeus_meta::ColumnType;
 use rpc::zeus_data::ColumnValue;
-use util::cow_ptr::ToBoxedOwned;
 use util::errors::*;
 
-
-pub type BoolColumn = column_vector::ColumnVector<bool>;
-pub type ByteColumn = column_vector::ColumnVector<u8>;
-pub type FloatColumn = column_vector::ColumnVector<f32>;
-pub type IntColumn = column_vector::ColumnVector<i32>;
-pub type LongColumn = column_vector::ColumnVector<i64>;
-pub type TimestampColumn = column_vector::ColumnVector<u64>;
-pub type StringColumn = column_string::ColumnString;
-
-// pub type ColumnValueIter = Box<Iterator<Item = ColumnValue>>;
 
 pub struct Column {
   field_type: ColumnType,

@@ -6,7 +6,6 @@ use std::vec::Vec;
 use futures::sync::oneshot::Sender;
 
 use storage::column::Column;
-use util::cow_ptr::CowPtr;
 use util::errors::*;
 use rpc::zeus_data::RowResult;
 use rpc::zeus_data::QueryRequest;
@@ -201,7 +200,6 @@ mod tests {
   use rpc::zeus_meta::ColumnType;
   use storage::column::Column;
   use storage::column::column_data::ColumnData;
-  use storage::column::column_vector::ColumnVector;
   use util::errors::*;
 
   struct MemoryBlocks {
