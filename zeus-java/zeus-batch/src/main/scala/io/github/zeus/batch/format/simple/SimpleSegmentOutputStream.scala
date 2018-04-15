@@ -2,7 +2,7 @@ package io.github.zeus.batch.format.simple
 
 import java.io.ByteArrayOutputStream
 
-import io.github.zeus.com.google.protobuf.CodedOutputStream
+import com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.format.simple.FieldHelper._
 import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream._
 import io.github.zeus.batch.format.simple.serde.ColumnOutputStream

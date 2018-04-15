@@ -19,7 +19,7 @@
         </dependency>
         <dependency>
             <groupId>io.github.zeus</groupId>
-            <artifactId>zeus-client</artifactId>
+            <artifactId>zeus-proto</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -3,7 +3,7 @@ package io.github.zeus.batch.tool
 import java.io.FileOutputStream
 import java.util.Properties
 
-import io.github.zeus.com.google.protobuf.CodedOutputStream
+import com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.rpc._
 
@@ -16,13 +16,13 @@ object SimpleSegmentGenerator {
       .build()
 
     val byteColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.BYTE)
+      .setColumnType(ColumnType.INT8)
       .setId(2)
       .setName("byte")
       .build()
 
     val floatColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.FLOAT)
+      .setColumnType(ColumnType.FLOAT4)
       .setId(3)
       .setName("float")
       .build()

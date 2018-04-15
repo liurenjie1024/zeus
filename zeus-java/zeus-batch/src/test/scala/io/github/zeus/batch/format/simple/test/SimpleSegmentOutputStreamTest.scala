@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.Properties
 
-import io.github.zeus.com.google.protobuf.CodedInputStream
+import com.google.protobuf.CodedInputStream
 import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream._
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.format.simple.BlockHandles
@@ -23,13 +23,13 @@ class SimpleSegmentOutputStreamTest extends FunSuite with Matchers {
       .build()
 
     val byteColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.BYTE)
+      .setColumnType(ColumnType.INT8)
       .setId(2)
       .setName("byte")
       .build()
 
     val floatColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.FLOAT)
+      .setColumnType(ColumnType.FLOAT4)
       .setId(3)
       .setName("float")
       .build()
