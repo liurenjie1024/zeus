@@ -8,6 +8,7 @@ use super::super::storage::Storage;
 use super::super::storage::ScanContext;
 use super::super::block_input_stream::BlockInputStream;
 use super::blizard_segment::BlizardSegment;
+use storage::block_input_stream::CombinedBlockInputStream;
 use server::config::ZeusConfig;
 use util::errors::*;
 
@@ -65,7 +66,17 @@ impl Storage for BlizardTable {
     self.table_id
   }
 
-  fn scan(&self, _scan_context: &ScanContext) -> Result<Box<BlockInputStream>> {
-    unimplemented!()
+  fn scan(&self, scan_context: &ScanContext) -> Result<Box<BlockInputStream>> {
+    assert_eq!(self.table_id, scan_context.scan_node.table_id);
+
+    let streams: Result<Vec<Box<BlockInputStream>>> = self.segments
+      .iter()
+      .map(|s| s.scan(&scan_context))
+      .try_fold(Vec::new(), |mut cs: Vec<Box<BlockInputStream>>, s| {
+        cs.push(s?);
+        Ok(cs)
+      });
+
+    Ok(Box::new(CombinedBlockInputStream::new(streams?)))
   }
 }

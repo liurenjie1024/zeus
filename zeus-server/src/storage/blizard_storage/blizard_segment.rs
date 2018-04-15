@@ -161,20 +161,6 @@ impl BlockInputStream for FileSegmentBlockInputStream {
         &column_handle,
         self.column_types[column_id],
         block_handle.block_column_size as usize)?;
-//      let column_start = column_handle.get_start() as u64;
-//      let mut column_factory = self.column_factories.get_mut(column_id).unwrap();
-//      //TODO: Optimize this
-//      let buf_len = (column_handle.get_end() - column_handle.get_start()) as usize;
-//      let mut buf = Vec::with_capacity(buf_len);
-//      unsafe {
-//        buf.set_len(buf_len);
-//      }
-//
-//      let file_ref: &mut File = self.file.as_mut().unwrap();
-//      file_ref.seek(SeekFrom::Start(column_start))?;
-//      file_ref.read_exact(&mut buf)?;
-//
-//      let column = column_factory.create_column(&buf)?;
       columns.push(ColumnWithInfo {
         name: self.column_names.get(column_id).unwrap().clone(),
         id: Some(*column_id),
