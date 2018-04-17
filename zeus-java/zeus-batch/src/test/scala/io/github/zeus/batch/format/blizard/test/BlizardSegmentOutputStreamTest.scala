@@ -1,11 +1,11 @@
-package io.github.zeus.batch.format.simple.test
+package io.github.zeus.batch.format.blizard.test
 
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.Properties
 
 import com.google.protobuf.CodedInputStream
-import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream._
+import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream._
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.format.simple.BlockHandles
 import io.github.zeus.rpc.{ColumnType, ZeusColumnSchema, ZeusTableSchema}
@@ -14,7 +14,7 @@ import org.scalatest.{FunSuite, Matchers}
 /**
   * Created by liurenjie on 25/03/2018.
   */
-class SimpleSegmentOutputStreamTest extends FunSuite with Matchers {
+class BlizardSegmentOutputStreamTest extends FunSuite with Matchers {
   test("Output Content") {
     val boolColumnSchema = ZeusColumnSchema.newBuilder()
       .setColumnType(ColumnType.BOOL)
@@ -22,10 +22,16 @@ class SimpleSegmentOutputStreamTest extends FunSuite with Matchers {
       .setName("bool")
       .build()
 
-    val byteColumnSchema = ZeusColumnSchema.newBuilder()
+    val int8ColumnSchema = ZeusColumnSchema.newBuilder()
       .setColumnType(ColumnType.INT8)
       .setId(2)
-      .setName("byte")
+      .setName("int8")
+      .build()
+
+    val int16ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(ColumnType.INT8)
+      .setId(2)
+      .setName("int8")
       .build()
 
     val floatColumnSchema = ZeusColumnSchema.newBuilder()
@@ -53,7 +59,7 @@ class SimpleSegmentOutputStreamTest extends FunSuite with Matchers {
       .build()
 
     val tableSchema = ZeusTableSchema.newBuilder()
-      .setFormat("simple")
+      .setFormat("blizard")
       .setId(1)
       .setName("table")
       .putColumns(1, boolColumnSchema)
@@ -66,7 +72,7 @@ class SimpleSegmentOutputStreamTest extends FunSuite with Matchers {
 
     val props = new Properties()
     props.put("output.type", "memory")
-    props.put("simple.block.row.num", "2")
+    props.put("blizard.block.row.num", "2")
 
 
     val row1 = Map[Int, Any](1 -> true,

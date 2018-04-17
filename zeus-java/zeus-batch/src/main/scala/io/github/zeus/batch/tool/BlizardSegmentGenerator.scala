@@ -7,7 +7,7 @@ import com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.rpc._
 
-object SimpleSegmentGenerator {
+object BlizardSegmentGenerator {
   def main(args: Array[String]): Unit = {
     val boolColumnSchema = ZeusColumnSchema.newBuilder()
       .setColumnType(ColumnType.BOOL)
@@ -46,7 +46,7 @@ object SimpleSegmentGenerator {
       .build()
 
     val tableSchema = ZeusTableSchema.newBuilder()
-      .setFormat("simple")
+      .setFormat("blizard")
       .setId(1)
       .setName("table")
       .putColumns(1, boolColumnSchema)
@@ -79,7 +79,7 @@ object SimpleSegmentGenerator {
     val props = new Properties()
     props.put("output.type", "file")
     props.put("output.file", "/home/liurenjie-sal/Downloads/test.data")
-    props.put("simple.block.row.num", "3")
+    props.put("blizard.block.row.num", "3")
 
 
     val row1 = Map[Int, Any](1 -> true,

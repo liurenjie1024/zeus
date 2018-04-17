@@ -1,32 +1,31 @@
 package io.github.zeus.batch
 
-import java.io.OutputStream
+import java.nio.channels.WritableByteChannel
 import java.util.Properties
 
 import io.github.zeus.batch.TableOutputStreamBuilder._
-import io.github.zeus.batch.format.simple.SimpleSegmentOutputStream
+import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream
 import io.github.zeus.rpc.ZeusTableSchema
 
 case class TableOutputStreamBuilder(tableSchema: ZeusTableSchema, config: Properties) {
-  private val output = OutputConfigOption.get(config)
-
   def build: TableOutputStream = {
     buildTableOutputStream(this)
   }
-
-  def getOutput: OutputStream = output
 }
 
 object TableOutputStreamBuilder {
+  val ConfigKeySegmentName = "output.segment.name"
+
+
   type TableOutputStreamFactory = TableOutputStreamBuilder => TableOutputStream
-  val FormatSimple = "simple"
+  val FormatBlizard = "blizard"
   private val FormatRegistry: Map[String, TableOutputStreamFactory] = Map(
-    FormatSimple -> buildSimpleTableOutputStream)
+    FormatBlizard  -> buildBlizardTableOutputStream)
 
 
 
-  private def buildSimpleTableOutputStream(builder: TableOutputStreamBuilder): TableOutputStream = {
-    new SimpleSegmentOutputStream(builder)
+  private def buildBlizardTableOutputStream(builder: TableOutputStreamBuilder): TableOutputStream = {
+    new BlizardSegmentOutputStream(builder)
   }
 
   def buildTableOutputStream(builder: TableOutputStreamBuilder): TableOutputStream = {

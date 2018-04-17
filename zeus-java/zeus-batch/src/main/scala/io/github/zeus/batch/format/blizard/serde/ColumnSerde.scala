@@ -1,6 +1,7 @@
-package io.github.zeus.batch.format.simple.serde
+package io.github.zeus.batch.format.blizard.serde
 
 import java.io.ByteArrayOutputStream
+import java.nio.channels.Channels
 import java.util
 
 
@@ -12,6 +13,19 @@ trait ColumnSerde[A] {
     * @return Bytes written.
     */
   def serialize(column: Iterator[A], output: ColumnOutputStream): Int
+}
+
+object BooleanColumnSerde extends ColumnSerde[Boolean] {
+  /**
+    * Serialize column to output stream.
+    *
+    * @param column
+    * @param output
+    * @return Bytes written.
+    */
+  override def serialize(column: Iterator[Boolean], output: ColumnOutputStream): Int = {
+    output.write(column.map(x => if(x) 1 else 0).map(_.toByte).toArray)
+  }
 }
 
 object ByteColumnSerde extends ColumnSerde[Byte] {
@@ -27,7 +41,7 @@ object ByteColumnSerde extends ColumnSerde[Byte] {
   }
 }
 
-object BooleanColumnSerde extends ColumnSerde[Boolean] {
+object Int16ColumnSerde extends ColumnSerde[Short] {
   /**
     * Serialize column to output stream.
     *
@@ -35,17 +49,9 @@ object BooleanColumnSerde extends ColumnSerde[Boolean] {
     * @param output
     * @return Bytes written.
     */
-  override def serialize(column: Iterator[Boolean], output: ColumnOutputStream): Int = {
-    val bitset = new util.BitSet()
-    var idx = 0
-    for (b <- column) {
-      if (b) {
-        bitset.set(idx)
-      }
-      idx += 1
-    }
-
-    output.write(bitset.toByteArray)
+  override def serialize(column: Iterator[Short], output: ColumnOutputStream): Int = {
+    column.map(output.write)
+      .sum
   }
 }
 
@@ -58,6 +64,20 @@ object FloatColumnSerde extends ColumnSerde[Float] {
     * @return Bytes written.
     */
   override def serialize(column: Iterator[Float], output: ColumnOutputStream): Int = {
+    column.map(output.write)
+      .sum
+  }
+}
+
+object DoubleColumnSerde extends ColumnSerde[Double] {
+  /**
+    * Serialize column to output stream.
+    *
+    * @param column
+    * @param output
+    * @return Bytes written.
+    */
+  override def serialize(column: Iterator[Double], output: ColumnOutputStream): Int = {
     column.map(output.write)
       .sum
   }
@@ -103,10 +123,11 @@ object StringColumnSerde extends ColumnSerde[String] {
     */
   override def serialize(column: Iterator[String], output: ColumnOutputStream): Int = {
     val buffer = new ByteArrayOutputStream()
-    val bufferOutput = new ColumnOutputStream(buffer)
+    val bufferOutput = new ColumnOutputStream(Channels.newChannel(buffer))
 
     var bytesWritten = 0
     var pos = 0
+    bytesWritten += output.write(0)
     for (s <- column) {
       pos += bufferOutput.write(s)
       bytesWritten += output.write(pos)
