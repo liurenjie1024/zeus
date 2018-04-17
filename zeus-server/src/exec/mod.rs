@@ -158,7 +158,6 @@ impl DAGExecutor {
             Some(t) => row.columns.push(t),
             None => {
               incomplete += 1;
-              break;
             },
           }
         }

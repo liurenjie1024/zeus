@@ -1,13 +1,12 @@
 package io.github.zeus.batch.format.blizard.test
 
 import java.io.ByteArrayOutputStream
-import java.nio.ByteBuffer
 import java.util.Properties
 
-import com.google.protobuf.CodedInputStream
-import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream._
-import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
-import io.github.zeus.format.simple.BlockHandles
+import io.github.zeus.batch.Row
+import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream
+import io.github.zeus.format.blizard.SegmentIndex
+import io.github.zeus.rpc.ColumnType._
 import io.github.zeus.rpc.{ColumnType, ZeusColumnSchema, ZeusTableSchema}
 import org.scalatest.{FunSuite, Matchers}
 
@@ -17,44 +16,56 @@ import org.scalatest.{FunSuite, Matchers}
 class BlizardSegmentOutputStreamTest extends FunSuite with Matchers {
   test("Output Content") {
     val boolColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.BOOL)
+      .setColumnType(BOOL)
       .setId(1)
       .setName("bool")
       .build()
 
     val int8ColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.INT8)
+      .setColumnType(INT8)
       .setId(2)
       .setName("int8")
       .build()
 
     val int16ColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.INT8)
-      .setId(2)
-      .setName("int8")
-      .build()
-
-    val floatColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.FLOAT4)
+      .setColumnType(INT16)
       .setId(3)
-      .setName("float")
+      .setName("int16")
       .build()
 
-    val intColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.INT32)
+    val int32ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(INT32)
       .setId(4)
-      .setName("int")
+      .setName("int32")
       .build()
 
-    val longColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.INT64)
+    val int64ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(INT64)
       .setId(5)
-      .setName("long")
+      .setName("int64")
+      .build()
+
+    val float4ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(FLOAT4)
+      .setId(6)
+      .setName("float4")
+      .build()
+
+    val float8ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(FLOAT8)
+      .setId(7)
+      .setName("float8")
+      .build()
+
+    val timestampColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(TIMESTAMP)
+      .setId(8)
+      .setName("timestamp")
       .build()
 
     val stringColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.STRING)
-      .setId(6)
+      .setColumnType(STRING)
+      .setId(9)
       .setName("string")
       .build()
 
@@ -63,97 +74,118 @@ class BlizardSegmentOutputStreamTest extends FunSuite with Matchers {
       .setId(1)
       .setName("table")
       .putColumns(1, boolColumnSchema)
-      .putColumns(2, byteColumnSchema)
-      .putColumns(3, floatColumnSchema)
-      .putColumns(4, intColumnSchema)
-      .putColumns(5, longColumnSchema)
-      .putColumns(6, stringColumnSchema)
+      .putColumns(2, int8ColumnSchema)
+      .putColumns(3, int16ColumnSchema)
+      .putColumns(4, int32ColumnSchema)
+      .putColumns(5, int64ColumnSchema)
+      .putColumns(6, float4ColumnSchema)
+      .putColumns(7, float8ColumnSchema)
+      .putColumns(8, timestampColumnSchema)
+      .putColumns(9, stringColumnSchema)
       .build()
 
     val props = new Properties()
-    props.put("output.type", "memory")
     props.put("blizard.block.row.num", "2")
 
 
-    val row1 = Map[Int, Any](1 -> true,
+    val row1 = Map[Int, Any](
+      1 -> true,
       2 -> 1.toByte,
-      3 -> 1.0f,
+      3 -> 1.toShort,
       4 -> 1,
       5 -> 1L,
-      6 -> "1")
+      6 -> 1.0f,
+      7 -> 1.0,
+      8 -> 1L,
+      9 -> "1")
 
-    val row2 = Map[Int, Any](1 -> false,
+    val row2 = Map[Int, Any](
+      1 -> false,
       2 -> 2.toByte,
-      3 -> 2.0f,
+      3 -> 2.toShort,
       4 -> 2,
       5 -> 2L,
-      6 -> "12")
+      6 -> 2.0f,
+      7 -> 2.0,
+      8 -> 2L,
+      9 -> "2")
 
-    val tableOutputBuilder = TableOutputStreamBuilder(tableSchema, props)
 
-    val tableOutput = tableOutputBuilder.build
+    val indexOutput = new ByteArrayOutputStream()
+    val dataOutput = new ByteArrayOutputStream()
+    val tableOutput = new BlizardSegmentOutputStream(props, tableSchema, indexOutput, dataOutput)
     tableOutput.write(new Row(row1))
     tableOutput.write(new Row(row2))
     tableOutput.close()
 
-    val result = tableOutputBuilder.getOutput
-      .asInstanceOf[ByteArrayOutputStream]
-      .toByteArray
+    val segmentIndex = SegmentIndex.parseFrom(indexOutput.toByteArray)
 
-    val header = result.slice(0, 4)
-    header shouldBe MagicNumber
+    segmentIndex.getBlockNodeCount shouldBe 1
 
-    val version = result.slice(4, 8)
-    version shouldBe Version
+    val blockNode = segmentIndex.getBlockNode(0)
+    blockNode.getColumnNodeCount shouldBe 9
+    blockNode.getBlockColumnSize shouldBe 2
+    blockNode.getStart shouldBe 0
+    blockNode.getEnd shouldBe 86 //TODO: Fix
 
-    val metaLength = ByteBuffer.wrap(result.slice(result.length-4, result.length)).getInt
-    val blockHandles = BlockHandles.parseFrom(
-      CodedInputStream.newInstance(result.slice(54, 54+metaLength)))
+    val result = dataOutput.toByteArray
 
-    blockHandles.getMaxBlockColumnSize shouldBe 2
-    blockHandles.getHandlesCount should === (1)
+    val boolColumn = result.slice(0, 2)
+    boolColumn shouldBe Array(0x01, 0x00).map(_.toByte)
+    val boolColumnHandle = blockNode.getColumnNodeOrThrow(1)
+    boolColumnHandle.getStart shouldBe 0
+    boolColumnHandle.getEnd shouldBe 2
 
-    val blockHandle = blockHandles.getHandles(0)
-    blockHandle.getStart should === (8)
-    blockHandle.getEnd should === (54)
-    blockHandle.getBlockColumnSize should === (2)
+    val int8Column = result.slice(2, 4)
+    int8Column shouldBe Array(0x01, 0x02).map(_.toByte)
+    val int8ColumnHandle = blockNode.getColumnNodeOrThrow(2)
+    int8ColumnHandle.getStart shouldBe 2
+    int8ColumnHandle.getEnd shouldBe 4
 
-    val boolColumn = result.slice(8, 9)
-    boolColumn shouldBe Array(0x01).map(_.toByte)
-    val boolColumnHandle = blockHandle.getColumnsOrThrow(1)
-    boolColumnHandle.getStart shouldBe 8
-    boolColumnHandle.getEnd shouldBe 9
+    val int16Column = result.slice(4, 8)
+    int16Column shouldBe Array(0x01, 0x00, 0x02, 0x00).map(_.toByte)
+    val int16ColumnHandle = blockNode.getColumnNodeOrThrow(3)
+    int16ColumnHandle.getStart shouldBe 4
+    int16ColumnHandle.getEnd shouldBe 8
 
-    val byteColumn = result.slice(9, 11)
-    byteColumn shouldBe Array(0x01, 0x02).map(_.toByte)
-    val byteColumnHandle = blockHandle.getColumnsOrThrow(2)
-    byteColumnHandle.getStart shouldBe 9
-    byteColumnHandle.getEnd shouldBe 11
+    val int32Column = result.slice(8, 16)
+    int32Column shouldBe Array(0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00).map(_.toByte)
+    val int32ColumnHandle = blockNode.getColumnNodeOrThrow(4)
+    int32ColumnHandle.getStart shouldBe 8
+    int32ColumnHandle.getEnd shouldBe 16
 
-    val floatColumn = result.slice(11, 19)
-    floatColumn shouldBe Array(0x3F, 0x80, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00).map(_.toByte)
-    val floatColumnHandle = blockHandle.getColumnsOrThrow(3)
-    floatColumnHandle.getStart shouldBe 11
-    floatColumnHandle.getEnd shouldBe 19
+    val int64Column = result.slice(16, 32)
+    int64Column shouldBe Array(0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00).map(_.toByte)
+    val int64ColumnHandle = blockNode.getColumnNodeOrThrow(5)
+    int64ColumnHandle.getStart shouldBe 16
+    int64ColumnHandle.getEnd shouldBe 32
 
-    val intColumn = result.slice(19, 27)
-    intColumn shouldBe Array(0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02).map(_.toByte)
-    val intColumnHandle = blockHandle.getColumnsOrThrow(4)
-    intColumnHandle.getStart shouldBe 19
-    intColumnHandle.getEnd shouldBe 27
+    val float4Column = result.slice(32, 40)
+    float4Column shouldBe Array(0x00, 0x00, 0x80, 0x3F, 0x00, 0x00, 0x00, 0x40).map(_.toByte)
+    val float4ColumnHandle = blockNode.getColumnNodeOrThrow(6)
+    float4ColumnHandle.getStart shouldBe 32
+    float4ColumnHandle.getEnd shouldBe 40
 
-    val longColumn = result.slice(27, 43)
-    longColumn shouldBe Array(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02).map(_.toByte)
-    val longColumnHandle = blockHandle.getColumnsOrThrow(5)
-    longColumnHandle.getStart shouldBe 27
-    longColumnHandle.getEnd shouldBe 43
+    val float8Column = result.slice(40, 56)
+    float8Column shouldBe Array(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40)
+      .map(_.toByte)
+    val float8ColumnHandle = blockNode.getColumnNodeOrThrow(7)
+    float8ColumnHandle.getStart shouldBe 40
+    float8ColumnHandle.getEnd shouldBe 56
 
-    val stringColumn = result.slice(43, 54)
-    stringColumn shouldBe Array(0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x31,
-      0x31, 0x32).map(_.toByte)
-    val stringColumnHandle = blockHandle.getColumnsOrThrow(6)
-    stringColumnHandle.getStart shouldBe 43
-    stringColumnHandle.getEnd shouldBe 54
+    val timestampColumn = result.slice(56, 72)
+    timestampColumn shouldBe Array(0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00).map(_.toByte)
+    val timestampColumnHandle = blockNode.getColumnNodeOrThrow(8)
+    timestampColumnHandle .getStart shouldBe 56
+    timestampColumnHandle .getEnd shouldBe 72
+
+    val stringColumn = result.slice(72, 86)
+    stringColumn shouldBe Array(0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
+      0x00, 0x31, 0x32).map(_.toByte)
+    val stringColumnHandle = blockNode.getColumnNodeOrThrow(9)
+    stringColumnHandle.getStart shouldBe 72
+    stringColumnHandle.getEnd shouldBe 86
   }
 }

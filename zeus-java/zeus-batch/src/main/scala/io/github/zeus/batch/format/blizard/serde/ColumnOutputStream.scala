@@ -48,12 +48,14 @@ class ColumnOutputStream(private val outputStream: OutputStream) extends AutoClo
     buffer.clear()
     buffer.putFloat(value)
       .flip()
+    channel.write(buffer)
     4
   }
   def write(value: Double): Int = {
     buffer.clear()
     buffer.putDouble(value)
       .flip()
+    channel.write(buffer)
     8
   }
 
@@ -65,4 +67,14 @@ class ColumnOutputStream(private val outputStream: OutputStream) extends AutoClo
   def flush(): Unit = {}
 
   override def close(): Unit = channel.close()
+}
+
+object ColumnOutputStream {
+  def main(args: Array[String]): Unit = {
+    val buffer = ByteBuffer.allocate(8)
+      .order(ByteOrder.LITTLE_ENDIAN)
+
+    buffer.put("12".getBytes("utf-8"))
+    println(buffer.array().map(Integer.toHexString(_)).mkString(","))
+  }
 }

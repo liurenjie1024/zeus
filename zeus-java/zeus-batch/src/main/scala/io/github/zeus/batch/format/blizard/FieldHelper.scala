@@ -14,7 +14,7 @@ object FieldHelper {
       filedType match {
         case BOOL => BooleanColumnSerde.serialize(values.map(_.asInstanceOf[Boolean]), output)
         case INT8 => ByteColumnSerde.serialize(values.map(_.asInstanceOf[Byte]), output)
-        case INT16=> FloatColumnSerde.serialize(values.map(_.asInstanceOf[Short]), output)
+        case INT16=> Int16ColumnSerde.serialize(values.map(_.asInstanceOf[Short]), output)
         case INT32 => IntColumnSerde.serialize(values.map(_.asInstanceOf[Int]), output)
         case INT64 => LongColumnSerde.serialize(values.map(_.asInstanceOf[Long]), output)
         case FLOAT4 => FloatColumnSerde.serialize(values.map(_.asInstanceOf[Float]), output)

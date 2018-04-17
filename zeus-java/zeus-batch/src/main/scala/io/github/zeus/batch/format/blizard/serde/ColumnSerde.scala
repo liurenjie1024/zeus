@@ -123,7 +123,7 @@ object StringColumnSerde extends ColumnSerde[String] {
     */
   override def serialize(column: Iterator[String], output: ColumnOutputStream): Int = {
     val buffer = new ByteArrayOutputStream()
-    val bufferOutput = new ColumnOutputStream(Channels.newChannel(buffer))
+    val bufferOutput = new ColumnOutputStream(buffer)
 
     var bytesWritten = 0
     var pos = 0

@@ -5,57 +5,82 @@ import java.util.Properties
 
 import com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
+import io.github.zeus.rpc.ColumnType._
 import io.github.zeus.rpc._
+import TableOutputStreamBuilder._
+import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream._
 
 object BlizardSegmentGenerator {
   def main(args: Array[String]): Unit = {
     val boolColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.BOOL)
+      .setColumnType(BOOL)
       .setId(1)
       .setName("bool")
       .build()
 
-    val byteColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.INT8)
+    val int8ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(INT8)
       .setId(2)
-      .setName("byte")
+      .setName("int8")
       .build()
 
-    val floatColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.FLOAT4)
+    val int16ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(INT16)
       .setId(3)
-      .setName("float")
+      .setName("int16")
       .build()
 
-    val intColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.INT32)
+    val int32ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(INT32)
       .setId(4)
-      .setName("int")
+      .setName("int32")
       .build()
 
-    val longColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.INT64)
+    val int64ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(INT64)
       .setId(5)
-      .setName("long")
+      .setName("int64")
+      .build()
+
+    val float4ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(FLOAT4)
+      .setId(6)
+      .setName("float4")
+      .build()
+
+    val float8ColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(FLOAT8)
+      .setId(7)
+      .setName("float8")
+      .build()
+
+    val timestampColumnSchema = ZeusColumnSchema.newBuilder()
+      .setColumnType(TIMESTAMP)
+      .setId(8)
+      .setName("timestamp")
       .build()
 
     val stringColumnSchema = ZeusColumnSchema.newBuilder()
-      .setColumnType(ColumnType.STRING)
-      .setId(6)
+      .setColumnType(STRING)
+      .setId(9)
       .setName("string")
       .build()
 
     val tableSchema = ZeusTableSchema.newBuilder()
       .setFormat("blizard")
       .setId(1)
-      .setName("table")
+      .setName("test-table")
       .putColumns(1, boolColumnSchema)
-      .putColumns(2, byteColumnSchema)
-      .putColumns(3, floatColumnSchema)
-      .putColumns(4, intColumnSchema)
-      .putColumns(5, longColumnSchema)
-      .putColumns(6, stringColumnSchema)
+      .putColumns(2, int8ColumnSchema)
+      .putColumns(3, int16ColumnSchema)
+      .putColumns(4, int32ColumnSchema)
+      .putColumns(5, int64ColumnSchema)
+      .putColumns(6, float4ColumnSchema)
+      .putColumns(7, float8ColumnSchema)
+      .putColumns(8, timestampColumnSchema)
+      .putColumns(9, stringColumnSchema)
       .build()
+
 
     val dbSchema = ZeusDBSchema.newBuilder()
       .setId(1)
@@ -68,7 +93,7 @@ object BlizardSegmentGenerator {
       .addDbSchemas(dbSchema)
       .build()
 
-    val schemaOutput = new FileOutputStream("/home/liurenjie-sal/Downloads/test.schema")
+    val schemaOutput = new FileOutputStream("/home/liurenjie-sal/Downloads/test/test.schema")
     val codedOutput = CodedOutputStream.newInstance(schemaOutput)
     catalog.writeTo(codedOutput)
     codedOutput.flush()
@@ -77,38 +102,37 @@ object BlizardSegmentGenerator {
 
 
     val props = new Properties()
-    props.put("output.type", "file")
-    props.put("output.file", "/home/liurenjie-sal/Downloads/test.data")
-    props.put("blizard.block.row.num", "3")
+    props.put(ConfigKeySegmentName.key, "/home/liurenjie-sal/Downloads/test/test")
+    props.put(ConfigMaxBlockRowNum.key, "2")
 
 
-    val row1 = Map[Int, Any](1 -> true,
+    val row1 = Map[Int, Any](
+      1 -> true,
       2 -> 1.toByte,
-      3 -> 1.0f,
+      3 -> 1.toShort,
       4 -> 1,
       5 -> 1L,
-      6 -> "1")
+      6 -> 1.0f,
+      7 -> 1.0,
+      8 -> 1L,
+      9 -> "1")
 
-    val row2 = Map[Int, Any](1 -> false,
+    val row2 = Map[Int, Any](
+      1 -> false,
       2 -> 2.toByte,
-      3 -> 2.0f,
+      3 -> 2.toShort,
       4 -> 2,
       5 -> 2L,
-      6 -> "12")
-
-    val row3 = Map[Int, Any](1 -> true,
-      2 -> 3.toByte,
-      3 -> 3.0f,
-      4 -> 3,
-      5 -> 3L,
-      6 -> "123")
+      6 -> 2.0f,
+      7 -> 2.0,
+      8 -> 2L,
+      9 -> "2")
 
     val tableOutputBuilder = TableOutputStreamBuilder(tableSchema, props)
 
     val tableOutput = tableOutputBuilder.build
     tableOutput.write(new Row(row1))
     tableOutput.write(new Row(row2))
-    tableOutput.write(new Row(row3))
     tableOutput.close()
   }
 }

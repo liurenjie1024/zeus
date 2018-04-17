@@ -40,7 +40,7 @@ impl BlizardSegment {
   pub fn open<P: AsRef<Path>>(dir: &P, name: &str) -> Result<BlizardSegment> {
     let mut path = PathBuf::new();
     path.push(dir.to_owned());
-    path.set_file_name(name);
+    path.push(name);
 
     // Read index
     path.set_extension(EXT_INDEX);

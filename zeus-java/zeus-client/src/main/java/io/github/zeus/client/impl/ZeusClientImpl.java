@@ -2,14 +2,7 @@ package io.github.zeus.client.impl;
 
 import io.github.zeus.client.ZeusClient;
 import io.github.zeus.client.ZeusClientBuilder;
-import io.github.zeus.rpc.PlanNode;
-import io.github.zeus.rpc.PlanNodeType;
-import io.github.zeus.rpc.QueryPlan;
-import io.github.zeus.rpc.QueryRequest;
-import io.github.zeus.rpc.QueryResult;
-import io.github.zeus.rpc.ScanNode;
-import io.github.zeus.rpc.ZeusCatalog;
-import io.github.zeus.rpc.ZeusDBSchema;
+import io.github.zeus.rpc.*;
 import io.github.zeus.rpc.ZeusDataServiceGrpc.ZeusDataServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import org.slf4j.Logger;
@@ -57,7 +50,7 @@ public class ZeusClientImpl implements ZeusClient {
 
   public static void main(String[] args) throws IOException {
     System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
-    ZeusClient client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Workspace/MyCodes/zeus/zeus-server/src/bin/data/test.schema", "127.0.0.1", 8899)
+    ZeusClient client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Downloads/test/test.schema", "127.0.0.1", 8899)
       .build();
 
     PlanNode node = PlanNode.newBuilder()
@@ -69,8 +62,10 @@ public class ZeusClientImpl implements ZeusClient {
               .addColumns(2)
               .addColumns(3)
               .addColumns(4)
-              .addColumns(5)
+              .addColumns(4)
               .addColumns(6)
+              .addColumns(7)
+              .addColumns(8)
               .build())
       .build();
 

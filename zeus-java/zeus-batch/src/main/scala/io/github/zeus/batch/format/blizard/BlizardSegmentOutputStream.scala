@@ -1,24 +1,27 @@
 package io.github.zeus.batch.format.blizard
 
-import java.io.{ByteArrayOutputStream, OutputStream}
+import java.io.OutputStream
 import java.util.Properties
 
 import com.google.protobuf.CodedOutputStream
 import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream._
 import io.github.zeus.batch.format.blizard.FieldHelper._
 import io.github.zeus.batch.format.blizard.serde.ColumnOutputStream
-import io.github.zeus.batch.{Row, TableOutputStream, TableOutputStreamBuilder}
+import io.github.zeus.batch.util.ConfigOption
+import io.github.zeus.batch.{Row, TableOutputStream}
 import io.github.zeus.format.blizard.{BlockNode, ColumnNode, SegmentIndex}
+import io.github.zeus.rpc.ZeusTableSchema
 
+import ConfigOption._
 import scala.collection.JavaConverters._
 
 class BlizardSegmentOutputStream(config: Properties,
-                                 indexOutput: OutputStream,
-                                 dataOutput: OutputStream) extends TableOutputStream {
-  private val destination: ColumnOutputStream = new ColumnOutputStream(builder.getOutput)
+  tableSchema: ZeusTableSchema,
+  indexOutput: OutputStream,
+  dataOutput: OutputStream) extends TableOutputStream {
+  private val destination: ColumnOutputStream = new ColumnOutputStream(dataOutput)
 
-
-  private val blockRowNum = builder.config.getProperty("blizard.block.row.num").toInt
+  private val blockRowNum = ConfigMaxBlockRowNum.get(config).get
   require(blockRowNum > 0)
 
   private val block: Array[Row] = Array.fill(blockRowNum)(null)
@@ -27,26 +30,23 @@ class BlizardSegmentOutputStream(config: Properties,
 
   override def write(row: Row): Unit = {
     require(row != null, "row can't be null!")
-    if (!isHeaderWritten) {
-      writeHeader
-    }
 
     block(nextIndex) = row
     nextIndex += 1
 
     if (isBlockFull) {
-      writeBlockAndClear
+      writeBlockAndClear()
     }
   }
 
   override def close(): Unit = {
-    writeBlockAndClear
-    writeBlockIndexes
+    writeBlockAndClear()
+    writeBlockIndexes()
     destination.flush()
     destination.close()
   }
 
-  private def writeBlockAndClear: Unit = {
+  private def writeBlockAndClear(): Unit = {
     val nonEmptyBlocks = block.take(nextIndex)
     if (nonEmptyBlocks.isEmpty) {
       return
@@ -54,14 +54,14 @@ class BlizardSegmentOutputStream(config: Properties,
 
     val blockStart = segmentIndexBuilder.getBlockNodeBuilderList.asScala.lastOption
       .map(_.getEnd)
-      .getOrElse(0)
+      .getOrElse(0L)
 
     val blockNodeBuilder = BlockNode.newBuilder()
       .setStart(blockStart)
 
     var columnStart = blockStart
-    for (columnId <- builder.tableSchema.getColumnsMap.keySet().asScala) {
-      val columnSchema = builder.tableSchema.getColumnsOrThrow(columnId)
+    for (columnId <- tableSchema.getColumnsMap.keySet().asScala.toSeq.sorted) {
+      val columnSchema = tableSchema.getColumnsOrThrow(columnId)
       val column = nonEmptyBlocks
         .map(_.getColumnValue(columnId).get)
         .iterator
@@ -91,29 +91,16 @@ class BlizardSegmentOutputStream(config: Properties,
     nextIndex >= block.length
   }
 
-  private def writeBlockIndexes: Unit = {
-    val buffer = new ByteArrayOutputStream()
-    val output = CodedOutputStream.newInstance(buffer)
-    blockHandlesBuilder.build()
-      .writeTo(output)
+  private def writeBlockIndexes(): Unit = {
+    val output = CodedOutputStream.newInstance(indexOutput)
+    segmentIndexBuilder.build()
+        .writeTo(output)
     output.flush()
-    val indexBytes = buffer.toByteArray
-    println(s"Index length: ${indexBytes.length}")
-    println(s"Index bytes: ${indexBytes.mkString("[", ",", "]")}")
-    destination.write(indexBytes)
-    destination.write(indexBytes.length)
+    indexOutput.flush()
+    indexOutput.close()
   }
-
-  private def writeHeader: Unit = {
-    destination.write(MagicNumber)
-    destination.write(Version)
-
-    headerWritten = true
-  }
-  private def isHeaderWritten: Boolean = headerWritten
 }
 
 object BlizardSegmentOutputStream {
-  private[blizard] val MagicNumber = Array(0xAA, 0xBB, 0xCC, 0xDD).map(_.toByte)
-  private[blizard] val Version = Array(0x00, 0x00, 0x00, 0x01).map(_.toByte)
+  val ConfigMaxBlockRowNum: ConfigOption[Int] = ConfigOption[Int]("blizard.block.row.num")
 }
