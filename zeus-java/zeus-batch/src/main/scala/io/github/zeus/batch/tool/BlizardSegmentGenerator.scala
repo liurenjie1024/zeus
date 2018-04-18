@@ -8,7 +8,7 @@ import io.github.zeus.batch.{Row, TableOutputStreamBuilder}
 import io.github.zeus.rpc.ColumnType._
 import io.github.zeus.rpc._
 import TableOutputStreamBuilder._
-import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream._
+import io.github.zeus.batch.format.blizard.BlizardSegmentOutput._
 
 object BlizardSegmentGenerator {
   def main(args: Array[String]): Unit = {

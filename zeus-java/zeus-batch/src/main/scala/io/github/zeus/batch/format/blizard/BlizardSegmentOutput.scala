@@ -4,21 +4,21 @@ import java.io.OutputStream
 import java.util.Properties
 
 import com.google.protobuf.CodedOutputStream
-import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream._
+import io.github.zeus.batch.format.blizard.BlizardSegmentOutput._
 import io.github.zeus.batch.format.blizard.FieldHelper._
 import io.github.zeus.batch.format.blizard.serde.ColumnOutputStream
 import io.github.zeus.batch.util.ConfigOption
-import io.github.zeus.batch.{Row, TableOutputStream}
+import io.github.zeus.batch.{Row, TableOutput}
 import io.github.zeus.format.blizard.{BlockNode, ColumnNode, SegmentIndex}
 import io.github.zeus.rpc.ZeusTableSchema
 
 import ConfigOption._
 import scala.collection.JavaConverters._
 
-class BlizardSegmentOutputStream(config: Properties,
+class BlizardSegmentOutput(config: Properties,
   tableSchema: ZeusTableSchema,
   indexOutput: OutputStream,
-  dataOutput: OutputStream) extends TableOutputStream {
+  dataOutput: OutputStream) extends TableOutput {
   private val destination: ColumnOutputStream = new ColumnOutputStream(dataOutput)
 
   private val blockRowNum = ConfigMaxBlockRowNum.get(config).get
@@ -101,6 +101,6 @@ class BlizardSegmentOutputStream(config: Properties,
   }
 }
 
-object BlizardSegmentOutputStream {
+object BlizardSegmentOutput {
   val ConfigMaxBlockRowNum: ConfigOption[Int] = ConfigOption[Int]("blizard.block.row.num")
 }

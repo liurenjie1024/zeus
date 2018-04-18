@@ -4,16 +4,16 @@ import java.io.ByteArrayOutputStream
 import java.util.Properties
 
 import io.github.zeus.batch.Row
-import io.github.zeus.batch.format.blizard.BlizardSegmentOutputStream
+import io.github.zeus.batch.format.blizard.BlizardSegmentOutput
 import io.github.zeus.format.blizard.SegmentIndex
 import io.github.zeus.rpc.ColumnType._
-import io.github.zeus.rpc.{ColumnType, ZeusColumnSchema, ZeusTableSchema}
+import io.github.zeus.rpc.{ZeusColumnSchema, ZeusTableSchema}
 import org.scalatest.{FunSuite, Matchers}
 
 /**
   * Created by liurenjie on 25/03/2018.
   */
-class BlizardSegmentOutputStreamTest extends FunSuite with Matchers {
+class BlizardSegmentOutputTest extends FunSuite with Matchers {
   test("Output Content") {
     val boolColumnSchema = ZeusColumnSchema.newBuilder()
       .setColumnType(BOOL)
@@ -113,7 +113,7 @@ class BlizardSegmentOutputStreamTest extends FunSuite with Matchers {
 
     val indexOutput = new ByteArrayOutputStream()
     val dataOutput = new ByteArrayOutputStream()
-    val tableOutput = new BlizardSegmentOutputStream(props, tableSchema, indexOutput, dataOutput)
+    val tableOutput = new BlizardSegmentOutput(props, tableSchema, indexOutput, dataOutput)
     tableOutput.write(new Row(row1))
     tableOutput.write(new Row(row2))
     tableOutput.close()
