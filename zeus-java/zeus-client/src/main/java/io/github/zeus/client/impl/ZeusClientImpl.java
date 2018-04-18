@@ -50,7 +50,7 @@ public class ZeusClientImpl implements ZeusClient {
 
   public static void main(String[] args) throws IOException {
     System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
-    ZeusClient client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Downloads/test/test.schema", "127.0.0.1", 8899)
+    ZeusClient client = ZeusClientBuilder.newBuilder("/home/liurenjie-sal/Downloads/test/logs.schema", "127.0.0.1", 8899)
       .build();
 
     PlanNode node = PlanNode.newBuilder()
@@ -61,11 +61,6 @@ public class ZeusClientImpl implements ZeusClient {
               .addColumns(1)
               .addColumns(2)
               .addColumns(3)
-              .addColumns(4)
-              .addColumns(4)
-              .addColumns(6)
-              .addColumns(7)
-              .addColumns(8)
               .build())
       .build();
 

@@ -23,6 +23,18 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mediav</groupId>
+            <artifactId>mv-log-format</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.binary}</artifactId>
             <scope>test</scope>
