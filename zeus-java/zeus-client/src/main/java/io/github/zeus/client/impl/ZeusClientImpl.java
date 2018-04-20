@@ -58,9 +58,7 @@ public class ZeusClientImpl implements ZeusClient {
       .setScanNode(ScanNode.newBuilder()
               .setDbId(1)
               .setTableId(1)
-              .addColumns(1)
-              .addColumns(2)
-              .addColumns(3)
+              .addColumns(14)
               .build())
       .build();
 

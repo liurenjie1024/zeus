@@ -1,6 +1,7 @@
 package io.github.zeus.batch
 
-import java.nio.channels.{Channels, FileChannel, WritableByteChannel}
+import java.nio.channels.{Channels, FileChannel}
+import java.nio.file.StandardOpenOption.{CREATE_NEW, WRITE}
 import java.nio.file._
 import java.util.Properties
 
@@ -8,7 +9,6 @@ import io.github.zeus.batch.TableOutputStreamBuilder._
 import io.github.zeus.batch.format.blizard.BlizardSegmentOutput
 import io.github.zeus.batch.util.ConfigOption
 import io.github.zeus.rpc.ZeusTableSchema
-import StandardOpenOption.{CREATE_NEW, WRITE}
 
 case class TableOutputStreamBuilder(tableSchema: ZeusTableSchema, config: Properties) {
   def build: TableOutput = {

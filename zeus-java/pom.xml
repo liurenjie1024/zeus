@@ -20,8 +20,38 @@
         <grpc.version>1.7.0</grpc.version>
         <thrift.version>0.6.1</thrift.version>
         <slf4j.version>1.7.21</slf4j.version>
-        <mv-log-format.version>2.1.354</mv-log-format.version>
+        <protobuf.version>3.4.0</protobuf.version>
+        <mv-log-format.version>2.1.357</mv-log-format.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>mediav-proxy</id>
+            <name>All Mediav Proxy Repositories</name>
+            <url>https://maven.corp.mediav.com/nexus/content/groups/maven2-proxy</url>
+        </repository>
+        <repository>
+            <id>mediav-releases</id>
+            <name>Releases Repository</name>
+            <url>https://maven.corp.mediav.com/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>mediav-snapshots</id>
+            <name>Snapshots Repository</name>
+            <url>https://maven.corp.mediav.com/nexus/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+            <id>mediav-thirdparty</id>
+            <name>Third Party Repository</name>
+            <url>https://maven.corp.mediav.com/nexus/content/repositories/thirdparty</url>
+        </repository>
+        <repository>
+            <id>cloudera</id>
+            <name>Cloudera Repository</name>
+            <url>http://repository.cloudera.com/artifactory/libs-release</url>
+        </repository>
+
+    </repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -50,6 +80,11 @@
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-stub</artifactId>
                 <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
