@@ -93,12 +93,14 @@ public class ZeusRecordReader extends AbstractRecordReader {
 
   static final Map<ColumnType, MinorType> TYPES = ImmutableMap.<ColumnType, MinorType>builder()
     .put(BOOL, MinorType.BIT)
-    .put(FLOAT, MinorType.FLOAT4)
+    .put(INT8, MinorType.INT)
+    .put(INT16, MinorType.INT)
     .put(INT32, MinorType.INT)
     .put(INT64, MinorType.BIGINT)
+    .put(FLOAT4, MinorType.FLOAT4)
+    .put(FLOAT8, MinorType.FLOAT8)
     .put(TIMESTAMP, MinorType.TIMESTAMP)
     .put(STRING, MinorType.VARCHAR)
-    .put(BYTE, MinorType.TINYINT)
     .build();
 
   public ZeusRecordReader(ZeusClient zeusClient,
@@ -241,6 +243,8 @@ public class ZeusRecordReader extends AbstractRecordReader {
             .setSafe(rowIndex, row.getColumns(i).getBoolValue() ? 1 : 0);
         }
         break;
+        case INT8:
+        case INT16:
         case INT32: {
           ((IntVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getI32Value());
@@ -251,19 +255,19 @@ public class ZeusRecordReader extends AbstractRecordReader {
             .setSafe(rowIndex, row.getColumns(i).getI64Value());
         }
         break;
-        case FLOAT: {
+        case FLOAT4: {
           ((Float4Vector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getFloatValue());
+        }
+        break;
+        case FLOAT8: {
+          ((Float8Vector.Mutator) columnInfo.vv.getMutator())
+            .setSafe(rowIndex, row.getColumns(i).getDoubleValue());
         }
         break;
         case TIMESTAMP: {
           ((TimeStampVector.Mutator) columnInfo.vv.getMutator())
             .setSafe(rowIndex, row.getColumns(i).getI64Value());
-        }
-        break;
-        case BYTE: {
-          ((SmallIntVector.Mutator) columnInfo.vv.getMutator())
-              .setSafe(rowIndex, row.getColumns(i).getI32Value());
         }
         break;
       }

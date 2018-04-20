@@ -85,8 +85,10 @@ public class ZeusTable extends DynamicDrillTable {
     switch (columnType) {
       case STRING:
         return typeFactory.createSqlType(SqlTypeName.VARCHAR);
-      case FLOAT:
-        return typeFactory.createSqlType(SqlTypeName.FLOAT);
+      case INT8:
+        return typeFactory.createSqlType(SqlTypeName.TINYINT);
+      case INT16:
+        return typeFactory.createSqlType(SqlTypeName.SMALLINT);
       case INT32:
         return typeFactory.createSqlType(SqlTypeName.INTEGER);
       case INT64:
@@ -95,8 +97,10 @@ public class ZeusTable extends DynamicDrillTable {
         return typeFactory.createSqlType(SqlTypeName.BOOLEAN);
       case TIMESTAMP:
         return typeFactory.createSqlType(SqlTypeName.TIMESTAMP);
-      case BYTE:
-        return typeFactory.createSqlType(SqlTypeName.INTEGER);
+      case FLOAT4:
+        return typeFactory.createSqlType(SqlTypeName.FLOAT);
+      case FLOAT8:
+        return typeFactory.createSqlType(SqlTypeName.DOUBLE);
       default:
         throw new IllegalArgumentException("Unrecognized type: " + columnType.name());
     }
