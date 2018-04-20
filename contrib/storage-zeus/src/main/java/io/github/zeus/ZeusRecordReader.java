@@ -175,8 +175,6 @@ public class ZeusRecordReader extends AbstractRecordReader {
 
   @Override
   public void close() throws Exception {
-    columnInfos.forEach(c -> c.vv.clear());
-    columnInfos.forEach(c -> c.vv.close());
   }
 
   private ValueVector createValueVector(ZeusColumnSchema zeusColumnSchema) {
