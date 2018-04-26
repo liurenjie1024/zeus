@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+import "zeus_expr.proto";
+
+option java_package = "io.github.zeus.rpc";
+option java_multiple_files = true;
+
+enum PlanNodeType {
+    SCAN_NODE = 0;
+    FILTER_NODE = 1;
+    PROJECT_NODE = 2;
+    AGGREGATE_NODE = 3;
+    TOPN_NODE = 4;
+    LIMIT_NODE = 5;
+}
+
+message ScanNode {
+    int32 db_id = 1;
+    int32 table_id = 2;
+    repeated int32 columns = 3;
+}
+
+message FilterNode {
+    repeated Expression conditions = 1;
+}
+
+message ProjectNode {
+    repeated Expression expressions = 1;
+}
+
+message AggregationNode {
+    repeated Expression group_by = 1;
+    repeated Expression agg_func = 2;
+}
+
+message TopNNode {
+    message ByItem {
+        Expression expr = 1;
+        bool desc = 2;
+    }
+
+    repeated ByItem by_item = 1;
+    int32 limit = 2;
+}
+
+message LimitNode {
+    int32 limit = 1;
+}
+
+message PlanNode {
+    int32 node_id = 1;
+    repeated PlanNode children = 2;
+    PlanNodeType plan_node_type = 3;
+
+    ScanNode scan_node = 4;
+    FilterNode filter_node = 5;
+    ProjectNode project_node = 6;
+    AggregationNode agg_node = 7;
+    TopNNode topn_node = 8;
+    LimitNode limit_node = 9;
+}

@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+import "zeus_meta.proto";
+
+option java_package = "io.github.zeus.rpc";
+option java_multiple_files = true;
+
+
+enum ExprType {
+    LITERAL = 0;
+    COLUMN_REF = 1;
+    SCALA_FUNCTION = 2;
+    AGG_FUNCTION = 3;
+}
+
+enum ScalaFuncId {
+
+}
+
+enum AggFuncId {
+
+}
+
+message LiteralExpr {
+    ColumnType type = 1;
+    bytes payload = 2;
+}
+
+message ColumnRef {
+    string name = 1;
+}
+
+message ScalaFunction {
+    ScalaFuncId funcId = 1;
+    repeated Expression children = 2;
+}
+
+message AggFunction {
+    AggFuncId func_id = 1;
+    repeated Expression children = 2;
+}
+
+message Expression {
+    ExprType type = 1;
+
+    LiteralExpr literal = 2;
+    ColumnRef column = 3;
+    ScalaFunction scala_func = 4;
+    AggFunction agg_func = 5;
+}
+
+
