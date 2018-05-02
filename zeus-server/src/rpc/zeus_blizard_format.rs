@@ -1343,12 +1343,12 @@ impl ::protobuf::reflect::ProtobufValue for BlockIndex {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\"protobuf/zeus_blizard_format.proto\"\xb1\x01\n\x0cSegmentIndex\x12%\
-    \n\x0eformat_version\x18\x01\x20\x01(\x05R\rformatVersion\x12!\n\x0cmagi\
-    c_number\x18\x02\x20\x01(\x05R\x0bmagicNumber\x12)\n\nblock_node\x18\x03\
-    \x20\x03(\x0b2\n.BlockNodeR\tblockNode\x12,\n\x0bblock_index\x18\x04\x20\
-    \x03(\x0b2\x0b.BlockIndexR\nblockIndex\"4\n\nColumnNode\x12\x14\n\x05sta\
-    rt\x18\x01\x20\x01(\x03R\x05start\x12\x10\n\x03end\x18\x02\x20\x01(\x03R\
+    \n\x19zeus_blizard_format.proto\"\xb1\x01\n\x0cSegmentIndex\x12%\n\x0efo\
+    rmat_version\x18\x01\x20\x01(\x05R\rformatVersion\x12!\n\x0cmagic_number\
+    \x18\x02\x20\x01(\x05R\x0bmagicNumber\x12)\n\nblock_node\x18\x03\x20\x03\
+    (\x0b2\n.BlockNodeR\tblockNode\x12,\n\x0bblock_index\x18\x04\x20\x03(\
+    \x0b2\x0b.BlockIndexR\nblockIndex\"4\n\nColumnNode\x12\x14\n\x05start\
+    \x18\x01\x20\x01(\x03R\x05start\x12\x10\n\x03end\x18\x02\x20\x01(\x03R\
     \x03end\"\xba\x01\n\x10ColumnRangeIndex\x12(\n\x10min_number_value\x18\
     \x01\x20\x01(\x03R\x0eminNumberValue\x12(\n\x10max_number_value\x18\x02\
     \x20\x01(\x03R\x0emaxNumberValue\x12(\n\x10min_string_value\x18\x03\x20\

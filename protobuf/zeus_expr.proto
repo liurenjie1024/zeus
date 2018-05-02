@@ -6,22 +6,22 @@ option java_package = "io.github.zeus.rpc";
 option java_multiple_files = true;
 
 
-enum ExprType {
+enum ExpressionType {
     LITERAL = 0;
     COLUMN_REF = 1;
     SCALA_FUNCTION = 2;
     AGG_FUNCTION = 3;
 }
 
-enum ScalaFuncId {
-
+enum ScalarFuncId {
+    ADD_INT4_INT4 = 0;
 }
 
 enum AggFuncId {
-
+    SUM_INT4_INT = 0;
 }
 
-message LiteralExpr {
+message LiteralExpression {
     ColumnType type = 1;
     bytes payload = 2;
 }
@@ -30,8 +30,8 @@ message ColumnRef {
     string name = 1;
 }
 
-message ScalaFunction {
-    ScalaFuncId funcId = 1;
+message ScalarFunction {
+    ScalarFuncId funcId = 1;
     repeated Expression children = 2;
 }
 
@@ -41,11 +41,11 @@ message AggFunction {
 }
 
 message Expression {
-    ExprType type = 1;
+    ExpressionType type = 1;
 
-    LiteralExpr literal = 2;
+    LiteralExpression literal = 2;
     ColumnRef column = 3;
-    ScalaFunction scala_func = 4;
+    ScalarFunction scala_func = 4;
     AggFunction agg_func = 5;
 }
 

@@ -3,6 +3,8 @@ PROTOC=protoc
 
 PROTO_DEFS=$(PROTO_DIR)/zeus_data.proto \
 	$(PROTO_DIR)/zeus_meta.proto \
+	$(PROTO_DIR)/zeus_expr.proto \
+	$(PROTO_DIR)/zeus_plan.proto \
 	$(PROTO_DIR)/zeus_simple_format.proto \
 	$(PROTO_DIR)/zeus_blizard_format.proto
 
@@ -15,6 +17,7 @@ all: RUST_BUILD JAVA_BUILD
 RUST_GRPC: $(PROTO_DEFS)
 	echo "Building rust grpc"
 	$(PROTOC) --rust_out=$(RUST_OUT_DIR) \
+	    -I$(PROTO_DIR) \
 		--grpc_out=$(RUST_OUT_DIR) \
 		--plugin=protoc-gen-grpc=$(GRPC_RUST_PLUGIN) \
 		--plugin=protoc-gen-rust=$(PROTOC_RUST_PLUGIN) \

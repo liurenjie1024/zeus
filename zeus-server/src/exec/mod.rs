@@ -1,4 +1,5 @@
 pub mod table_scan_node;
+pub mod expression;
 
 use std::boxed::Box;
 use std::vec::Vec;
