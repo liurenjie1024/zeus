@@ -25,7 +25,7 @@ use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
 pub struct LiteralExpression {
     // message fields
     pub field_type: super::zeus_meta::ColumnType,
-    pub payload: ::std::vec::Vec<u8>,
+    pub value: ::protobuf::SingularPtrField<super::zeus_meta::ColumnValue>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -72,43 +72,55 @@ impl LiteralExpression {
         &mut self.field_type
     }
 
-    // bytes payload = 2;
+    // .ColumnValue value = 2;
 
-    pub fn clear_payload(&mut self) {
-        self.payload.clear();
+    pub fn clear_value(&mut self) {
+        self.value.clear();
+    }
+
+    pub fn has_value(&self) -> bool {
+        self.value.is_some()
     }
 
     // Param is passed by value, moved
-    pub fn set_payload(&mut self, v: ::std::vec::Vec<u8>) {
-        self.payload = v;
+    pub fn set_value(&mut self, v: super::zeus_meta::ColumnValue) {
+        self.value = ::protobuf::SingularPtrField::some(v);
     }
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_payload(&mut self) -> &mut ::std::vec::Vec<u8> {
-        &mut self.payload
+    pub fn mut_value(&mut self) -> &mut super::zeus_meta::ColumnValue {
+        if self.value.is_none() {
+            self.value.set_default();
+        }
+        self.value.as_mut().unwrap()
     }
 
     // Take field
-    pub fn take_payload(&mut self) -> ::std::vec::Vec<u8> {
-        ::std::mem::replace(&mut self.payload, ::std::vec::Vec::new())
+    pub fn take_value(&mut self) -> super::zeus_meta::ColumnValue {
+        self.value.take().unwrap_or_else(|| super::zeus_meta::ColumnValue::new())
     }
 
-    pub fn get_payload(&self) -> &[u8] {
-        &self.payload
+    pub fn get_value(&self) -> &super::zeus_meta::ColumnValue {
+        self.value.as_ref().unwrap_or_else(|| super::zeus_meta::ColumnValue::default_instance())
     }
 
-    fn get_payload_for_reflect(&self) -> &::std::vec::Vec<u8> {
-        &self.payload
+    fn get_value_for_reflect(&self) -> &::protobuf::SingularPtrField<super::zeus_meta::ColumnValue> {
+        &self.value
     }
 
-    fn mut_payload_for_reflect(&mut self) -> &mut ::std::vec::Vec<u8> {
-        &mut self.payload
+    fn mut_value_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<super::zeus_meta::ColumnValue> {
+        &mut self.value
     }
 }
 
 impl ::protobuf::Message for LiteralExpression {
     fn is_initialized(&self) -> bool {
+        for v in &self.value {
+            if !v.is_initialized() {
+                return false;
+            }
+        };
         true
     }
 
@@ -124,7 +136,7 @@ impl ::protobuf::Message for LiteralExpression {
                     self.field_type = tmp;
                 },
                 2 => {
-                    ::protobuf::rt::read_singular_proto3_bytes_into(wire_type, is, &mut self.payload)?;
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.value)?;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -141,8 +153,9 @@ impl ::protobuf::Message for LiteralExpression {
         if self.field_type != super::zeus_meta::ColumnType::BOOL {
             my_size += ::protobuf::rt::enum_size(1, self.field_type);
         }
-        if !self.payload.is_empty() {
-            my_size += ::protobuf::rt::bytes_size(2, &self.payload);
+        if let Some(ref v) = self.value.as_ref() {
+            let len = v.compute_size();
+            my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
@@ -153,8 +166,10 @@ impl ::protobuf::Message for LiteralExpression {
         if self.field_type != super::zeus_meta::ColumnType::BOOL {
             os.write_enum(1, self.field_type.value())?;
         }
-        if !self.payload.is_empty() {
-            os.write_bytes(2, &self.payload)?;
+        if let Some(ref v) = self.value.as_ref() {
+            os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+            os.write_raw_varint32(v.get_cached_size())?;
+            v.write_to_with_cached_sizes(os)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -205,10 +220,10 @@ impl ::protobuf::MessageStatic for LiteralExpression {
                     LiteralExpression::get_field_type_for_reflect,
                     LiteralExpression::mut_field_type_for_reflect,
                 ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeBytes>(
-                    "payload",
-                    LiteralExpression::get_payload_for_reflect,
-                    LiteralExpression::mut_payload_for_reflect,
+                fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::zeus_meta::ColumnValue>>(
+                    "value",
+                    LiteralExpression::get_value_for_reflect,
+                    LiteralExpression::mut_value_for_reflect,
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<LiteralExpression>(
                     "LiteralExpression",
@@ -223,7 +238,7 @@ impl ::protobuf::MessageStatic for LiteralExpression {
 impl ::protobuf::Clear for LiteralExpression {
     fn clear(&mut self) {
         self.clear_field_type();
-        self.clear_payload();
+        self.clear_value();
         self.unknown_fields.clear();
     }
 }
@@ -419,7 +434,7 @@ impl ::protobuf::reflect::ProtobufValue for ColumnRef {
 #[derive(PartialEq,Clone,Default)]
 pub struct ScalarFunction {
     // message fields
-    pub funcId: ScalarFuncId,
+    pub func_id: ScalarFuncId,
     pub children: ::protobuf::RepeatedField<Expression>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
@@ -444,27 +459,27 @@ impl ScalarFunction {
         }
     }
 
-    // .ScalarFuncId funcId = 1;
+    // .ScalarFuncId func_id = 1;
 
-    pub fn clear_funcId(&mut self) {
-        self.funcId = ScalarFuncId::ADD_INT4_INT4;
+    pub fn clear_func_id(&mut self) {
+        self.func_id = ScalarFuncId::ADD_INT4_INT4;
     }
 
     // Param is passed by value, moved
-    pub fn set_funcId(&mut self, v: ScalarFuncId) {
-        self.funcId = v;
+    pub fn set_func_id(&mut self, v: ScalarFuncId) {
+        self.func_id = v;
     }
 
-    pub fn get_funcId(&self) -> ScalarFuncId {
-        self.funcId
+    pub fn get_func_id(&self) -> ScalarFuncId {
+        self.func_id
     }
 
-    fn get_funcId_for_reflect(&self) -> &ScalarFuncId {
-        &self.funcId
+    fn get_func_id_for_reflect(&self) -> &ScalarFuncId {
+        &self.func_id
     }
 
-    fn mut_funcId_for_reflect(&mut self) -> &mut ScalarFuncId {
-        &mut self.funcId
+    fn mut_func_id_for_reflect(&mut self) -> &mut ScalarFuncId {
+        &mut self.func_id
     }
 
     // repeated .Expression children = 2;
@@ -520,7 +535,7 @@ impl ::protobuf::Message for ScalarFunction {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
                     let tmp = is.read_enum()?;
-                    self.funcId = tmp;
+                    self.func_id = tmp;
                 },
                 2 => {
                     ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.children)?;
@@ -537,8 +552,8 @@ impl ::protobuf::Message for ScalarFunction {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        if self.funcId != ScalarFuncId::ADD_INT4_INT4 {
-            my_size += ::protobuf::rt::enum_size(1, self.funcId);
+        if self.func_id != ScalarFuncId::ADD_INT4_INT4 {
+            my_size += ::protobuf::rt::enum_size(1, self.func_id);
         }
         for value in &self.children {
             let len = value.compute_size();
@@ -550,8 +565,8 @@ impl ::protobuf::Message for ScalarFunction {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if self.funcId != ScalarFuncId::ADD_INT4_INT4 {
-            os.write_enum(1, self.funcId.value())?;
+        if self.func_id != ScalarFuncId::ADD_INT4_INT4 {
+            os.write_enum(1, self.func_id.value())?;
         }
         for v in &self.children {
             os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
@@ -603,9 +618,9 @@ impl ::protobuf::MessageStatic for ScalarFunction {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
                 fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeEnum<ScalarFuncId>>(
-                    "funcId",
-                    ScalarFunction::get_funcId_for_reflect,
-                    ScalarFunction::mut_funcId_for_reflect,
+                    "func_id",
+                    ScalarFunction::get_func_id_for_reflect,
+                    ScalarFunction::mut_func_id_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<Expression>>(
                     "children",
@@ -624,7 +639,7 @@ impl ::protobuf::MessageStatic for ScalarFunction {
 
 impl ::protobuf::Clear for ScalarFunction {
     fn clear(&mut self) {
-        self.clear_funcId();
+        self.clear_func_id();
         self.clear_children();
         self.unknown_fields.clear();
     }
@@ -871,10 +886,10 @@ impl ::protobuf::reflect::ProtobufValue for AggFunction {
 #[derive(PartialEq,Clone,Default)]
 pub struct Expression {
     // message fields
-    pub field_type: ExpressionType,
+    pub expression_type: ExpressionType,
     pub literal: ::protobuf::SingularPtrField<LiteralExpression>,
     pub column: ::protobuf::SingularPtrField<ColumnRef>,
-    pub scala_func: ::protobuf::SingularPtrField<ScalarFunction>,
+    pub scalar_func: ::protobuf::SingularPtrField<ScalarFunction>,
     pub agg_func: ::protobuf::SingularPtrField<AggFunction>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
@@ -899,27 +914,27 @@ impl Expression {
         }
     }
 
-    // .ExpressionType type = 1;
+    // .ExpressionType expression_type = 1;
 
-    pub fn clear_field_type(&mut self) {
-        self.field_type = ExpressionType::LITERAL;
+    pub fn clear_expression_type(&mut self) {
+        self.expression_type = ExpressionType::LITERAL;
     }
 
     // Param is passed by value, moved
-    pub fn set_field_type(&mut self, v: ExpressionType) {
-        self.field_type = v;
+    pub fn set_expression_type(&mut self, v: ExpressionType) {
+        self.expression_type = v;
     }
 
-    pub fn get_field_type(&self) -> ExpressionType {
-        self.field_type
+    pub fn get_expression_type(&self) -> ExpressionType {
+        self.expression_type
     }
 
-    fn get_field_type_for_reflect(&self) -> &ExpressionType {
-        &self.field_type
+    fn get_expression_type_for_reflect(&self) -> &ExpressionType {
+        &self.expression_type
     }
 
-    fn mut_field_type_for_reflect(&mut self) -> &mut ExpressionType {
-        &mut self.field_type
+    fn mut_expression_type_for_reflect(&mut self) -> &mut ExpressionType {
+        &mut self.expression_type
     }
 
     // .LiteralExpression literal = 2;
@@ -1004,45 +1019,45 @@ impl Expression {
         &mut self.column
     }
 
-    // .ScalarFunction scala_func = 4;
+    // .ScalarFunction scalar_func = 4;
 
-    pub fn clear_scala_func(&mut self) {
-        self.scala_func.clear();
+    pub fn clear_scalar_func(&mut self) {
+        self.scalar_func.clear();
     }
 
-    pub fn has_scala_func(&self) -> bool {
-        self.scala_func.is_some()
+    pub fn has_scalar_func(&self) -> bool {
+        self.scalar_func.is_some()
     }
 
     // Param is passed by value, moved
-    pub fn set_scala_func(&mut self, v: ScalarFunction) {
-        self.scala_func = ::protobuf::SingularPtrField::some(v);
+    pub fn set_scalar_func(&mut self, v: ScalarFunction) {
+        self.scalar_func = ::protobuf::SingularPtrField::some(v);
     }
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_scala_func(&mut self) -> &mut ScalarFunction {
-        if self.scala_func.is_none() {
-            self.scala_func.set_default();
+    pub fn mut_scalar_func(&mut self) -> &mut ScalarFunction {
+        if self.scalar_func.is_none() {
+            self.scalar_func.set_default();
         }
-        self.scala_func.as_mut().unwrap()
+        self.scalar_func.as_mut().unwrap()
     }
 
     // Take field
-    pub fn take_scala_func(&mut self) -> ScalarFunction {
-        self.scala_func.take().unwrap_or_else(|| ScalarFunction::new())
+    pub fn take_scalar_func(&mut self) -> ScalarFunction {
+        self.scalar_func.take().unwrap_or_else(|| ScalarFunction::new())
     }
 
-    pub fn get_scala_func(&self) -> &ScalarFunction {
-        self.scala_func.as_ref().unwrap_or_else(|| ScalarFunction::default_instance())
+    pub fn get_scalar_func(&self) -> &ScalarFunction {
+        self.scalar_func.as_ref().unwrap_or_else(|| ScalarFunction::default_instance())
     }
 
-    fn get_scala_func_for_reflect(&self) -> &::protobuf::SingularPtrField<ScalarFunction> {
-        &self.scala_func
+    fn get_scalar_func_for_reflect(&self) -> &::protobuf::SingularPtrField<ScalarFunction> {
+        &self.scalar_func
     }
 
-    fn mut_scala_func_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<ScalarFunction> {
-        &mut self.scala_func
+    fn mut_scalar_func_for_reflect(&mut self) -> &mut ::protobuf::SingularPtrField<ScalarFunction> {
+        &mut self.scalar_func
     }
 
     // .AggFunction agg_func = 5;
@@ -1099,7 +1114,7 @@ impl ::protobuf::Message for Expression {
                 return false;
             }
         };
-        for v in &self.scala_func {
+        for v in &self.scalar_func {
             if !v.is_initialized() {
                 return false;
             }
@@ -1121,7 +1136,7 @@ impl ::protobuf::Message for Expression {
                         return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
                     }
                     let tmp = is.read_enum()?;
-                    self.field_type = tmp;
+                    self.expression_type = tmp;
                 },
                 2 => {
                     ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.literal)?;
@@ -1130,7 +1145,7 @@ impl ::protobuf::Message for Expression {
                     ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.column)?;
                 },
                 4 => {
-                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.scala_func)?;
+                    ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.scalar_func)?;
                 },
                 5 => {
                     ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.agg_func)?;
@@ -1147,8 +1162,8 @@ impl ::protobuf::Message for Expression {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        if self.field_type != ExpressionType::LITERAL {
-            my_size += ::protobuf::rt::enum_size(1, self.field_type);
+        if self.expression_type != ExpressionType::LITERAL {
+            my_size += ::protobuf::rt::enum_size(1, self.expression_type);
         }
         if let Some(ref v) = self.literal.as_ref() {
             let len = v.compute_size();
@@ -1158,7 +1173,7 @@ impl ::protobuf::Message for Expression {
             let len = v.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         }
-        if let Some(ref v) = self.scala_func.as_ref() {
+        if let Some(ref v) = self.scalar_func.as_ref() {
             let len = v.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         }
@@ -1172,8 +1187,8 @@ impl ::protobuf::Message for Expression {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if self.field_type != ExpressionType::LITERAL {
-            os.write_enum(1, self.field_type.value())?;
+        if self.expression_type != ExpressionType::LITERAL {
+            os.write_enum(1, self.expression_type.value())?;
         }
         if let Some(ref v) = self.literal.as_ref() {
             os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
@@ -1185,7 +1200,7 @@ impl ::protobuf::Message for Expression {
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
         }
-        if let Some(ref v) = self.scala_func.as_ref() {
+        if let Some(ref v) = self.scalar_func.as_ref() {
             os.write_tag(4, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
@@ -1240,9 +1255,9 @@ impl ::protobuf::MessageStatic for Expression {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
                 fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeEnum<ExpressionType>>(
-                    "type",
-                    Expression::get_field_type_for_reflect,
-                    Expression::mut_field_type_for_reflect,
+                    "expression_type",
+                    Expression::get_expression_type_for_reflect,
+                    Expression::mut_expression_type_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<LiteralExpression>>(
                     "literal",
@@ -1255,9 +1270,9 @@ impl ::protobuf::MessageStatic for Expression {
                     Expression::mut_column_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<ScalarFunction>>(
-                    "scala_func",
-                    Expression::get_scala_func_for_reflect,
-                    Expression::mut_scala_func_for_reflect,
+                    "scalar_func",
+                    Expression::get_scalar_func_for_reflect,
+                    Expression::mut_scalar_func_for_reflect,
                 ));
                 fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<AggFunction>>(
                     "agg_func",
@@ -1276,10 +1291,10 @@ impl ::protobuf::MessageStatic for Expression {
 
 impl ::protobuf::Clear for Expression {
     fn clear(&mut self) {
-        self.clear_field_type();
+        self.clear_expression_type();
         self.clear_literal();
         self.clear_column();
-        self.clear_scala_func();
+        self.clear_scalar_func();
         self.clear_agg_func();
         self.unknown_fields.clear();
     }
@@ -1463,94 +1478,94 @@ impl ::protobuf::reflect::ProtobufValue for AggFuncId {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x0fzeus_expr.proto\x1a\x0fzeus_meta.proto\"N\n\x11LiteralExpression\
-    \x12\x1f\n\x04type\x18\x01\x20\x01(\x0e2\x0b.ColumnTypeR\x04type\x12\x18\
-    \n\x07payload\x18\x02\x20\x01(\x0cR\x07payload\"\x1f\n\tColumnRef\x12\
-    \x12\n\x04name\x18\x01\x20\x01(\tR\x04name\"`\n\x0eScalarFunction\x12%\n\
-    \x06funcId\x18\x01\x20\x01(\x0e2\r.ScalarFuncIdR\x06funcId\x12'\n\x08chi\
-    ldren\x18\x02\x20\x03(\x0b2\x0b.ExpressionR\x08children\"[\n\x0bAggFunct\
-    ion\x12#\n\x07func_id\x18\x01\x20\x01(\x0e2\n.AggFuncIdR\x06funcId\x12'\
-    \n\x08children\x18\x02\x20\x03(\x0b2\x0b.ExpressionR\x08children\"\xdc\
-    \x01\n\nExpression\x12#\n\x04type\x18\x01\x20\x01(\x0e2\x0f.ExpressionTy\
-    peR\x04type\x12,\n\x07literal\x18\x02\x20\x01(\x0b2\x12.LiteralExpressio\
-    nR\x07literal\x12\"\n\x06column\x18\x03\x20\x01(\x0b2\n.ColumnRefR\x06co\
-    lumn\x12.\n\nscala_func\x18\x04\x20\x01(\x0b2\x0f.ScalarFunctionR\tscala\
-    Func\x12'\n\x08agg_func\x18\x05\x20\x01(\x0b2\x0c.AggFunctionR\x07aggFun\
-    c*S\n\x0eExpressionType\x12\x0b\n\x07LITERAL\x10\0\x12\x0e\n\nCOLUMN_REF\
-    \x10\x01\x12\x12\n\x0eSCALA_FUNCTION\x10\x02\x12\x10\n\x0cAGG_FUNCTION\
-    \x10\x03*!\n\x0cScalarFuncId\x12\x11\n\rADD_INT4_INT4\x10\0*\x1d\n\tAggF\
-    uncId\x12\x10\n\x0cSUM_INT4_INT\x10\0B\x16\n\x12io.github.zeus.rpcP\x01J\
-    \xbd\x0b\n\x06\x12\x04\0\01\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\t\n\
-    \x02\x03\0\x12\x03\x02\x07\x18\n\x08\n\x01\x08\x12\x03\x04\0+\n\x0b\n\
-    \x04\x08\xe7\x07\0\x12\x03\x04\0+\n\x0c\n\x05\x08\xe7\x07\0\x02\x12\x03\
-    \x04\x07\x13\n\r\n\x06\x08\xe7\x07\0\x02\0\x12\x03\x04\x07\x13\n\x0e\n\
-    \x07\x08\xe7\x07\0\x02\0\x01\x12\x03\x04\x07\x13\n\x0c\n\x05\x08\xe7\x07\
-    \0\x07\x12\x03\x04\x16*\n\x08\n\x01\x08\x12\x03\x05\0\"\n\x0b\n\x04\x08\
-    \xe7\x07\x01\x12\x03\x05\0\"\n\x0c\n\x05\x08\xe7\x07\x01\x02\x12\x03\x05\
-    \x07\x1a\n\r\n\x06\x08\xe7\x07\x01\x02\0\x12\x03\x05\x07\x1a\n\x0e\n\x07\
-    \x08\xe7\x07\x01\x02\0\x01\x12\x03\x05\x07\x1a\n\x0c\n\x05\x08\xe7\x07\
-    \x01\x03\x12\x03\x05\x1d!\n\n\n\x02\x05\0\x12\x04\x08\0\r\x01\n\n\n\x03\
-    \x05\0\x01\x12\x03\x08\x05\x13\n\x0b\n\x04\x05\0\x02\0\x12\x03\t\x04\x10\
-    \n\x0c\n\x05\x05\0\x02\0\x01\x12\x03\t\x04\x0b\n\x0c\n\x05\x05\0\x02\0\
-    \x02\x12\x03\t\x0e\x0f\n\x0b\n\x04\x05\0\x02\x01\x12\x03\n\x04\x13\n\x0c\
-    \n\x05\x05\0\x02\x01\x01\x12\x03\n\x04\x0e\n\x0c\n\x05\x05\0\x02\x01\x02\
-    \x12\x03\n\x11\x12\n\x0b\n\x04\x05\0\x02\x02\x12\x03\x0b\x04\x17\n\x0c\n\
-    \x05\x05\0\x02\x02\x01\x12\x03\x0b\x04\x12\n\x0c\n\x05\x05\0\x02\x02\x02\
-    \x12\x03\x0b\x15\x16\n\x0b\n\x04\x05\0\x02\x03\x12\x03\x0c\x04\x15\n\x0c\
-    \n\x05\x05\0\x02\x03\x01\x12\x03\x0c\x04\x10\n\x0c\n\x05\x05\0\x02\x03\
-    \x02\x12\x03\x0c\x13\x14\n\n\n\x02\x05\x01\x12\x04\x0f\0\x11\x01\n\n\n\
-    \x03\x05\x01\x01\x12\x03\x0f\x05\x11\n\x0b\n\x04\x05\x01\x02\0\x12\x03\
-    \x10\x04\x16\n\x0c\n\x05\x05\x01\x02\0\x01\x12\x03\x10\x04\x11\n\x0c\n\
-    \x05\x05\x01\x02\0\x02\x12\x03\x10\x14\x15\n\n\n\x02\x05\x02\x12\x04\x13\
-    \0\x15\x01\n\n\n\x03\x05\x02\x01\x12\x03\x13\x05\x0e\n\x0b\n\x04\x05\x02\
-    \x02\0\x12\x03\x14\x04\x15\n\x0c\n\x05\x05\x02\x02\0\x01\x12\x03\x14\x04\
-    \x10\n\x0c\n\x05\x05\x02\x02\0\x02\x12\x03\x14\x13\x14\n\n\n\x02\x04\0\
-    \x12\x04\x17\0\x1a\x01\n\n\n\x03\x04\0\x01\x12\x03\x17\x08\x19\n\x0b\n\
-    \x04\x04\0\x02\0\x12\x03\x18\x04\x18\n\r\n\x05\x04\0\x02\0\x04\x12\x04\
-    \x18\x04\x17\x1b\n\x0c\n\x05\x04\0\x02\0\x06\x12\x03\x18\x04\x0e\n\x0c\n\
-    \x05\x04\0\x02\0\x01\x12\x03\x18\x0f\x13\n\x0c\n\x05\x04\0\x02\0\x03\x12\
-    \x03\x18\x16\x17\n\x0b\n\x04\x04\0\x02\x01\x12\x03\x19\x04\x16\n\r\n\x05\
-    \x04\0\x02\x01\x04\x12\x04\x19\x04\x18\x18\n\x0c\n\x05\x04\0\x02\x01\x05\
-    \x12\x03\x19\x04\t\n\x0c\n\x05\x04\0\x02\x01\x01\x12\x03\x19\n\x11\n\x0c\
-    \n\x05\x04\0\x02\x01\x03\x12\x03\x19\x14\x15\n\n\n\x02\x04\x01\x12\x04\
-    \x1c\0\x1e\x01\n\n\n\x03\x04\x01\x01\x12\x03\x1c\x08\x11\n\x0b\n\x04\x04\
-    \x01\x02\0\x12\x03\x1d\x04\x14\n\r\n\x05\x04\x01\x02\0\x04\x12\x04\x1d\
-    \x04\x1c\x13\n\x0c\n\x05\x04\x01\x02\0\x05\x12\x03\x1d\x04\n\n\x0c\n\x05\
-    \x04\x01\x02\0\x01\x12\x03\x1d\x0b\x0f\n\x0c\n\x05\x04\x01\x02\0\x03\x12\
-    \x03\x1d\x12\x13\n\n\n\x02\x04\x02\x12\x04\x20\0#\x01\n\n\n\x03\x04\x02\
-    \x01\x12\x03\x20\x08\x16\n\x0b\n\x04\x04\x02\x02\0\x12\x03!\x04\x1c\n\r\
-    \n\x05\x04\x02\x02\0\x04\x12\x04!\x04\x20\x18\n\x0c\n\x05\x04\x02\x02\0\
-    \x06\x12\x03!\x04\x10\n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03!\x11\x17\n\
-    \x0c\n\x05\x04\x02\x02\0\x03\x12\x03!\x1a\x1b\n\x0b\n\x04\x04\x02\x02\
-    \x01\x12\x03\"\x04%\n\x0c\n\x05\x04\x02\x02\x01\x04\x12\x03\"\x04\x0c\n\
-    \x0c\n\x05\x04\x02\x02\x01\x06\x12\x03\"\r\x17\n\x0c\n\x05\x04\x02\x02\
-    \x01\x01\x12\x03\"\x18\x20\n\x0c\n\x05\x04\x02\x02\x01\x03\x12\x03\"#$\n\
-    \n\n\x02\x04\x03\x12\x04%\0(\x01\n\n\n\x03\x04\x03\x01\x12\x03%\x08\x13\
-    \n\x0b\n\x04\x04\x03\x02\0\x12\x03&\x04\x1a\n\r\n\x05\x04\x03\x02\0\x04\
-    \x12\x04&\x04%\x15\n\x0c\n\x05\x04\x03\x02\0\x06\x12\x03&\x04\r\n\x0c\n\
-    \x05\x04\x03\x02\0\x01\x12\x03&\x0e\x15\n\x0c\n\x05\x04\x03\x02\0\x03\
-    \x12\x03&\x18\x19\n\x0b\n\x04\x04\x03\x02\x01\x12\x03'\x04%\n\x0c\n\x05\
-    \x04\x03\x02\x01\x04\x12\x03'\x04\x0c\n\x0c\n\x05\x04\x03\x02\x01\x06\
-    \x12\x03'\r\x17\n\x0c\n\x05\x04\x03\x02\x01\x01\x12\x03'\x18\x20\n\x0c\n\
-    \x05\x04\x03\x02\x01\x03\x12\x03'#$\n\n\n\x02\x04\x04\x12\x04*\01\x01\n\
-    \n\n\x03\x04\x04\x01\x12\x03*\x08\x12\n\x0b\n\x04\x04\x04\x02\0\x12\x03+\
-    \x04\x1c\n\r\n\x05\x04\x04\x02\0\x04\x12\x04+\x04*\x14\n\x0c\n\x05\x04\
-    \x04\x02\0\x06\x12\x03+\x04\x12\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03+\
-    \x13\x17\n\x0c\n\x05\x04\x04\x02\0\x03\x12\x03+\x1a\x1b\n\x0b\n\x04\x04\
-    \x04\x02\x01\x12\x03-\x04\"\n\r\n\x05\x04\x04\x02\x01\x04\x12\x04-\x04+\
-    \x1c\n\x0c\n\x05\x04\x04\x02\x01\x06\x12\x03-\x04\x15\n\x0c\n\x05\x04\
-    \x04\x02\x01\x01\x12\x03-\x16\x1d\n\x0c\n\x05\x04\x04\x02\x01\x03\x12\
-    \x03-\x20!\n\x0b\n\x04\x04\x04\x02\x02\x12\x03.\x04\x19\n\r\n\x05\x04\
-    \x04\x02\x02\x04\x12\x04.\x04-\"\n\x0c\n\x05\x04\x04\x02\x02\x06\x12\x03\
-    .\x04\r\n\x0c\n\x05\x04\x04\x02\x02\x01\x12\x03.\x0e\x14\n\x0c\n\x05\x04\
-    \x04\x02\x02\x03\x12\x03.\x17\x18\n\x0b\n\x04\x04\x04\x02\x03\x12\x03/\
-    \x04\"\n\r\n\x05\x04\x04\x02\x03\x04\x12\x04/\x04.\x19\n\x0c\n\x05\x04\
-    \x04\x02\x03\x06\x12\x03/\x04\x12\n\x0c\n\x05\x04\x04\x02\x03\x01\x12\
-    \x03/\x13\x1d\n\x0c\n\x05\x04\x04\x02\x03\x03\x12\x03/\x20!\n\x0b\n\x04\
-    \x04\x04\x02\x04\x12\x030\x04\x1d\n\r\n\x05\x04\x04\x02\x04\x04\x12\x040\
-    \x04/\"\n\x0c\n\x05\x04\x04\x02\x04\x06\x12\x030\x04\x0f\n\x0c\n\x05\x04\
-    \x04\x02\x04\x01\x12\x030\x10\x18\n\x0c\n\x05\x04\x04\x02\x04\x03\x12\
-    \x030\x1b\x1cb\x06proto3\
+    \n\x0fzeus_expr.proto\x1a\x0fzeus_meta.proto\"X\n\x11LiteralExpression\
+    \x12\x1f\n\x04type\x18\x01\x20\x01(\x0e2\x0b.ColumnTypeR\x04type\x12\"\n\
+    \x05value\x18\x02\x20\x01(\x0b2\x0c.ColumnValueR\x05value\"\x1f\n\tColum\
+    nRef\x12\x12\n\x04name\x18\x01\x20\x01(\tR\x04name\"a\n\x0eScalarFunctio\
+    n\x12&\n\x07func_id\x18\x01\x20\x01(\x0e2\r.ScalarFuncIdR\x06funcId\x12'\
+    \n\x08children\x18\x02\x20\x03(\x0b2\x0b.ExpressionR\x08children\"[\n\
+    \x0bAggFunction\x12#\n\x07func_id\x18\x01\x20\x01(\x0e2\n.AggFuncIdR\x06\
+    funcId\x12'\n\x08children\x18\x02\x20\x03(\x0b2\x0b.ExpressionR\x08child\
+    ren\"\xf3\x01\n\nExpression\x128\n\x0fexpression_type\x18\x01\x20\x01(\
+    \x0e2\x0f.ExpressionTypeR\x0eexpressionType\x12,\n\x07literal\x18\x02\
+    \x20\x01(\x0b2\x12.LiteralExpressionR\x07literal\x12\"\n\x06column\x18\
+    \x03\x20\x01(\x0b2\n.ColumnRefR\x06column\x120\n\x0bscalar_func\x18\x04\
+    \x20\x01(\x0b2\x0f.ScalarFunctionR\nscalarFunc\x12'\n\x08agg_func\x18\
+    \x05\x20\x01(\x0b2\x0c.AggFunctionR\x07aggFunc*S\n\x0eExpressionType\x12\
+    \x0b\n\x07LITERAL\x10\0\x12\x0e\n\nCOLUMN_REF\x10\x01\x12\x12\n\x0eSCALA\
+    _FUNCTION\x10\x02\x12\x10\n\x0cAGG_FUNCTION\x10\x03*!\n\x0cScalarFuncId\
+    \x12\x11\n\rADD_INT4_INT4\x10\0*\x1d\n\tAggFuncId\x12\x10\n\x0cSUM_INT4_\
+    INT\x10\0B\x16\n\x12io.github.zeus.rpcP\x01J\xbd\x0b\n\x06\x12\x04\0\01\
+    \x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\t\n\x02\x03\0\x12\x03\x02\x07\x18\
+    \n\x08\n\x01\x08\x12\x03\x04\0+\n\x0b\n\x04\x08\xe7\x07\0\x12\x03\x04\0+\
+    \n\x0c\n\x05\x08\xe7\x07\0\x02\x12\x03\x04\x07\x13\n\r\n\x06\x08\xe7\x07\
+    \0\x02\0\x12\x03\x04\x07\x13\n\x0e\n\x07\x08\xe7\x07\0\x02\0\x01\x12\x03\
+    \x04\x07\x13\n\x0c\n\x05\x08\xe7\x07\0\x07\x12\x03\x04\x16*\n\x08\n\x01\
+    \x08\x12\x03\x05\0\"\n\x0b\n\x04\x08\xe7\x07\x01\x12\x03\x05\0\"\n\x0c\n\
+    \x05\x08\xe7\x07\x01\x02\x12\x03\x05\x07\x1a\n\r\n\x06\x08\xe7\x07\x01\
+    \x02\0\x12\x03\x05\x07\x1a\n\x0e\n\x07\x08\xe7\x07\x01\x02\0\x01\x12\x03\
+    \x05\x07\x1a\n\x0c\n\x05\x08\xe7\x07\x01\x03\x12\x03\x05\x1d!\n\n\n\x02\
+    \x05\0\x12\x04\x08\0\r\x01\n\n\n\x03\x05\0\x01\x12\x03\x08\x05\x13\n\x0b\
+    \n\x04\x05\0\x02\0\x12\x03\t\x04\x10\n\x0c\n\x05\x05\0\x02\0\x01\x12\x03\
+    \t\x04\x0b\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\t\x0e\x0f\n\x0b\n\x04\x05\
+    \0\x02\x01\x12\x03\n\x04\x13\n\x0c\n\x05\x05\0\x02\x01\x01\x12\x03\n\x04\
+    \x0e\n\x0c\n\x05\x05\0\x02\x01\x02\x12\x03\n\x11\x12\n\x0b\n\x04\x05\0\
+    \x02\x02\x12\x03\x0b\x04\x17\n\x0c\n\x05\x05\0\x02\x02\x01\x12\x03\x0b\
+    \x04\x12\n\x0c\n\x05\x05\0\x02\x02\x02\x12\x03\x0b\x15\x16\n\x0b\n\x04\
+    \x05\0\x02\x03\x12\x03\x0c\x04\x15\n\x0c\n\x05\x05\0\x02\x03\x01\x12\x03\
+    \x0c\x04\x10\n\x0c\n\x05\x05\0\x02\x03\x02\x12\x03\x0c\x13\x14\n\n\n\x02\
+    \x05\x01\x12\x04\x0f\0\x11\x01\n\n\n\x03\x05\x01\x01\x12\x03\x0f\x05\x11\
+    \n\x0b\n\x04\x05\x01\x02\0\x12\x03\x10\x04\x16\n\x0c\n\x05\x05\x01\x02\0\
+    \x01\x12\x03\x10\x04\x11\n\x0c\n\x05\x05\x01\x02\0\x02\x12\x03\x10\x14\
+    \x15\n\n\n\x02\x05\x02\x12\x04\x13\0\x15\x01\n\n\n\x03\x05\x02\x01\x12\
+    \x03\x13\x05\x0e\n\x0b\n\x04\x05\x02\x02\0\x12\x03\x14\x04\x15\n\x0c\n\
+    \x05\x05\x02\x02\0\x01\x12\x03\x14\x04\x10\n\x0c\n\x05\x05\x02\x02\0\x02\
+    \x12\x03\x14\x13\x14\n\n\n\x02\x04\0\x12\x04\x17\0\x1a\x01\n\n\n\x03\x04\
+    \0\x01\x12\x03\x17\x08\x19\n\x0b\n\x04\x04\0\x02\0\x12\x03\x18\x04\x18\n\
+    \r\n\x05\x04\0\x02\0\x04\x12\x04\x18\x04\x17\x1b\n\x0c\n\x05\x04\0\x02\0\
+    \x06\x12\x03\x18\x04\x0e\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\x18\x0f\x13\
+    \n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\x18\x16\x17\n\x0b\n\x04\x04\0\x02\
+    \x01\x12\x03\x19\x04\x1a\n\r\n\x05\x04\0\x02\x01\x04\x12\x04\x19\x04\x18\
+    \x18\n\x0c\n\x05\x04\0\x02\x01\x06\x12\x03\x19\x04\x0f\n\x0c\n\x05\x04\0\
+    \x02\x01\x01\x12\x03\x19\x10\x15\n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\
+    \x19\x18\x19\n\n\n\x02\x04\x01\x12\x04\x1c\0\x1e\x01\n\n\n\x03\x04\x01\
+    \x01\x12\x03\x1c\x08\x11\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x1d\x04\x14\n\
+    \r\n\x05\x04\x01\x02\0\x04\x12\x04\x1d\x04\x1c\x13\n\x0c\n\x05\x04\x01\
+    \x02\0\x05\x12\x03\x1d\x04\n\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x1d\
+    \x0b\x0f\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x1d\x12\x13\n\n\n\x02\x04\
+    \x02\x12\x04\x20\0#\x01\n\n\n\x03\x04\x02\x01\x12\x03\x20\x08\x16\n\x0b\
+    \n\x04\x04\x02\x02\0\x12\x03!\x04\x1d\n\r\n\x05\x04\x02\x02\0\x04\x12\
+    \x04!\x04\x20\x18\n\x0c\n\x05\x04\x02\x02\0\x06\x12\x03!\x04\x10\n\x0c\n\
+    \x05\x04\x02\x02\0\x01\x12\x03!\x11\x18\n\x0c\n\x05\x04\x02\x02\0\x03\
+    \x12\x03!\x1b\x1c\n\x0b\n\x04\x04\x02\x02\x01\x12\x03\"\x04%\n\x0c\n\x05\
+    \x04\x02\x02\x01\x04\x12\x03\"\x04\x0c\n\x0c\n\x05\x04\x02\x02\x01\x06\
+    \x12\x03\"\r\x17\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03\"\x18\x20\n\x0c\
+    \n\x05\x04\x02\x02\x01\x03\x12\x03\"#$\n\n\n\x02\x04\x03\x12\x04%\0(\x01\
+    \n\n\n\x03\x04\x03\x01\x12\x03%\x08\x13\n\x0b\n\x04\x04\x03\x02\0\x12\
+    \x03&\x04\x1a\n\r\n\x05\x04\x03\x02\0\x04\x12\x04&\x04%\x15\n\x0c\n\x05\
+    \x04\x03\x02\0\x06\x12\x03&\x04\r\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03&\
+    \x0e\x15\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03&\x18\x19\n\x0b\n\x04\x04\
+    \x03\x02\x01\x12\x03'\x04%\n\x0c\n\x05\x04\x03\x02\x01\x04\x12\x03'\x04\
+    \x0c\n\x0c\n\x05\x04\x03\x02\x01\x06\x12\x03'\r\x17\n\x0c\n\x05\x04\x03\
+    \x02\x01\x01\x12\x03'\x18\x20\n\x0c\n\x05\x04\x03\x02\x01\x03\x12\x03'#$\
+    \n\n\n\x02\x04\x04\x12\x04*\01\x01\n\n\n\x03\x04\x04\x01\x12\x03*\x08\
+    \x12\n\x0b\n\x04\x04\x04\x02\0\x12\x03+\x04'\n\r\n\x05\x04\x04\x02\0\x04\
+    \x12\x04+\x04*\x14\n\x0c\n\x05\x04\x04\x02\0\x06\x12\x03+\x04\x12\n\x0c\
+    \n\x05\x04\x04\x02\0\x01\x12\x03+\x13\"\n\x0c\n\x05\x04\x04\x02\0\x03\
+    \x12\x03+%&\n\x0b\n\x04\x04\x04\x02\x01\x12\x03-\x04\"\n\r\n\x05\x04\x04\
+    \x02\x01\x04\x12\x04-\x04+'\n\x0c\n\x05\x04\x04\x02\x01\x06\x12\x03-\x04\
+    \x15\n\x0c\n\x05\x04\x04\x02\x01\x01\x12\x03-\x16\x1d\n\x0c\n\x05\x04\
+    \x04\x02\x01\x03\x12\x03-\x20!\n\x0b\n\x04\x04\x04\x02\x02\x12\x03.\x04\
+    \x19\n\r\n\x05\x04\x04\x02\x02\x04\x12\x04.\x04-\"\n\x0c\n\x05\x04\x04\
+    \x02\x02\x06\x12\x03.\x04\r\n\x0c\n\x05\x04\x04\x02\x02\x01\x12\x03.\x0e\
+    \x14\n\x0c\n\x05\x04\x04\x02\x02\x03\x12\x03.\x17\x18\n\x0b\n\x04\x04\
+    \x04\x02\x03\x12\x03/\x04#\n\r\n\x05\x04\x04\x02\x03\x04\x12\x04/\x04.\
+    \x19\n\x0c\n\x05\x04\x04\x02\x03\x06\x12\x03/\x04\x12\n\x0c\n\x05\x04\
+    \x04\x02\x03\x01\x12\x03/\x13\x1e\n\x0c\n\x05\x04\x04\x02\x03\x03\x12\
+    \x03/!\"\n\x0b\n\x04\x04\x04\x02\x04\x12\x030\x04\x1d\n\r\n\x05\x04\x04\
+    \x02\x04\x04\x12\x040\x04/#\n\x0c\n\x05\x04\x04\x02\x04\x06\x12\x030\x04\
+    \x0f\n\x0c\n\x05\x04\x04\x02\x04\x01\x12\x030\x10\x18\n\x0c\n\x05\x04\
+    \x04\x02\x04\x03\x12\x030\x1b\x1cb\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

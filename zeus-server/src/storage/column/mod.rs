@@ -6,7 +6,7 @@ use std::slice::Iter;
 use self::column_data::ColumnData;
 use self::column_data::Datum;
 use rpc::zeus_meta::ColumnType;
-use rpc::zeus_data::ColumnValue;
+use rpc::zeus_meta::ColumnValue;
 use util::errors::*;
 
 

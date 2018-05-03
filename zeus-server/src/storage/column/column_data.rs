@@ -3,7 +3,9 @@ use std::clone::Clone;
 use std::convert::From;
 use std::convert::Into;
 
-use rpc::zeus_data::ColumnValue;
+use rpc::zeus_meta::ColumnValue;
+use rpc::zeus_meta::ColumnType;
+use rpc::zeus_expr::LiteralExpression;
 
 pub enum Datum {
   Bool(bool),
@@ -30,6 +32,23 @@ impl<'a> Into<ColumnValue> for &'a Datum {
       Datum::UTF8(ref v) => column_value.set_string_value(v.clone())
     }
     column_value
+  }
+}
+
+impl<'a> From<&'a LiteralExpression> for Datum {
+  fn from(rpc_expr: &LiteralExpression) -> Self {
+    let column_value = rpc_expr.get_value();
+    match rpc_expr.get_field_type() {
+      ColumnType::BOOL => Datum::Bool(column_value.get_bool_value()),
+      ColumnType::INT8 => Datum::Int8(column_value.get_i32_value() as i8),
+      ColumnType::INT16 => Datum::Int16(column_value.get_i32_value() as i16),
+      ColumnType::INT32 => Datum::Int32(column_value.get_i32_value()),
+      ColumnType::INT64 => Datum::Int64(column_value.get_i64_value()),
+      ColumnType::FLOAT4 => Datum::Float4(column_value.get_float_value()),
+      ColumnType::FLOAT8 => Datum::Float8(column_value.get_double_value()),
+      ColumnType::TIMESTAMP => Datum::Int64(column_value.get_i64_value()),
+      ColumnType::STRING => Datum::UTF8(column_value.get_string_value().to_string()),
+    }
   }
 }
 

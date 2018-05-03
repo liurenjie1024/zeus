@@ -33,6 +33,15 @@ enum ColumnType {
     STRING = 8;
 }
 
+message ColumnValue {
+    string string_value = 1;
+    float float_value = 2;
+    int32 i32_value = 3;
+    int64 i64_value = 4;
+    bool bool_value = 5;
+    double double_value = 6;
+}
+
 message ZeusColumnSchema {
     string name = 1;
     int32 id = 2;

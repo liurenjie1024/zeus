@@ -23,7 +23,7 @@ enum AggFuncId {
 
 message LiteralExpression {
     ColumnType type = 1;
-    bytes payload = 2;
+    ColumnValue value = 2;
 }
 
 message ColumnRef {
@@ -31,7 +31,7 @@ message ColumnRef {
 }
 
 message ScalarFunction {
-    ScalarFuncId funcId = 1;
+    ScalarFuncId func_id = 1;
     repeated Expression children = 2;
 }
 
@@ -41,11 +41,11 @@ message AggFunction {
 }
 
 message Expression {
-    ExpressionType type = 1;
+    ExpressionType expression_type = 1;
 
     LiteralExpression literal = 2;
     ColumnRef column = 3;
-    ScalarFunction scala_func = 4;
+    ScalarFunction scalar_func = 4;
     AggFunction agg_func = 5;
 }
 

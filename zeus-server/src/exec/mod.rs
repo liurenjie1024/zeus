@@ -1,5 +1,11 @@
 pub mod table_scan_node;
+pub mod agg_node;
+pub mod filter_node;
+pub mod project_node;
+pub mod limit_node;
+pub mod topn_node;
 pub mod expression;
+
 
 use std::boxed::Box;
 use std::vec::Vec;
@@ -10,8 +16,8 @@ use storage::column::Column;
 use util::errors::*;
 use rpc::zeus_data::RowResult;
 use rpc::zeus_data::QueryRequest;
-use rpc::zeus_data::PlanNode;
-use rpc::zeus_data::PlanNodeType;
+use rpc::zeus_plan::PlanNode;
+use rpc::zeus_plan::PlanNodeType;
 use scheduler::Task;
 use storage::column::ColumnValueIter;
 use server::ServerContext;

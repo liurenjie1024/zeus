@@ -1,18 +1,11 @@
 syntax = "proto3";
 
 import "zeus_plan.proto";
+import "zeus_meta.proto";
 
 option java_package = "io.github.zeus.rpc";
 option java_multiple_files = true;
 
-message ColumnValue {
-    string string_value = 1;
-    float float_value = 2;
-    int32 i32_value = 3;
-    int64 i64_value = 4;
-    bool bool_value = 5;
-    double double_value = 6;
-}
 
 message RowResult {
     repeated ColumnValue columns = 1;

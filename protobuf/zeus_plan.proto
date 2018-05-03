@@ -26,6 +26,7 @@ message FilterNode {
 
 message ProjectNode {
     repeated Expression expressions = 1;
+    repeated string names = 2;
 }
 
 message AggregationNode {
@@ -34,12 +35,12 @@ message AggregationNode {
 }
 
 message TopNNode {
-    message ByItem {
+    message SortItem {
         Expression expr = 1;
         bool desc = 2;
     }
 
-    repeated ByItem by_item = 1;
+    repeated SortItem sort_item = 1;
     int32 limit = 2;
 }
 

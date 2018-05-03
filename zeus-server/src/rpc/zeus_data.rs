@@ -22,400 +22,9 @@ use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
 
 #[derive(PartialEq,Clone,Default)]
-pub struct ColumnValue {
-    // message fields
-    pub string_value: ::std::string::String,
-    pub float_value: f32,
-    pub i32_value: i32,
-    pub i64_value: i64,
-    pub bool_value: bool,
-    pub double_value: f64,
-    // special fields
-    unknown_fields: ::protobuf::UnknownFields,
-    cached_size: ::protobuf::CachedSize,
-}
-
-// see codegen.rs for the explanation why impl Sync explicitly
-unsafe impl ::std::marker::Sync for ColumnValue {}
-
-impl ColumnValue {
-    pub fn new() -> ColumnValue {
-        ::std::default::Default::default()
-    }
-
-    pub fn default_instance() -> &'static ColumnValue {
-        static mut instance: ::protobuf::lazy::Lazy<ColumnValue> = ::protobuf::lazy::Lazy {
-            lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const ColumnValue,
-        };
-        unsafe {
-            instance.get(ColumnValue::new)
-        }
-    }
-
-    // string string_value = 1;
-
-    pub fn clear_string_value(&mut self) {
-        self.string_value.clear();
-    }
-
-    // Param is passed by value, moved
-    pub fn set_string_value(&mut self, v: ::std::string::String) {
-        self.string_value = v;
-    }
-
-    // Mutable pointer to the field.
-    // If field is not initialized, it is initialized with default value first.
-    pub fn mut_string_value(&mut self) -> &mut ::std::string::String {
-        &mut self.string_value
-    }
-
-    // Take field
-    pub fn take_string_value(&mut self) -> ::std::string::String {
-        ::std::mem::replace(&mut self.string_value, ::std::string::String::new())
-    }
-
-    pub fn get_string_value(&self) -> &str {
-        &self.string_value
-    }
-
-    fn get_string_value_for_reflect(&self) -> &::std::string::String {
-        &self.string_value
-    }
-
-    fn mut_string_value_for_reflect(&mut self) -> &mut ::std::string::String {
-        &mut self.string_value
-    }
-
-    // float float_value = 2;
-
-    pub fn clear_float_value(&mut self) {
-        self.float_value = 0.;
-    }
-
-    // Param is passed by value, moved
-    pub fn set_float_value(&mut self, v: f32) {
-        self.float_value = v;
-    }
-
-    pub fn get_float_value(&self) -> f32 {
-        self.float_value
-    }
-
-    fn get_float_value_for_reflect(&self) -> &f32 {
-        &self.float_value
-    }
-
-    fn mut_float_value_for_reflect(&mut self) -> &mut f32 {
-        &mut self.float_value
-    }
-
-    // int32 i32_value = 3;
-
-    pub fn clear_i32_value(&mut self) {
-        self.i32_value = 0;
-    }
-
-    // Param is passed by value, moved
-    pub fn set_i32_value(&mut self, v: i32) {
-        self.i32_value = v;
-    }
-
-    pub fn get_i32_value(&self) -> i32 {
-        self.i32_value
-    }
-
-    fn get_i32_value_for_reflect(&self) -> &i32 {
-        &self.i32_value
-    }
-
-    fn mut_i32_value_for_reflect(&mut self) -> &mut i32 {
-        &mut self.i32_value
-    }
-
-    // int64 i64_value = 4;
-
-    pub fn clear_i64_value(&mut self) {
-        self.i64_value = 0;
-    }
-
-    // Param is passed by value, moved
-    pub fn set_i64_value(&mut self, v: i64) {
-        self.i64_value = v;
-    }
-
-    pub fn get_i64_value(&self) -> i64 {
-        self.i64_value
-    }
-
-    fn get_i64_value_for_reflect(&self) -> &i64 {
-        &self.i64_value
-    }
-
-    fn mut_i64_value_for_reflect(&mut self) -> &mut i64 {
-        &mut self.i64_value
-    }
-
-    // bool bool_value = 5;
-
-    pub fn clear_bool_value(&mut self) {
-        self.bool_value = false;
-    }
-
-    // Param is passed by value, moved
-    pub fn set_bool_value(&mut self, v: bool) {
-        self.bool_value = v;
-    }
-
-    pub fn get_bool_value(&self) -> bool {
-        self.bool_value
-    }
-
-    fn get_bool_value_for_reflect(&self) -> &bool {
-        &self.bool_value
-    }
-
-    fn mut_bool_value_for_reflect(&mut self) -> &mut bool {
-        &mut self.bool_value
-    }
-
-    // double double_value = 6;
-
-    pub fn clear_double_value(&mut self) {
-        self.double_value = 0.;
-    }
-
-    // Param is passed by value, moved
-    pub fn set_double_value(&mut self, v: f64) {
-        self.double_value = v;
-    }
-
-    pub fn get_double_value(&self) -> f64 {
-        self.double_value
-    }
-
-    fn get_double_value_for_reflect(&self) -> &f64 {
-        &self.double_value
-    }
-
-    fn mut_double_value_for_reflect(&mut self) -> &mut f64 {
-        &mut self.double_value
-    }
-}
-
-impl ::protobuf::Message for ColumnValue {
-    fn is_initialized(&self) -> bool {
-        true
-    }
-
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
-        while !is.eof()? {
-            let (field_number, wire_type) = is.read_tag_unpack()?;
-            match field_number {
-                1 => {
-                    ::protobuf::rt::read_singular_proto3_string_into(wire_type, is, &mut self.string_value)?;
-                },
-                2 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeFixed32 {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_float()?;
-                    self.float_value = tmp;
-                },
-                3 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_int32()?;
-                    self.i32_value = tmp;
-                },
-                4 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_int64()?;
-                    self.i64_value = tmp;
-                },
-                5 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_bool()?;
-                    self.bool_value = tmp;
-                },
-                6 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeFixed64 {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_double()?;
-                    self.double_value = tmp;
-                },
-                _ => {
-                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
-                },
-            };
-        }
-        ::std::result::Result::Ok(())
-    }
-
-    // Compute sizes of nested messages
-    #[allow(unused_variables)]
-    fn compute_size(&self) -> u32 {
-        let mut my_size = 0;
-        if !self.string_value.is_empty() {
-            my_size += ::protobuf::rt::string_size(1, &self.string_value);
-        }
-        if self.float_value != 0. {
-            my_size += 5;
-        }
-        if self.i32_value != 0 {
-            my_size += ::protobuf::rt::value_size(3, self.i32_value, ::protobuf::wire_format::WireTypeVarint);
-        }
-        if self.i64_value != 0 {
-            my_size += ::protobuf::rt::value_size(4, self.i64_value, ::protobuf::wire_format::WireTypeVarint);
-        }
-        if self.bool_value != false {
-            my_size += 2;
-        }
-        if self.double_value != 0. {
-            my_size += 9;
-        }
-        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
-        self.cached_size.set(my_size);
-        my_size
-    }
-
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        if !self.string_value.is_empty() {
-            os.write_string(1, &self.string_value)?;
-        }
-        if self.float_value != 0. {
-            os.write_float(2, self.float_value)?;
-        }
-        if self.i32_value != 0 {
-            os.write_int32(3, self.i32_value)?;
-        }
-        if self.i64_value != 0 {
-            os.write_int64(4, self.i64_value)?;
-        }
-        if self.bool_value != false {
-            os.write_bool(5, self.bool_value)?;
-        }
-        if self.double_value != 0. {
-            os.write_double(6, self.double_value)?;
-        }
-        os.write_unknown_fields(self.get_unknown_fields())?;
-        ::std::result::Result::Ok(())
-    }
-
-    fn get_cached_size(&self) -> u32 {
-        self.cached_size.get()
-    }
-
-    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
-        &self.unknown_fields
-    }
-
-    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
-        &mut self.unknown_fields
-    }
-
-    fn as_any(&self) -> &::std::any::Any {
-        self as &::std::any::Any
-    }
-    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
-        self as &mut ::std::any::Any
-    }
-    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
-        self
-    }
-
-    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
-        ::protobuf::MessageStatic::descriptor_static(None::<Self>)
-    }
-}
-
-impl ::protobuf::MessageStatic for ColumnValue {
-    fn new() -> ColumnValue {
-        ColumnValue::new()
-    }
-
-    fn descriptor_static(_: ::std::option::Option<ColumnValue>) -> &'static ::protobuf::reflect::MessageDescriptor {
-        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
-            lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
-        };
-        unsafe {
-            descriptor.get(|| {
-                let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeString>(
-                    "string_value",
-                    ColumnValue::get_string_value_for_reflect,
-                    ColumnValue::mut_string_value_for_reflect,
-                ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeFloat>(
-                    "float_value",
-                    ColumnValue::get_float_value_for_reflect,
-                    ColumnValue::mut_float_value_for_reflect,
-                ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
-                    "i32_value",
-                    ColumnValue::get_i32_value_for_reflect,
-                    ColumnValue::mut_i32_value_for_reflect,
-                ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeInt64>(
-                    "i64_value",
-                    ColumnValue::get_i64_value_for_reflect,
-                    ColumnValue::mut_i64_value_for_reflect,
-                ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeBool>(
-                    "bool_value",
-                    ColumnValue::get_bool_value_for_reflect,
-                    ColumnValue::mut_bool_value_for_reflect,
-                ));
-                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeDouble>(
-                    "double_value",
-                    ColumnValue::get_double_value_for_reflect,
-                    ColumnValue::mut_double_value_for_reflect,
-                ));
-                ::protobuf::reflect::MessageDescriptor::new::<ColumnValue>(
-                    "ColumnValue",
-                    fields,
-                    file_descriptor_proto()
-                )
-            })
-        }
-    }
-}
-
-impl ::protobuf::Clear for ColumnValue {
-    fn clear(&mut self) {
-        self.clear_string_value();
-        self.clear_float_value();
-        self.clear_i32_value();
-        self.clear_i64_value();
-        self.clear_bool_value();
-        self.clear_double_value();
-        self.unknown_fields.clear();
-    }
-}
-
-impl ::std::fmt::Debug for ColumnValue {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-        ::protobuf::text_format::fmt(self, f)
-    }
-}
-
-impl ::protobuf::reflect::ProtobufValue for ColumnValue {
-    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
-        ::protobuf::reflect::ProtobufValueRef::Message(self)
-    }
-}
-
-#[derive(PartialEq,Clone,Default)]
 pub struct RowResult {
     // message fields
-    pub columns: ::protobuf::RepeatedField<ColumnValue>,
+    pub columns: ::protobuf::RepeatedField<super::zeus_meta::ColumnValue>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -446,29 +55,29 @@ impl RowResult {
     }
 
     // Param is passed by value, moved
-    pub fn set_columns(&mut self, v: ::protobuf::RepeatedField<ColumnValue>) {
+    pub fn set_columns(&mut self, v: ::protobuf::RepeatedField<super::zeus_meta::ColumnValue>) {
         self.columns = v;
     }
 
     // Mutable pointer to the field.
-    pub fn mut_columns(&mut self) -> &mut ::protobuf::RepeatedField<ColumnValue> {
+    pub fn mut_columns(&mut self) -> &mut ::protobuf::RepeatedField<super::zeus_meta::ColumnValue> {
         &mut self.columns
     }
 
     // Take field
-    pub fn take_columns(&mut self) -> ::protobuf::RepeatedField<ColumnValue> {
+    pub fn take_columns(&mut self) -> ::protobuf::RepeatedField<super::zeus_meta::ColumnValue> {
         ::std::mem::replace(&mut self.columns, ::protobuf::RepeatedField::new())
     }
 
-    pub fn get_columns(&self) -> &[ColumnValue] {
+    pub fn get_columns(&self) -> &[super::zeus_meta::ColumnValue] {
         &self.columns
     }
 
-    fn get_columns_for_reflect(&self) -> &::protobuf::RepeatedField<ColumnValue> {
+    fn get_columns_for_reflect(&self) -> &::protobuf::RepeatedField<super::zeus_meta::ColumnValue> {
         &self.columns
     }
 
-    fn mut_columns_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<ColumnValue> {
+    fn mut_columns_for_reflect(&mut self) -> &mut ::protobuf::RepeatedField<super::zeus_meta::ColumnValue> {
         &mut self.columns
     }
 }
@@ -561,7 +170,7 @@ impl ::protobuf::MessageStatic for RowResult {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<ColumnValue>>(
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<super::zeus_meta::ColumnValue>>(
                     "columns",
                     RowResult::get_columns_for_reflect,
                     RowResult::mut_columns_for_reflect,
@@ -1521,95 +1130,69 @@ impl ::protobuf::reflect::ProtobufValue for StatusCode {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x0fzeus_data.proto\x1a\x0fzeus_plan.proto\"\xcd\x01\n\x0bColumnValue\
-    \x12!\n\x0cstring_value\x18\x01\x20\x01(\tR\x0bstringValue\x12\x1f\n\x0b\
-    float_value\x18\x02\x20\x01(\x02R\nfloatValue\x12\x1b\n\ti32_value\x18\
-    \x03\x20\x01(\x05R\x08i32Value\x12\x1b\n\ti64_value\x18\x04\x20\x01(\x03\
-    R\x08i64Value\x12\x1d\n\nbool_value\x18\x05\x20\x01(\x08R\tboolValue\x12\
-    !\n\x0cdouble_value\x18\x06\x20\x01(\x01R\x0bdoubleValue\"3\n\tRowResult\
-    \x12&\n\x07columns\x18\x01\x20\x03(\x0b2\x0c.ColumnValueR\x07columns\"N\
-    \n\x0bQueryResult\x12\x1f\n\x04code\x18\x01\x20\x01(\x0e2\x0b.StatusCode\
-    R\x04code\x12\x1e\n\x04rows\x18\x02\x20\x03(\x0b2\n.RowResultR\x04rows\"\
-    C\n\tQueryPlan\x12\x17\n\x07plan_id\x18\x01\x20\x01(\tR\x06planId\x12\
-    \x1d\n\x04root\x18\x02\x20\x01(\x0b2\t.PlanNodeR\x04root\".\n\x0cQueryRe\
-    quest\x12\x1e\n\x04plan\x18\x01\x20\x01(\x0b2\n.QueryPlanR\x04plan\"5\n\
-    \x03Row\x12\x13\n\x05db_id\x18\x01\x20\x01(\x05R\x04dbId\x12\x19\n\x08ta\
-    ble_id\x18\x02\x20\x01(\x05R\x07tableId*\x20\n\nStatusCode\x12\x06\n\x02\
-    OK\x10\0\x12\n\n\x06FAILED\x10\x0129\n\x0fZeusDataService\x12&\n\x05Quer\
-    y\x12\r.QueryRequest\x1a\x0c.QueryResult\"\0B\x16\n\x12io.github.zeus.rp\
-    cP\x01J\xf9\x0b\n\x06\x12\x04\0\00\x01\n\x08\n\x01\x0c\x12\x03\0\0\x12\n\
-    \t\n\x02\x03\0\x12\x03\x02\x07\x18\n\x08\n\x01\x08\x12\x03\x04\0+\n\x0b\
-    \n\x04\x08\xe7\x07\0\x12\x03\x04\0+\n\x0c\n\x05\x08\xe7\x07\0\x02\x12\
-    \x03\x04\x07\x13\n\r\n\x06\x08\xe7\x07\0\x02\0\x12\x03\x04\x07\x13\n\x0e\
-    \n\x07\x08\xe7\x07\0\x02\0\x01\x12\x03\x04\x07\x13\n\x0c\n\x05\x08\xe7\
-    \x07\0\x07\x12\x03\x04\x16*\n\x08\n\x01\x08\x12\x03\x05\0\"\n\x0b\n\x04\
-    \x08\xe7\x07\x01\x12\x03\x05\0\"\n\x0c\n\x05\x08\xe7\x07\x01\x02\x12\x03\
-    \x05\x07\x1a\n\r\n\x06\x08\xe7\x07\x01\x02\0\x12\x03\x05\x07\x1a\n\x0e\n\
-    \x07\x08\xe7\x07\x01\x02\0\x01\x12\x03\x05\x07\x1a\n\x0c\n\x05\x08\xe7\
-    \x07\x01\x03\x12\x03\x05\x1d!\n\n\n\x02\x04\0\x12\x04\x07\0\x0e\x01\n\n\
-    \n\x03\x04\0\x01\x12\x03\x07\x08\x13\n\x0b\n\x04\x04\0\x02\0\x12\x03\x08\
-    \x04\x1c\n\r\n\x05\x04\0\x02\0\x04\x12\x04\x08\x04\x07\x15\n\x0c\n\x05\
-    \x04\0\x02\0\x05\x12\x03\x08\x04\n\n\x0c\n\x05\x04\0\x02\0\x01\x12\x03\
-    \x08\x0b\x17\n\x0c\n\x05\x04\0\x02\0\x03\x12\x03\x08\x1a\x1b\n\x0b\n\x04\
-    \x04\0\x02\x01\x12\x03\t\x04\x1a\n\r\n\x05\x04\0\x02\x01\x04\x12\x04\t\
-    \x04\x08\x1c\n\x0c\n\x05\x04\0\x02\x01\x05\x12\x03\t\x04\t\n\x0c\n\x05\
-    \x04\0\x02\x01\x01\x12\x03\t\n\x15\n\x0c\n\x05\x04\0\x02\x01\x03\x12\x03\
-    \t\x18\x19\n\x0b\n\x04\x04\0\x02\x02\x12\x03\n\x04\x18\n\r\n\x05\x04\0\
-    \x02\x02\x04\x12\x04\n\x04\t\x1a\n\x0c\n\x05\x04\0\x02\x02\x05\x12\x03\n\
-    \x04\t\n\x0c\n\x05\x04\0\x02\x02\x01\x12\x03\n\n\x13\n\x0c\n\x05\x04\0\
-    \x02\x02\x03\x12\x03\n\x16\x17\n\x0b\n\x04\x04\0\x02\x03\x12\x03\x0b\x04\
-    \x18\n\r\n\x05\x04\0\x02\x03\x04\x12\x04\x0b\x04\n\x18\n\x0c\n\x05\x04\0\
-    \x02\x03\x05\x12\x03\x0b\x04\t\n\x0c\n\x05\x04\0\x02\x03\x01\x12\x03\x0b\
-    \n\x13\n\x0c\n\x05\x04\0\x02\x03\x03\x12\x03\x0b\x16\x17\n\x0b\n\x04\x04\
-    \0\x02\x04\x12\x03\x0c\x04\x18\n\r\n\x05\x04\0\x02\x04\x04\x12\x04\x0c\
-    \x04\x0b\x18\n\x0c\n\x05\x04\0\x02\x04\x05\x12\x03\x0c\x04\x08\n\x0c\n\
-    \x05\x04\0\x02\x04\x01\x12\x03\x0c\t\x13\n\x0c\n\x05\x04\0\x02\x04\x03\
-    \x12\x03\x0c\x16\x17\n\x0b\n\x04\x04\0\x02\x05\x12\x03\r\x04\x1c\n\r\n\
-    \x05\x04\0\x02\x05\x04\x12\x04\r\x04\x0c\x18\n\x0c\n\x05\x04\0\x02\x05\
-    \x05\x12\x03\r\x04\n\n\x0c\n\x05\x04\0\x02\x05\x01\x12\x03\r\x0b\x17\n\
-    \x0c\n\x05\x04\0\x02\x05\x03\x12\x03\r\x1a\x1b\n\n\n\x02\x04\x01\x12\x04\
-    \x10\0\x12\x01\n\n\n\x03\x04\x01\x01\x12\x03\x10\x08\x11\n\x0b\n\x04\x04\
-    \x01\x02\0\x12\x03\x11\x04%\n\x0c\n\x05\x04\x01\x02\0\x04\x12\x03\x11\
-    \x04\x0c\n\x0c\n\x05\x04\x01\x02\0\x06\x12\x03\x11\r\x18\n\x0c\n\x05\x04\
-    \x01\x02\0\x01\x12\x03\x11\x19\x20\n\x0c\n\x05\x04\x01\x02\0\x03\x12\x03\
-    \x11#$\n\n\n\x02\x05\0\x12\x04\x14\0\x17\x01\n\n\n\x03\x05\0\x01\x12\x03\
-    \x14\x05\x0f\n\x0b\n\x04\x05\0\x02\0\x12\x03\x15\x04\x0b\n\x0c\n\x05\x05\
-    \0\x02\0\x01\x12\x03\x15\x04\x06\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x15\
-    \t\n\n\x0b\n\x04\x05\0\x02\x01\x12\x03\x16\x04\x0f\n\x0c\n\x05\x05\0\x02\
-    \x01\x01\x12\x03\x16\x04\n\n\x0c\n\x05\x05\0\x02\x01\x02\x12\x03\x16\r\
-    \x0e\n\n\n\x02\x04\x02\x12\x04\x19\0\x1c\x01\n\n\n\x03\x04\x02\x01\x12\
-    \x03\x19\x08\x13\n\x0b\n\x04\x04\x02\x02\0\x12\x03\x1a\x04\x18\n\r\n\x05\
-    \x04\x02\x02\0\x04\x12\x04\x1a\x04\x19\x15\n\x0c\n\x05\x04\x02\x02\0\x06\
-    \x12\x03\x1a\x04\x0e\n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03\x1a\x0f\x13\n\
-    \x0c\n\x05\x04\x02\x02\0\x03\x12\x03\x1a\x16\x17\n\x0b\n\x04\x04\x02\x02\
-    \x01\x12\x03\x1b\x04\x20\n\x0c\n\x05\x04\x02\x02\x01\x04\x12\x03\x1b\x04\
-    \x0c\n\x0c\n\x05\x04\x02\x02\x01\x06\x12\x03\x1b\r\x16\n\x0c\n\x05\x04\
-    \x02\x02\x01\x01\x12\x03\x1b\x17\x1b\n\x0c\n\x05\x04\x02\x02\x01\x03\x12\
-    \x03\x1b\x1e\x1f\n\n\n\x02\x04\x03\x12\x04\x1f\0\"\x01\n\n\n\x03\x04\x03\
-    \x01\x12\x03\x1f\x08\x11\n\x0b\n\x04\x04\x03\x02\0\x12\x03\x20\x04\x17\n\
-    \r\n\x05\x04\x03\x02\0\x04\x12\x04\x20\x04\x1f\x13\n\x0c\n\x05\x04\x03\
-    \x02\0\x05\x12\x03\x20\x04\n\n\x0c\n\x05\x04\x03\x02\0\x01\x12\x03\x20\
-    \x0b\x12\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x20\x15\x16\n\x0b\n\x04\
-    \x04\x03\x02\x01\x12\x03!\x04\x16\n\r\n\x05\x04\x03\x02\x01\x04\x12\x04!\
-    \x04\x20\x17\n\x0c\n\x05\x04\x03\x02\x01\x06\x12\x03!\x04\x0c\n\x0c\n\
-    \x05\x04\x03\x02\x01\x01\x12\x03!\r\x11\n\x0c\n\x05\x04\x03\x02\x01\x03\
-    \x12\x03!\x14\x15\n\n\n\x02\x04\x04\x12\x04$\0&\x01\n\n\n\x03\x04\x04\
-    \x01\x12\x03$\x08\x14\n\x0b\n\x04\x04\x04\x02\0\x12\x03%\x04\x17\n\r\n\
-    \x05\x04\x04\x02\0\x04\x12\x04%\x04$\x16\n\x0c\n\x05\x04\x04\x02\0\x06\
-    \x12\x03%\x04\r\n\x0c\n\x05\x04\x04\x02\0\x01\x12\x03%\x0e\x12\n\x0c\n\
-    \x05\x04\x04\x02\0\x03\x12\x03%\x15\x16\n'\n\x02\x04\x05\x12\x04)\0,\x01\
-    \x1a\x1b\x20TODO:\x20Remove\x20this\x20message\n\n\n\n\x03\x04\x05\x01\
-    \x12\x03)\x08\x0b\n\x0b\n\x04\x04\x05\x02\0\x12\x03*\x04\x14\n\r\n\x05\
-    \x04\x05\x02\0\x04\x12\x04*\x04)\r\n\x0c\n\x05\x04\x05\x02\0\x05\x12\x03\
-    *\x04\t\n\x0c\n\x05\x04\x05\x02\0\x01\x12\x03*\n\x0f\n\x0c\n\x05\x04\x05\
-    \x02\0\x03\x12\x03*\x12\x13\n\x0b\n\x04\x04\x05\x02\x01\x12\x03+\x04\x17\
-    \n\r\n\x05\x04\x05\x02\x01\x04\x12\x04+\x04*\x14\n\x0c\n\x05\x04\x05\x02\
-    \x01\x05\x12\x03+\x04\t\n\x0c\n\x05\x04\x05\x02\x01\x01\x12\x03+\n\x12\n\
-    \x0c\n\x05\x04\x05\x02\x01\x03\x12\x03+\x15\x16\n\n\n\x02\x06\0\x12\x04.\
-    \00\x01\n\n\n\x03\x06\0\x01\x12\x03.\x08\x17\n\x0b\n\x04\x06\0\x02\0\x12\
-    \x03/\x044\n\x0c\n\x05\x06\0\x02\0\x01\x12\x03/\x08\r\n\x0c\n\x05\x06\0\
-    \x02\0\x02\x12\x03/\x0e\x1a\n\x0c\n\x05\x06\0\x02\0\x03\x12\x03/%0b\x06p\
-    roto3\
+    \n\x0fzeus_data.proto\x1a\x0fzeus_plan.proto\x1a\x0fzeus_meta.proto\"3\n\
+    \tRowResult\x12&\n\x07columns\x18\x01\x20\x03(\x0b2\x0c.ColumnValueR\x07\
+    columns\"N\n\x0bQueryResult\x12\x1f\n\x04code\x18\x01\x20\x01(\x0e2\x0b.\
+    StatusCodeR\x04code\x12\x1e\n\x04rows\x18\x02\x20\x03(\x0b2\n.RowResultR\
+    \x04rows\"C\n\tQueryPlan\x12\x17\n\x07plan_id\x18\x01\x20\x01(\tR\x06pla\
+    nId\x12\x1d\n\x04root\x18\x02\x20\x01(\x0b2\t.PlanNodeR\x04root\".\n\x0c\
+    QueryRequest\x12\x1e\n\x04plan\x18\x01\x20\x01(\x0b2\n.QueryPlanR\x04pla\
+    n\"5\n\x03Row\x12\x13\n\x05db_id\x18\x01\x20\x01(\x05R\x04dbId\x12\x19\n\
+    \x08table_id\x18\x02\x20\x01(\x05R\x07tableId*\x20\n\nStatusCode\x12\x06\
+    \n\x02OK\x10\0\x12\n\n\x06FAILED\x10\x0129\n\x0fZeusDataService\x12&\n\
+    \x05Query\x12\r.QueryRequest\x1a\x0c.QueryResult\"\0B\x16\n\x12io.github\
+    .zeus.rpcP\x01J\xc8\x08\n\x06\x12\x04\0\0)\x01\n\x08\n\x01\x0c\x12\x03\0\
+    \0\x12\n\t\n\x02\x03\0\x12\x03\x02\x07\x18\n\t\n\x02\x03\x01\x12\x03\x03\
+    \x07\x18\n\x08\n\x01\x08\x12\x03\x05\0+\n\x0b\n\x04\x08\xe7\x07\0\x12\
+    \x03\x05\0+\n\x0c\n\x05\x08\xe7\x07\0\x02\x12\x03\x05\x07\x13\n\r\n\x06\
+    \x08\xe7\x07\0\x02\0\x12\x03\x05\x07\x13\n\x0e\n\x07\x08\xe7\x07\0\x02\0\
+    \x01\x12\x03\x05\x07\x13\n\x0c\n\x05\x08\xe7\x07\0\x07\x12\x03\x05\x16*\
+    \n\x08\n\x01\x08\x12\x03\x06\0\"\n\x0b\n\x04\x08\xe7\x07\x01\x12\x03\x06\
+    \0\"\n\x0c\n\x05\x08\xe7\x07\x01\x02\x12\x03\x06\x07\x1a\n\r\n\x06\x08\
+    \xe7\x07\x01\x02\0\x12\x03\x06\x07\x1a\n\x0e\n\x07\x08\xe7\x07\x01\x02\0\
+    \x01\x12\x03\x06\x07\x1a\n\x0c\n\x05\x08\xe7\x07\x01\x03\x12\x03\x06\x1d\
+    !\n\n\n\x02\x04\0\x12\x04\t\0\x0b\x01\n\n\n\x03\x04\0\x01\x12\x03\t\x08\
+    \x11\n\x0b\n\x04\x04\0\x02\0\x12\x03\n\x04%\n\x0c\n\x05\x04\0\x02\0\x04\
+    \x12\x03\n\x04\x0c\n\x0c\n\x05\x04\0\x02\0\x06\x12\x03\n\r\x18\n\x0c\n\
+    \x05\x04\0\x02\0\x01\x12\x03\n\x19\x20\n\x0c\n\x05\x04\0\x02\0\x03\x12\
+    \x03\n#$\n\n\n\x02\x05\0\x12\x04\r\0\x10\x01\n\n\n\x03\x05\0\x01\x12\x03\
+    \r\x05\x0f\n\x0b\n\x04\x05\0\x02\0\x12\x03\x0e\x04\x0b\n\x0c\n\x05\x05\0\
+    \x02\0\x01\x12\x03\x0e\x04\x06\n\x0c\n\x05\x05\0\x02\0\x02\x12\x03\x0e\t\
+    \n\n\x0b\n\x04\x05\0\x02\x01\x12\x03\x0f\x04\x0f\n\x0c\n\x05\x05\0\x02\
+    \x01\x01\x12\x03\x0f\x04\n\n\x0c\n\x05\x05\0\x02\x01\x02\x12\x03\x0f\r\
+    \x0e\n\n\n\x02\x04\x01\x12\x04\x12\0\x15\x01\n\n\n\x03\x04\x01\x01\x12\
+    \x03\x12\x08\x13\n\x0b\n\x04\x04\x01\x02\0\x12\x03\x13\x04\x18\n\r\n\x05\
+    \x04\x01\x02\0\x04\x12\x04\x13\x04\x12\x15\n\x0c\n\x05\x04\x01\x02\0\x06\
+    \x12\x03\x13\x04\x0e\n\x0c\n\x05\x04\x01\x02\0\x01\x12\x03\x13\x0f\x13\n\
+    \x0c\n\x05\x04\x01\x02\0\x03\x12\x03\x13\x16\x17\n\x0b\n\x04\x04\x01\x02\
+    \x01\x12\x03\x14\x04\x20\n\x0c\n\x05\x04\x01\x02\x01\x04\x12\x03\x14\x04\
+    \x0c\n\x0c\n\x05\x04\x01\x02\x01\x06\x12\x03\x14\r\x16\n\x0c\n\x05\x04\
+    \x01\x02\x01\x01\x12\x03\x14\x17\x1b\n\x0c\n\x05\x04\x01\x02\x01\x03\x12\
+    \x03\x14\x1e\x1f\n\n\n\x02\x04\x02\x12\x04\x18\0\x1b\x01\n\n\n\x03\x04\
+    \x02\x01\x12\x03\x18\x08\x11\n\x0b\n\x04\x04\x02\x02\0\x12\x03\x19\x04\
+    \x17\n\r\n\x05\x04\x02\x02\0\x04\x12\x04\x19\x04\x18\x13\n\x0c\n\x05\x04\
+    \x02\x02\0\x05\x12\x03\x19\x04\n\n\x0c\n\x05\x04\x02\x02\0\x01\x12\x03\
+    \x19\x0b\x12\n\x0c\n\x05\x04\x02\x02\0\x03\x12\x03\x19\x15\x16\n\x0b\n\
+    \x04\x04\x02\x02\x01\x12\x03\x1a\x04\x16\n\r\n\x05\x04\x02\x02\x01\x04\
+    \x12\x04\x1a\x04\x19\x17\n\x0c\n\x05\x04\x02\x02\x01\x06\x12\x03\x1a\x04\
+    \x0c\n\x0c\n\x05\x04\x02\x02\x01\x01\x12\x03\x1a\r\x11\n\x0c\n\x05\x04\
+    \x02\x02\x01\x03\x12\x03\x1a\x14\x15\n\n\n\x02\x04\x03\x12\x04\x1d\0\x1f\
+    \x01\n\n\n\x03\x04\x03\x01\x12\x03\x1d\x08\x14\n\x0b\n\x04\x04\x03\x02\0\
+    \x12\x03\x1e\x04\x17\n\r\n\x05\x04\x03\x02\0\x04\x12\x04\x1e\x04\x1d\x16\
+    \n\x0c\n\x05\x04\x03\x02\0\x06\x12\x03\x1e\x04\r\n\x0c\n\x05\x04\x03\x02\
+    \0\x01\x12\x03\x1e\x0e\x12\n\x0c\n\x05\x04\x03\x02\0\x03\x12\x03\x1e\x15\
+    \x16\n'\n\x02\x04\x04\x12\x04\"\0%\x01\x1a\x1b\x20TODO:\x20Remove\x20thi\
+    s\x20message\n\n\n\n\x03\x04\x04\x01\x12\x03\"\x08\x0b\n\x0b\n\x04\x04\
+    \x04\x02\0\x12\x03#\x04\x14\n\r\n\x05\x04\x04\x02\0\x04\x12\x04#\x04\"\r\
+    \n\x0c\n\x05\x04\x04\x02\0\x05\x12\x03#\x04\t\n\x0c\n\x05\x04\x04\x02\0\
+    \x01\x12\x03#\n\x0f\n\x0c\n\x05\x04\x04\x02\0\x03\x12\x03#\x12\x13\n\x0b\
+    \n\x04\x04\x04\x02\x01\x12\x03$\x04\x17\n\r\n\x05\x04\x04\x02\x01\x04\
+    \x12\x04$\x04#\x14\n\x0c\n\x05\x04\x04\x02\x01\x05\x12\x03$\x04\t\n\x0c\
+    \n\x05\x04\x04\x02\x01\x01\x12\x03$\n\x12\n\x0c\n\x05\x04\x04\x02\x01\
+    \x03\x12\x03$\x15\x16\n\n\n\x02\x06\0\x12\x04'\0)\x01\n\n\n\x03\x06\0\
+    \x01\x12\x03'\x08\x17\n\x0b\n\x04\x06\0\x02\0\x12\x03(\x044\n\x0c\n\x05\
+    \x06\0\x02\0\x01\x12\x03(\x08\r\n\x0c\n\x05\x06\0\x02\0\x02\x12\x03(\x0e\
+    \x1a\n\x0c\n\x05\x06\0\x02\0\x03\x12\x03(%0b\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

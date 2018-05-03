@@ -6,7 +6,7 @@ use super::ExecNode;
 use super::ExecContext;
 use super::Block;
 use storage::BlockInputStream;
-use rpc::zeus_data::ScanNode;
+use rpc::zeus_plan::ScanNode;
 use server::ServerContext;
 
 #[allow(dead_code)]
