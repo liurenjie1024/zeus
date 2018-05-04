@@ -43,17 +43,17 @@ impl Expr {
         column_name: rpc_expr.get_column().get_name().to_string()
       })),
       ExpressionType::SCALA_FUNCTION => {
-        let args = rpc_expr.get_scalar_func().get_children()
+        let mut args = Vec::new();
+        rpc_expr.get_scalar_func().get_children()
           .iter()
-          .map(|expr| Expr::new(expr)?)
-          .collect();
+          .try_fold(&mut args, |res, expr| Ok(res.push(Expr::new(expr)?)));
 
         Ok(Expr::ScalarFunc(ScalarFuncExpr {
           id: rpc_expr.get_scalar_func().get_func_id(),
           args
         }))
-      }
-      ExpressionType::AGG_FUNCTION => bail!("Aggregation Function can't be constructed here")
+      },
+      ExpressionType::AGG_FUNCTION => bail!("Aggregation Function can't be constructed from expr")
     }
   }
 

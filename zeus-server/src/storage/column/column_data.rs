@@ -7,6 +7,8 @@ use rpc::zeus_meta::ColumnValue;
 use rpc::zeus_meta::ColumnType;
 use rpc::zeus_expr::LiteralExpression;
 
+use util::errors::*;
+
 pub enum Datum {
   Bool(bool),
   Int8(i8),
@@ -48,6 +50,20 @@ impl<'a> From<&'a LiteralExpression> for Datum {
       ColumnType::FLOAT8 => Datum::Float8(column_value.get_double_value()),
       ColumnType::TIMESTAMP => Datum::Int64(column_value.get_i64_value()),
       ColumnType::STRING => Datum::UTF8(column_value.get_string_value().to_string()),
+    }
+  }
+}
+
+impl Datum {
+  pub fn add_fuck(left: &Datum, right: &Datum) -> Result<Datum> {
+    match (left, right) {
+      (&Datum::Int8(v1), &Datum::Int8(v2)) => Ok(Datum::Int8(v1+v2)),
+      (&Datum::Int16(v1), &Datum::Int16(v2)) => Ok(Datum::Int16(v1+v2)),
+      (&Datum::Int32(v1), &Datum::Int32(v2)) => Ok(Datum::Int32(v1+v2)),
+      (&Datum::Int64(v1), &Datum::Int64(v2)) => Ok(Datum::Int64(v1+v2)),
+      (&Datum::Float4(v1), &Datum::Float4(v2)) => Ok(Datum::Float4(v1+v2)),
+      (&Datum::Float8(v1), &Datum::Float8(v2)) => Ok(Datum::Float8(v1+v2)),
+      (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
     }
   }
 }

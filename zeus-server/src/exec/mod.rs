@@ -22,7 +22,12 @@ use scheduler::Task;
 use storage::column::ColumnValueIter;
 use server::ServerContext;
 use server::data_service::Rows;
-use exec::table_scan_node::TableScanNode;
+use self::table_scan_node::TableScanNode;
+use self::limit_node::LimitNode;
+use self::filter_node::FilterNode;
+use self::project_node::ProjectNode;
+use self::agg_node::AggNode;
+use self::topn_node::TopNNode;
 
 pub struct ColumnWithInfo {
   pub name: String,
@@ -80,6 +85,20 @@ pub struct DAGExecutor {
 
 unsafe impl Send for DAGExecutor {}
 
+
+impl PlanNode {
+  pub fn to(&self, server_context: &ServerContext) -> Result<Box<ExecNode>> {
+    match self.get_plan_node_type() {
+      PlanNodeType::SCAN_NODE => TableScanNode::new(self.get_scan_node(), server_context),
+      PlanNodeType::LIMIT_NODE => LimitNode::new(&self, server_context),
+      PlanNodeType::FILTER_NODE => FilterNode::new(&self, server_context),
+      PlanNodeType::PROJECT_NODE => ProjectNode::new(&self, server_context),
+      PlanNodeType::AGGREGATE_NODE => AggNode::new(&self, server_context),
+      PlanNodeType::TOPN_NODE => TopNNode::new(&self, server_context)
+    }
+  }
+}
+
 impl DAGExecutor {
   pub fn task(
     query_request: QueryRequest,
@@ -88,8 +107,7 @@ impl DAGExecutor {
   ) -> Task
   {
     let task_body = box move || {
-      let root_result =
-        DAGExecutor::build_plan(query_request.get_plan().get_root(), &server_context);
+      let root_result = query_request.get_plan().get_root().to(&server_context);
 
       match root_result {
         Ok(root) => {
@@ -109,29 +127,6 @@ impl DAGExecutor {
     };
 
     Task::new(task_body)
-  }
-
-  fn build_plan(
-    root: &PlanNode,
-    server_context: &ServerContext,
-  ) -> Result<Box<ExecNode>>
-  {
-    if root.get_children().len() == 0 {
-      DAGExecutor::build_plan_node(root, server_context)
-    } else {
-      //TODO: Remove this.
-      unreachable!()
-    }
-  }
-
-  fn build_plan_node(
-    leaf_node: &PlanNode,
-    server_context: &ServerContext,
-  ) -> Result<Box<ExecNode>>
-  {
-    Ok(match leaf_node.get_plan_node_type() {
-      PlanNodeType::SCAN_NODE => TableScanNode::new(leaf_node.get_scan_node(), server_context)?,
-    })
   }
 }
 

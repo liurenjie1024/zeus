@@ -9,7 +9,7 @@ option java_multiple_files = true;
 enum ExpressionType {
     LITERAL = 0;
     COLUMN_REF = 1;
-    SCALA_FUNCTION = 2;
+    SCALAR_FUNCTION = 2;
     AGG_FUNCTION = 3;
 }
 
@@ -18,7 +18,7 @@ enum ScalarFuncId {
 }
 
 enum AggFuncId {
-    SUM_INT4_INT = 0;
+    SUM = 0;
 }
 
 message LiteralExpression {
