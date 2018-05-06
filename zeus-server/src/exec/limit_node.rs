@@ -8,21 +8,39 @@ use super::Block;
 use util::errors::*;
 
 pub struct LimitNode {
-  _limit: i32,
-  input: Box<ExecNode>
+  limit: i32,
+  input: Box<ExecNode>,
+  cur: i32
 }
 
 impl ExecNode for LimitNode  {
-  fn open(&mut self, _context: &mut ExecContext) -> Result<()> {
-    unimplemented!()
+  fn open(&mut self, context: &mut ExecContext) -> Result<()> {
+    self.input.open(context)?;
+    self.cur = 0;
+    Ok(())
   }
 
   fn next(&mut self) -> Result<Block> {
-    unimplemented!()
+    if self.cur >= self.limit {
+      Ok(Block::empty_block())
+    } else {
+      let ret = self.input.next()?;
+      let ret_len = ret.len();
+      let left = (self.limit - self.cur) as usize;
+      if ret_len >= left  {
+        self.cur = self.limit;
+        Ok(ret.take(left))
+      } else {
+        self.cur += ret_len as i32;
+        Ok(ret)
+      }
+    }
   }
 
   fn close(&mut self) -> Result<()> {
-    unimplemented!()
+    self.input.close()?;
+    self.cur = 0;
+    Ok(())
   }
 }
 
@@ -36,8 +54,9 @@ impl LimitNode {
     let input = plan_node.get_children().first().unwrap().to(server_context)?;
 
     Ok(box LimitNode {
-      _limit: plan_node.get_limit_node().get_limit(),
-      input
+      limit: plan_node.get_limit_node().get_limit(),
+      input,
+      cur: 0
     })
   }
 }

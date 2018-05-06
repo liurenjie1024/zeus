@@ -56,7 +56,7 @@ impl<'a> From<&'a LiteralExpression> for Datum {
 }
 
 impl Datum {
-  pub fn add_fuck(left: &Datum, right: &Datum) -> Result<Datum> {
+  pub fn add(left: &Datum, right: &Datum) -> Result<Datum> {
     match (left, right) {
       (&Datum::Int8(v1), &Datum::Int8(v2)) => Ok(Datum::Int8(v1+v2)),
       (&Datum::Int16(v1), &Datum::Int16(v2)) => Ok(Datum::Int16(v1+v2)),

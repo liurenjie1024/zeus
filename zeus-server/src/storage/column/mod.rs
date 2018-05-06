@@ -2,6 +2,7 @@ pub mod column_data;
 
 use std::iter::Iterator;
 use std::slice::Iter;
+use std::convert::From;
 
 use self::column_data::ColumnData;
 use self::column_data::Datum;
@@ -38,6 +39,18 @@ impl Column {
   pub fn iter(&self) -> ColumnValueIter {
     ColumnValueIter {
       data: self.data.datums.iter()
+    }
+  }
+
+  pub fn take(&self, num: usize) -> Column {
+    let data = self.data.datums.iter()
+      .take(num)
+      .map(|x| x.clone())
+      .collect::<Vec<Datum>>();
+
+    Column {
+      field_type: self.field_type,
+      data: ColumnData::from(data)
     }
   }
 }

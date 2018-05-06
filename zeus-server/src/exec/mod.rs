@@ -40,7 +40,15 @@ impl ColumnWithInfo {
     ColumnWithInfo {
       name: "".to_string(),
       id: None,
-      column: column,
+      column,
+    }
+  }
+
+  pub fn take(&self, num: usize) -> ColumnWithInfo {
+    ColumnWithInfo {
+      name: self.name.clone(),
+      id: self.id,
+      column: self.column.take(num)
     }
   }
 }
@@ -52,9 +60,29 @@ pub struct Block {
 
 impl Block {
   pub fn from(columns: Vec<ColumnWithInfo>) -> Block {
+    //TODO: Check that columns are equal length
     Block {
       columns,
       eof: true,
+    }
+  }
+
+  pub fn empty_block() -> Block {
+    Block {
+      columns: Vec::new(),
+      eof: true
+    }
+  }
+
+  pub fn len(&self) -> usize {
+    self.columns.first()
+      .map_or(0usize, |c| c.column.size())
+  }
+
+  pub fn take(&self, num: usize) -> Block {
+    Block {
+      columns: self.columns.iter().map(|x| x.take(num)).collect(),
+      eof: self.eof
     }
   }
 }

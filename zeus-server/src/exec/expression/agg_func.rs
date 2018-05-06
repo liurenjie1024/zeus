@@ -39,7 +39,7 @@ impl Reducer {
   pub fn sum() -> Reducer {
     Reducer {
       result: None,
-      _aggregator: Datum::add_fuck
+      _aggregator: Datum::add
     }
   }
 }
