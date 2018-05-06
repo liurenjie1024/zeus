@@ -10,12 +10,12 @@ use super::Block;
 use util::errors::*;
 
 pub struct FilterNode {
-  filters: Vec<Expr>,
+  _filters: Vec<Expr>,
   input: Box<ExecNode>
 }
 
 impl ExecNode for FilterNode {
-  fn open(&mut self, context: &mut ExecContext) -> Result<()> {
+  fn open(&mut self, _context: &mut ExecContext) -> Result<()> {
     unimplemented!()
   }
 
@@ -38,14 +38,15 @@ impl FilterNode {
     let input = plan_node.get_children().first().unwrap()
       .to(server_context)?;
 
-    let mut filters = Vec::new();
-
-    plan_node.get_filter_node().get_conditions()
+    let filters = plan_node.get_filter_node().get_conditions()
       .iter()
-      .try_fold(&mut filters, |f, expr| Ok(f.push(Expr::new(expr)?)));
+      .try_fold(Vec::new(), |mut f, expr| -> Result<Vec<Expr>> {
+        f.push(Expr::new(expr)?);
+        Ok(f)
+      })?;
 
     Ok(box FilterNode {
-      filters,
+      _filters: filters,
       input
     })
   }

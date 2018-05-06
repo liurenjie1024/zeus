@@ -11,18 +11,18 @@ use super::expression::Expr;
 use util::errors::*;
 
 struct SortItem {
-  item: Expr,
-  desc: bool
+  _item: Expr,
+  _desc: bool
 }
 
 pub struct TopNNode {
-  sort_items: Vec<SortItem>,
-  limit: i32,
+  _sort_items: Vec<SortItem>,
+  _limit: i32,
   input: Box<ExecNode>
 }
 
 impl ExecNode for TopNNode {
-  fn open(&mut self, context: &mut ExecContext) -> Result<()> {
+  fn open(&mut self, _context: &mut ExecContext) -> Result<()> {
     unimplemented!()
   }
 
@@ -38,8 +38,8 @@ impl ExecNode for TopNNode {
 impl SortItem {
   fn new(rpc_sort_item: &TopNNode_SortItem) -> Result<SortItem> {
     Ok(SortItem {
-      item: Expr::new(rpc_sort_item.get_expr())?,
-      desc: rpc_sort_item.get_desc()
+      _item: Expr::new(rpc_sort_item.get_expr())?,
+      _desc: rpc_sort_item.get_desc()
     })
   }
 }
@@ -48,20 +48,21 @@ impl TopNNode {
   pub fn new(plan_node: &PlanNode, server_context: &ServerContext) -> Result<Box<ExecNode>> {
     ensure!(plan_node.get_plan_node_type() == PlanNodeType::TOPN_NODE,
       "Can't create topn node from {:?}", plan_node.get_plan_node_type());
-    ensure!(plan_node.get_children() == 1,
+    ensure!(plan_node.get_children().len() == 1,
       "Input size of topn node should be 1 rather {}", plan_node.get_children().len());
 
     let input = plan_node.get_children().first().unwrap().to(server_context)?;
 
-    let mut sort_items = Vec::new();
-
-    plan_node.get_topn_node().get_sort_item()
+    let sort_items = plan_node.get_topn_node().get_sort_item()
       .iter()
-      .try_fold(&mut sort_items, |res, item| Ok(res.push(SortItem::new(item)?)));
+      .try_fold(Vec::new(), |mut res, item| -> Result<Vec<SortItem>> {
+        res.push(SortItem::new(item)?);
+        Ok(res)
+      })?;
 
     Ok(box TopNNode {
-      sort_items,
-      limit: plan_node.get_topn_node().get_limit(),
+      _sort_items: sort_items,
+      _limit: plan_node.get_topn_node().get_limit(),
       input
     })
   }

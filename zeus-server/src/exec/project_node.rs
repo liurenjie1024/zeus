@@ -10,12 +10,12 @@ use super::Block;
 use util::errors::*;
 
 pub struct ProjectNode {
-  mappers: Vec<Expr>,
+  _mappers: Vec<Expr>,
   input: Box<ExecNode>
 }
 
 impl ExecNode for ProjectNode {
-  fn open(&mut self, context: &mut ExecContext) -> Result<()> {
+  fn open(&mut self, _context: &mut ExecContext) -> Result<()> {
     unimplemented!()
   }
 
@@ -32,19 +32,20 @@ impl ProjectNode {
   pub fn new(plan_node: &PlanNode, server_context: &ServerContext) -> Result<Box<ExecNode>> {
     ensure!(plan_node.get_plan_node_type() == PlanNodeType::PROJECT_NODE,
       "Can't create project node from {:?}", plan_node.get_plan_node_type());
-    ensure!(plan_node.get_children() == 1,
+    ensure!(plan_node.get_children().len() == 1,
       "Project node's children size should be 1 rather {}", plan_node.get_children().len());
 
     let input = plan_node.get_children().first().unwrap().to(server_context)?;
 
-    let mut mappers = Vec::new();
-
-    plan_node.get_project_node().get_expressions()
+    let mappers = plan_node.get_project_node().get_expressions()
       .iter()
-      .try_fold(&mut mappers, |res, expr| Ok(res.push(Expr::new(expr)?)));
+      .try_fold(Vec::new(), |mut res, expr| -> Result<Vec<Expr>> {
+        res.push(Expr::new(expr)?);
+        Ok(res)
+      })?;
 
     Ok(box ProjectNode {
-      mappers,
+      _mappers: mappers,
       input
     })
   }

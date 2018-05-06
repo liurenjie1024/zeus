@@ -9,6 +9,7 @@ use rpc::zeus_expr::LiteralExpression;
 
 use util::errors::*;
 
+#[derive(Debug, Clone)]
 pub enum Datum {
   Bool(bool),
   Int8(i8),

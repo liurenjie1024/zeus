@@ -10,26 +10,26 @@ pub trait AggFunc: Send {
 
 pub struct Reducer {
   result: Option<Datum>,
-  aggregator: fn(&Datum, &Datum) -> Result<Datum>
+  _aggregator: fn(&Datum, &Datum) -> Result<Datum>
 }
 
 impl AggFunc for Reducer {
-  fn aggregate(&mut self, args: &Block, pos: usize) -> Result<()> {
+  fn aggregate(&mut self, _args: &Block, _pos: usize) -> Result<()> {
     unimplemented!()
   }
   fn collect(&mut self) -> Result<Datum> {
-    match self.result {
-      Some(v) => Ok(v),
-      None => bail!("Data is empty, this should not happen.")
+    match &self.result {
+      &Some(ref v) => Ok(v.clone()),
+      &None => bail!("Data is empty, this should not happen.")
     }
   }
 }
 
 impl Reducer {
-  fn do_aggregate(&mut self, data: &Datum) -> Result<()> {
-    let result =  match self.result {
-      Some(v) => self.aggregator(v, data),
-      None => data
+  fn _do_aggregate(&mut self, data: &Datum) -> Result<()> {
+    let result =  match &self.result {
+      &Some(ref v) => (self._aggregator)(v, data),
+      &None => Ok(data.clone())
     }?;
 
     self.result = Some(result);
@@ -39,7 +39,7 @@ impl Reducer {
   pub fn sum() -> Reducer {
     Reducer {
       result: None,
-      aggregator: Datum::add_fuck
+      _aggregator: Datum::add_fuck
     }
   }
 }

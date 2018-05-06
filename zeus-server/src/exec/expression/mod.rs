@@ -16,17 +16,17 @@ pub enum Expr {
 }
 
 pub struct LiteralExpr {
-  column_type: ColumnType,
-  data: Datum
+  _column_type: ColumnType,
+  _data: Datum
 }
 
 pub struct ColumnRefExpr {
-  column_name: String
+  _column_name: String
 }
 
 pub struct ScalarFuncExpr {
-  id: ScalarFuncId,
-  args: Vec<Expr>
+  _id: ScalarFuncId,
+  _args: Vec<Expr>
 }
 
 pub struct EvalContext {
@@ -36,28 +36,30 @@ impl Expr {
   pub fn new(rpc_expr: &Expression) -> Result<Expr> {
     match rpc_expr.expression_type {
       ExpressionType::LITERAL => Ok(Expr::Literal(LiteralExpr {
-        column_type: rpc_expr.get_literal().get_field_type(),
-        data: Datum::from(rpc_expr.get_literal())
+        _column_type: rpc_expr.get_literal().get_field_type(),
+        _data: Datum::from(rpc_expr.get_literal())
       })),
       ExpressionType::COLUMN_REF => Ok(Expr::ColumnRef(ColumnRefExpr {
-        column_name: rpc_expr.get_column().get_name().to_string()
+        _column_name: rpc_expr.get_column().get_name().to_string()
       })),
-      ExpressionType::SCALA_FUNCTION => {
-        let mut args = Vec::new();
-        rpc_expr.get_scalar_func().get_children()
+      ExpressionType::SCALAR_FUNCTION => {
+        let args = rpc_expr.get_scalar_func().get_children()
           .iter()
-          .try_fold(&mut args, |res, expr| Ok(res.push(Expr::new(expr)?)));
+          .try_fold(Vec::new(), |mut res, expr| -> Result<Vec<Expr>> {
+            res.push(Expr::new(expr)?);
+            Ok(res)
+          })?;
 
         Ok(Expr::ScalarFunc(ScalarFuncExpr {
-          id: rpc_expr.get_scalar_func().get_func_id(),
-          args
+          _id: rpc_expr.get_scalar_func().get_func_id(),
+          _args: args
         }))
       },
       ExpressionType::AGG_FUNCTION => bail!("Aggregation Function can't be constructed from expr")
     }
   }
 
-  pub fn eval(&mut self, context: &EvalContext, input: &Block) -> Block {
+  pub fn eval(&mut self, _context: &EvalContext, _input: &Block) -> Block {
     unimplemented!()
   }
 }

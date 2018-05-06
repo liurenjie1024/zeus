@@ -15,19 +15,19 @@ use rpc::zeus_plan::PlanNodeType;
 use util::errors::*;
 
 struct AggExpr {
-  agg_func_id: AggFuncId,
-  args: Vec<Expr>
+  _agg_func_id: AggFuncId,
+  _args: Vec<Expr>
 }
 
 pub struct AggNode {
-  group_bys: Vec<Expr>,
-  aggs: Vec<AggExpr>,
-  data: HashMap<Vec<u8>, Vec<Box<AggFunc>>>,
+  _group_bys: Vec<Expr>,
+  _aggs: Vec<AggExpr>,
+  _data: HashMap<Vec<u8>, Vec<Box<AggFunc>>>,
   input: Box<ExecNode>
 }
 
 impl ExecNode for AggNode {
-  fn open(&mut self, context: &mut ExecContext) -> Result<()> {
+  fn open(&mut self, _context: &mut ExecContext) -> Result<()> {
     unimplemented!()
   }
 
@@ -47,16 +47,15 @@ impl AggExpr {
 
     let agg_func = expr.get_agg_func();
 
-    let mut args: Vec<Expr> = Vec::new();
-    agg_func.get_children().iter()
-      .try_fold(&mut args, |res, expr| -> Result<&mut Vec<Expr>> {
+    let args = agg_func.get_children().iter()
+      .try_fold(Vec::new(), |mut res, expr| -> Result<Vec<Expr>> {
         res.push(Expr::new(expr)?);
         Ok(res)
-      });
+      })?;
 
     Ok(AggExpr {
-      agg_func_id: agg_func.get_func_id(),
-      args
+      _agg_func_id: agg_func.get_func_id(),
+      _args: args
     })
   }
 }
@@ -72,24 +71,22 @@ impl AggNode {
 
     let agg_node = plan_node.get_agg_node();
 
-    let mut group_bys = Vec::new();
-    agg_node.get_group_by().iter()
-      .try_fold(&mut group_bys, |res, expr| -> Result<&mut Vec<Expr>> {
-        group_bys.push(Expr::new(expr)?);
+    let group_bys = agg_node.get_group_by().iter()
+      .try_fold(Vec::new(), |mut res, expr| -> Result<Vec<Expr>> {
+        res.push(Expr::new(expr)?);
         Ok(res)
-      });
+      })?;
 
-    let mut aggs = Vec::new();
-    agg_node.get_agg_func().iter()
-      .try_fold(&mut aggs, |res, expr| -> Result<&mut Vec<AggExpr>> {
+    let aggs = agg_node.get_agg_func().iter()
+      .try_fold(Vec::new(), |mut res, expr| -> Result<Vec<AggExpr>> {
         res.push(AggExpr::new(expr)?);
         Ok(res)
-      });
+      })?;
 
     Ok(box AggNode {
-      group_bys,
-      aggs,
-      data: HashMap::new(),
+      _group_bys: group_bys,
+      _aggs: aggs,
+      _data: HashMap::new(),
       input
     })
   }
