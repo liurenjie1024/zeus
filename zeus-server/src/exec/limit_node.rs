@@ -24,11 +24,12 @@ impl ExecNode for LimitNode  {
     if self.cur >= self.limit {
       Ok(Block::empty_block())
     } else {
-      let ret = self.input.next()?;
+      let mut ret = self.input.next()?;
       let ret_len = ret.len();
       let left = (self.limit - self.cur) as usize;
       if ret_len >= left  {
         self.cur = self.limit;
+        ret.eof = true;
         Ok(ret.take(left))
       } else {
         self.cur += ret_len as i32;
