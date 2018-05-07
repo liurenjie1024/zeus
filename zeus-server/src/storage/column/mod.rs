@@ -53,6 +53,10 @@ impl Column {
       data: ColumnData::from(data)
     }
   }
+
+  pub fn get(&self, idx: usize) -> Option<Datum> {
+    self.data.datums.get(idx).map(|d| d.clone())
+  }
 }
 
 impl<'a> Iterator for ColumnValueIter<'a> {

@@ -66,13 +66,16 @@ impl LimitExecNode {
 #[cfg(test)]
 mod tests {
   use std::default::Default;
+  use std::convert::From;
 
   use storage::column::Column;
   use storage::column::column_data::ColumnData;
+  use storage::column::column_data::Datum;
   use exec::tests::MemoryBlocks;
   use exec::ColumnWithInfo;
   use exec::Block;
   use exec::ExecNode;
+  use exec::ExecContext;
   use super::LimitExecNode;
   use rpc::zeus_meta::ColumnType;
   use rpc::zeus_plan::LimitNode;
@@ -131,5 +134,39 @@ mod tests {
     let children = vec![create_memory_block(), create_memory_block()];
     let res = LimitExecNode::new(&plan_node, &ServerContext::default(), children);
     assert!(res.is_err());
+  }
+
+  #[test]
+  fn test_query_from_limit_node() {
+    let plan_node = create_limit_plan_node();
+
+    let res = LimitExecNode::new(&plan_node, &ServerContext::default(),
+                                 vec![create_memory_block()]);
+    assert!(res.is_ok());
+
+    let mut exec_node = res.unwrap();
+
+    let mut exec_context = ExecContext {};
+    assert!(exec_node.open(&mut exec_context).is_ok());
+
+    let block = exec_node.next();
+    assert!(block.is_ok());
+    let block = block.unwrap();
+
+    assert!(block.eof);
+    assert_eq!(1, block.len());
+    assert_eq!(2, block.columns.len());
+
+    assert_eq!(Datum::from(false) , block.columns.get(0).unwrap().column.get(0).unwrap());
+    assert_eq!(Datum::from(100000i64), block.columns.get(1).unwrap().column.get(0).unwrap());
+
+
+    let block = exec_node.next();
+    assert!(block.is_ok());
+    let block = block.unwrap();
+
+    assert!(block.eof);
+    assert_eq!(0, block.len());
+    assert_eq!(0, block.columns.len());
   }
 }
