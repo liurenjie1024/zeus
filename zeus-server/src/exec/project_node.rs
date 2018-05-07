@@ -29,13 +29,14 @@ impl ExecNode for ProjectNode {
 }
 
 impl ProjectNode {
-  pub fn new(plan_node: &PlanNode, server_context: &ServerContext) -> Result<Box<ExecNode>> {
+  pub fn new(plan_node: &PlanNode, _server_context: &ServerContext, mut children: Vec<Box<ExecNode>>)
+    -> Result<Box<ExecNode>> {
     ensure!(plan_node.get_plan_node_type() == PlanNodeType::PROJECT_NODE,
       "Can't create project node from {:?}", plan_node.get_plan_node_type());
-    ensure!(plan_node.get_children().len() == 1,
-      "Project node's children size should be 1 rather {}", plan_node.get_children().len());
+    ensure!(children.len() == 1,
+      "Project node's children size should be 1 rather {}", children.len());
 
-    let input = plan_node.get_children().first().unwrap().to(server_context)?;
+    let input = children.pop().unwrap();
 
     let mappers = plan_node.get_project_node().get_expressions()
       .iter()

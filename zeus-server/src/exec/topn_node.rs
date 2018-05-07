@@ -45,13 +45,14 @@ impl SortItem {
 }
 
 impl TopNNode {
-  pub fn new(plan_node: &PlanNode, server_context: &ServerContext) -> Result<Box<ExecNode>> {
+  pub fn new(plan_node: &PlanNode, _server_context: &ServerContext, mut children: Vec<Box<ExecNode>>)
+    -> Result<Box<ExecNode>> {
     ensure!(plan_node.get_plan_node_type() == PlanNodeType::TOPN_NODE,
       "Can't create topn node from {:?}", plan_node.get_plan_node_type());
-    ensure!(plan_node.get_children().len() == 1,
-      "Input size of topn node should be 1 rather {}", plan_node.get_children().len());
+    ensure!(children.len() == 1,
+      "Input size of topn node should be 1 rather {}", children.len());
 
-    let input = plan_node.get_children().first().unwrap().to(server_context)?;
+    let input = children.pop().unwrap();
 
     let sort_items = plan_node.get_topn_node().get_sort_item()
       .iter()

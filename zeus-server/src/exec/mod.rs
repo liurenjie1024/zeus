@@ -23,7 +23,7 @@ use storage::column::ColumnValueIter;
 use server::ServerContext;
 use server::data_service::Rows;
 use self::table_scan_node::TableScanNode;
-use self::limit_node::LimitNode;
+use self::limit_node::LimitExecNode;
 use self::filter_node::FilterNode;
 use self::project_node::ProjectNode;
 use self::agg_node::AggNode;
@@ -116,13 +116,19 @@ unsafe impl Send for DAGExecutor {}
 
 impl PlanNode {
   pub fn to(&self, server_context: &ServerContext) -> Result<Box<ExecNode>> {
+    let children = self.get_children()
+      .iter()
+      .try_fold(Vec::new(), |mut res, plan_node| -> Result<Vec<Box<ExecNode>>> {
+        res.push(plan_node.to(server_context)?);
+        Ok(res)
+      })?;
     match self.get_plan_node_type() {
-      PlanNodeType::SCAN_NODE => TableScanNode::new(self.get_scan_node(), server_context),
-      PlanNodeType::LIMIT_NODE => LimitNode::new(&self, server_context),
-      PlanNodeType::FILTER_NODE => FilterNode::new(&self, server_context),
-      PlanNodeType::PROJECT_NODE => ProjectNode::new(&self, server_context),
-      PlanNodeType::AGGREGATE_NODE => AggNode::new(&self, server_context),
-      PlanNodeType::TOPN_NODE => TopNNode::new(&self, server_context)
+      PlanNodeType::SCAN_NODE => TableScanNode::new(self.get_scan_node(), server_context, children),
+      PlanNodeType::LIMIT_NODE => LimitExecNode::new(&self, server_context, children),
+      PlanNodeType::FILTER_NODE => FilterNode::new(&self, server_context, children),
+      PlanNodeType::PROJECT_NODE => ProjectNode::new(&self, server_context, children),
+      PlanNodeType::AGGREGATE_NODE => AggNode::new(&self, server_context, children),
+      PlanNodeType::TOPN_NODE => TopNNode::new(&self, server_context, children)
     }
   }
 }
@@ -225,14 +231,14 @@ mod tests {
   use super::ColumnWithInfo;
   use super::DAGExecutor;
   use rpc::zeus_data::RowResult;
-  use rpc::zeus_data::ColumnValue;
+  use rpc::zeus_meta::ColumnValue;
   use rpc::zeus_meta::ColumnType;
   use storage::column::Column;
   use storage::column::column_data::ColumnData;
   use util::errors::*;
 
-  struct MemoryBlocks {
-    blocks: Vec<Block>,
+  pub struct MemoryBlocks {
+    pub blocks: Vec<Block>,
   }
 
   impl ExecNode for MemoryBlocks {

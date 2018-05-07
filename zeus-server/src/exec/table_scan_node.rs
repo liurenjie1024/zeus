@@ -19,8 +19,10 @@ impl TableScanNode {
   pub fn new(
     scan_node: &ScanNode,
     server_context: &ServerContext,
+    children: Vec<Box<ExecNode>>
   ) -> Result<Box<ExecNode>>
   {
+    ensure!(children.len() == 0, "Number of table scan node's children should be 0.");
     match server_context.get_storage_manager().get_table(scan_node.table_id) {
       Some(table) => {
         let scan_context = ScanContext {

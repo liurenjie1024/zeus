@@ -42,3 +42,38 @@ impl ServerContext {
     self.catalog_manager.clone()
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use std::default::Default;
+  use std::sync::Arc;
+
+  use scheduler::ExecutorService;
+  use scheduler::Task;
+  use storage::StorageManager;
+  use catalog::CatalogManager;
+  use util::errors::*;
+  use super::ServerContext;
+
+  struct DefaultExecutorService {}
+
+  impl ExecutorService for DefaultExecutorService {
+    fn submit(&self, _task: Task) -> Result<()> {
+      bail!("Not implemented!")
+    }
+
+    fn shutdown(&self) -> Result<usize> {
+      bail!("Not implemented!")
+    }
+  }
+
+  impl Default for ServerContext {
+    fn default() -> Self {
+      ServerContext {
+        storage_manager: Arc::new(StorageManager::default()),
+        catalog_manager: Arc::new(CatalogManager::default()),
+        query_scheduler: Arc::new(DefaultExecutorService {})
+      }
+    }
+  }
+}

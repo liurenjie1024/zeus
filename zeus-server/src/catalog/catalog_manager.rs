@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::vec::Vec;
+use std::default::Default;
 
 use rpc::zeus_meta::ZeusCatalog;
 
@@ -26,6 +27,15 @@ impl Iterator for TableIds {
       .map(|&x| x);
     self.pos += 1;
     ret
+  }
+}
+
+impl Default for CatalogManager {
+  fn default() -> Self {
+    CatalogManager {
+      dbs: HashMap::new(),
+      table_to_db: HashMap::new()
+    }
   }
 }
 

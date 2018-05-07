@@ -61,13 +61,14 @@ impl AggExpr {
 }
 
 impl AggNode {
-  pub fn new(plan_node: &PlanNode, server_context: &ServerContext) -> Result<Box<ExecNode>> {
+  pub fn new(plan_node: &PlanNode, _server_context: &ServerContext, mut children: Vec<Box<ExecNode>>)
+    -> Result<Box<ExecNode>> {
     ensure!(plan_node.get_plan_node_type() == PlanNodeType::AGGREGATE_NODE,
       "Can create aggregate node from {:?}", plan_node.get_plan_node_type());
-    ensure!(plan_node.get_children().len() == 1,
-      "The children number of agg node should be 1 rather {}", plan_node.get_children().len());
+    ensure!(children.len() == 1,
+      "The children number of agg node should be 1 rather {}", children.len());
 
-    let input = plan_node.get_children().first().unwrap().to(server_context)?;
+    let input = children.pop().unwrap();
 
     let agg_node = plan_node.get_agg_node();
 

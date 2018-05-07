@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::collections::HashMap;
+use std::default::Default;
 
 use error_chain::ChainedError;
 
@@ -15,6 +16,14 @@ pub struct StorageManager {
 
 unsafe impl Sync for StorageManager {}
 unsafe impl Send for StorageManager {}
+
+impl Default for StorageManager {
+  fn default() -> Self {
+    StorageManager {
+      tables: HashMap::new()
+    }
+  }
+}
 
 impl StorageManager {
   pub fn load(config: &ZeusConfig, catalog_manager: Arc<CatalogManager>) -> Result<StorageManager> {
