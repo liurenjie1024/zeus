@@ -9,6 +9,7 @@ pub mod expression;
 
 use std::boxed::Box;
 use std::vec::Vec;
+use std::default::Default;
 
 use futures::sync::oneshot::Sender;
 
@@ -67,13 +68,6 @@ impl Block {
     }
   }
 
-  pub fn empty_block() -> Block {
-    Block {
-      columns: Vec::new(),
-      eof: true
-    }
-  }
-
   pub fn len(&self) -> usize {
     self.columns.first()
       .map_or(0usize, |c| c.column.size())
@@ -83,6 +77,15 @@ impl Block {
     Block {
       columns: self.columns.iter().map(|x| x.take(num)).collect(),
       eof: self.eof
+    }
+  }
+}
+
+impl Default for Block {
+  fn default() -> Self {
+    Block {
+      columns: Vec::new(),
+      eof: true
     }
   }
 }

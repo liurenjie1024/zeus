@@ -22,7 +22,7 @@ impl ExecNode for LimitExecNode {
 
   fn next(&mut self) -> Result<Block> {
     if self.cur >= self.limit {
-      Ok(Block::empty_block())
+      Ok(Block::default())
     } else {
       let mut ret = self.input.next()?;
       let ret_len = ret.len();
