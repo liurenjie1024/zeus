@@ -25,7 +25,7 @@ pub struct ColumnRefExpr {
 }
 
 pub struct ScalarFuncExpr {
-  _id: ScalarFuncId,
+  id: ScalarFuncId,
   _args: Vec<Expr>
 }
 
@@ -51,7 +51,7 @@ impl Expr {
           })?;
 
         Ok(Expr::ScalarFunc(ScalarFuncExpr {
-          _id: rpc_expr.get_scalar_func().get_func_id(),
+          id: rpc_expr.get_scalar_func().get_func_id(),
           _args: args
         }))
       },
@@ -59,7 +59,7 @@ impl Expr {
     }
   }
 
-  pub fn eval(&mut self, _context: &EvalContext, _input: &Block) -> Block {
+  pub fn eval(&mut self, _context: &EvalContext, _input: &Block) -> Result<Block> {
     unimplemented!()
   }
 }

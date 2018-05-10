@@ -67,6 +67,13 @@ impl Datum {
       (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
     }
   }
+
+  pub fn and(left: &Datum, right: &Datum) -> Result<Datum> {
+    match (left, right) {
+      (&Datum::Bool(v1), &Datum::Bool(v2)) => Ok(Datum::Bool(v1 & v2)),
+      (_, _) => bail!("Logical operator and can only be applied to booleans")
+    }
+  }
 }
 
 macro_rules! datum_from {

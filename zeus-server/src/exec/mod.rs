@@ -24,7 +24,7 @@ use server::ServerContext;
 use server::data_service::Rows;
 use self::table_scan_node::TableScanNode;
 use self::limit_node::LimitExecNode;
-use self::filter_node::FilterNode;
+use self::filter_node::FilterExecNode;
 use self::project_node::ProjectNode;
 use self::agg_node::AggNode;
 use self::topn_node::TopNNode;
@@ -125,7 +125,7 @@ impl PlanNode {
     match self.get_plan_node_type() {
       PlanNodeType::SCAN_NODE => TableScanNode::new(self.get_scan_node(), server_context, children),
       PlanNodeType::LIMIT_NODE => LimitExecNode::new(&self, server_context, children),
-      PlanNodeType::FILTER_NODE => FilterNode::new(&self, server_context, children),
+      PlanNodeType::FILTER_NODE => FilterExecNode::new(&self, server_context, children),
       PlanNodeType::PROJECT_NODE => ProjectNode::new(&self, server_context, children),
       PlanNodeType::AGGREGATE_NODE => AggNode::new(&self, server_context, children),
       PlanNodeType::TOPN_NODE => TopNNode::new(&self, server_context, children)
@@ -184,7 +184,7 @@ impl DAGExecutor {
       let block = self.root.next()?;
 
       let mut column_iterators: Vec<ColumnValueIter> =
-        block.columns.iter().map(|c| c.column.iter()).collect();
+        block.columns.iter().map(|c| c.column.column_value_iter()).collect();
 
       loop {
         let mut incomplete = 0usize;

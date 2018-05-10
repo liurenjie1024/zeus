@@ -36,10 +36,14 @@ impl Column {
     self.field_type
   }
 
-  pub fn iter(&self) -> ColumnValueIter {
+  pub fn column_value_iter(&self) -> ColumnValueIter {
     ColumnValueIter {
       data: self.data.datums.iter()
     }
+  }
+
+  pub fn iter(&self) -> Iter<Datum> {
+    self.data.datums.iter()
   }
 
   pub fn take(&self, num: usize) -> Column {

@@ -15,6 +15,9 @@ enum ExpressionType {
 
 enum ScalarFuncId {
     ADD_INT4_INT4 = 0;
+
+    // Logical operators
+    AND = 1;
 }
 
 enum AggFuncId {
