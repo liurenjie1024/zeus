@@ -70,12 +70,11 @@ mod tests {
   use std::convert::From;
 
   use storage::column::Column;
-  use storage::column::column_data::{ColumnData, Datum};
+  use storage::column::column_data::ColumnData;
   use exec::tests::MemoryBlocks;
   use exec::ColumnWithInfo;
   use exec::Block;
   use exec::ExecNode;
-  use exec::ExecContext;
   use super::FilterExecNode;
   use rpc::zeus_plan::{FilterNode, PlanNode, PlanNodeType};
   use rpc::zeus_expr::{Expression, ExpressionType, LiteralExpression};
@@ -131,8 +130,37 @@ mod tests {
     assert!(FilterExecNode::new(&plan_node, &server_context, children).is_ok());
   }
 
+  #[test]
   fn test_create_filter_exec_node_wrong_type() {
-    
+    let mut plan_node = create_filter_plan_node();
+    plan_node.set_plan_node_type(PlanNodeType::SCAN_NODE);
+
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    assert!(FilterExecNode::new(&plan_node, &server_context, children).is_err());
+  }
+
+  #[test]
+  fn test_create_filter_exec_node_wrong_children() {
+    let plan_node = create_filter_plan_node();
+
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block(), create_memory_block()];
+
+    assert!(FilterExecNode::new(&plan_node, &server_context, children).is_err());
+  }
+
+  #[test]
+  fn test_create_filter_exec_node_wrong_conditions() {
+    let mut plan_node = create_filter_plan_node();
+    let expr = plan_node.get_filter_node().get_conditions().first().unwrap().clone();
+    plan_node.mut_filter_node().mut_conditions().push(expr);
+
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block(), create_memory_block()];
+
+    assert!(FilterExecNode::new(&plan_node, &server_context, children).is_err());
   }
 }
 

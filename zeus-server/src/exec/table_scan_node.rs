@@ -10,7 +10,7 @@ use rpc::zeus_plan::ScanNode;
 use server::ServerContext;
 
 pub struct TableScanNode {
-  table_id: i32,
+  _table_id: i32,
   input_stream: Box<BlockInputStream>,
 }
 
@@ -30,7 +30,7 @@ impl TableScanNode {
         };
 
         Ok(box TableScanNode {
-          table_id: scan_node.table_id,
+          _table_id: scan_node.table_id,
           input_stream: table.scan(&scan_context)?,
         })
       },
