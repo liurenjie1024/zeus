@@ -61,6 +61,27 @@ impl Column {
   pub fn get(&self, idx: usize) -> Option<Datum> {
     self.data.datums.get(idx).map(|d| d.clone())
   }
+
+  pub fn filter(&self, masks: &Column) -> Result<Column> {
+    ensure!(masks.field_type() == ColumnType::BOOL, "filed type must be bool!");
+    ensure!(masks.size() == self.size(), "size must be equal!");
+
+    let datums: Vec<Datum> = self.data.datums.iter()
+      .zip(masks.iter())
+      .filter(|t| {
+        match t.1 {
+          &Datum::Bool(v) => v,
+          _ => false
+        }
+      })
+      .map(|t| t.0.clone())
+      .collect();
+
+    Ok(Column {
+      field_type: self.field_type,
+      data: ColumnData::from(datums)
+    })
+  }
 }
 
 impl<'a> Iterator for ColumnValueIter<'a> {

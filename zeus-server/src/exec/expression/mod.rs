@@ -1,6 +1,8 @@
 pub mod scalar_func;
 pub mod agg_func;
 
+use std::default::Default;
+
 use storage::column::column_data::Datum;
 use exec::Block;
 use rpc::zeus_expr::Expression;
@@ -30,6 +32,12 @@ pub struct ScalarFuncExpr {
 }
 
 pub struct EvalContext {
+}
+
+impl Default for EvalContext {
+  fn default() -> Self {
+    EvalContext {}
+  }
 }
 
 impl Expr {

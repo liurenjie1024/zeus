@@ -9,7 +9,6 @@ use storage::BlockInputStream;
 use rpc::zeus_plan::ScanNode;
 use server::ServerContext;
 
-#[allow(dead_code)]
 pub struct TableScanNode {
   table_id: i32,
   input_stream: Box<BlockInputStream>,

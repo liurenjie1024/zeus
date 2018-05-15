@@ -79,6 +79,28 @@ impl Block {
       eof: self.eof
     }
   }
+
+  pub fn filter(&self, masks_block: &Block) -> Result<Block> {
+    ensure!(masks_block.columns.len() == 1, "Filters length can only be 1");
+
+    let masks = &masks_block.columns[0].column;
+
+    let columns = self.columns.iter()
+        .try_fold(Vec::new(), |mut res, input| -> Result<Vec<ColumnWithInfo>> {
+          let filtered_column = input.column.filter(masks)?;
+          res.push(ColumnWithInfo {
+            name: input.name.clone(),
+            id: input.id.clone(),
+            column: filtered_column
+          });
+          Ok(res)
+        })?;
+
+    Ok(Block {
+      columns,
+      eof: self.eof
+    })
+  }
 }
 
 impl Default for Block {
