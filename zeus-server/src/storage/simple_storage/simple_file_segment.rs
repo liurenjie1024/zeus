@@ -12,9 +12,9 @@ use protobuf::parse_from_bytes;
 
 use storage::storage::ScanContext;
 use storage::BlockInputStream;
+use storage::column::Column;
 use storage::column::ColumnFactory;
 use exec::Block;
-use exec::ColumnWithInfo;
 use exec::ExecPhase;
 use rpc::zeus_simple_format::BlockHandles;
 use rpc::zeus_meta::ColumnType;
@@ -147,7 +147,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     let mut sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
     sorted_column_ids.sort_by_key(|id| block_handle.columns[id].start);
 
-    let mut columns: Vec<ColumnWithInfo> = Vec::new();
+    let mut columns: Vec<Column> = Vec::new();
     for column_id in &sorted_column_ids {
       let column_handle = block_handle.get_columns().get(column_id).unwrap();
       let column_start = column_handle.get_start() as u64;
@@ -164,11 +164,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
       file_ref.read_exact(&mut buf)?;
 
       let column = column_factory.create_column(&buf)?;
-      columns.push(ColumnWithInfo {
-        name: self.column_names.get(column_id).unwrap().clone(),
-        id: Some(*column_id),
-        column: column,
-      });
+      columns.push(column);
     }
 
     self.next_block_idx += 1;

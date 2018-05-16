@@ -2,7 +2,7 @@ pub mod logical_op;
 
 use super::EvalContext;
 use super::ScalarFuncExpr;
-use exec::ColumnWithInfo;
+use storage::column::Column;
 use exec::Block;
 use rpc::zeus_expr::ScalarFuncId;
 use self::logical_op::ReducedLogicalOperator;
@@ -15,7 +15,7 @@ trait ScalarFunc {
 impl ScalarFuncExpr {
   pub fn eval(&mut self, ctx: &EvalContext, input: &Block) -> Result<Block> {
     let columns = self._args.iter_mut()
-      .try_fold(Vec::new(), |mut columns, arg| -> Result<Vec<ColumnWithInfo>> {
+      .try_fold(Vec::new(), |mut columns, arg| -> Result<Vec<Column>> {
         let mut block = arg.eval(ctx, input)?;
         columns.append(&mut block.columns);
         Ok(columns)

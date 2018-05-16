@@ -72,7 +72,6 @@ mod tests {
   use storage::column::vec_column_data::VecColumnData;
   use storage::column::vec_column_data::Datum;
   use exec::tests::MemoryBlocks;
-  use exec::ColumnWithInfo;
   use exec::Block;
   use exec::ExecNode;
   use exec::ExecContext;
@@ -86,12 +85,12 @@ mod tests {
   fn create_memory_block() -> Box<ExecNode> {
     let column1 = Column::new_vec(ColumnType::BOOL, VecColumnData::from(vec![true, false]));
     let column2 = Column::new_vec(ColumnType::INT64, VecColumnData::from(vec![12i64, 14i64]));
-    let block1 = vec![ColumnWithInfo::from(column1), ColumnWithInfo::from(column2)];
+    let block1 = vec![column1, column2];
     let block1 = Block::from(block1);
 
     let column3 = Column::new_vec(ColumnType::BOOL, VecColumnData::from(vec![false, true]));
     let column4 = Column::new_vec(ColumnType::INT64, VecColumnData::from(vec![100000i64, 54321i64]));
-    let block2 = vec![ColumnWithInfo::from(column3), ColumnWithInfo::from(column4)];
+    let block2 = vec![column3, column4];
     let block2 = Block::from(block2);
 
     box MemoryBlocks {
@@ -157,8 +156,8 @@ mod tests {
     assert_eq!(1, block.len());
     assert_eq!(2, block.columns.len());
 
-    assert_eq!(Datum::from(false) , block.columns.get(0).unwrap().column.get(0).unwrap());
-    assert_eq!(Datum::from(100000i64), block.columns.get(1).unwrap().column.get(0).unwrap());
+    assert_eq!(Datum::from(false) , block.columns.get(0).unwrap().get(0).unwrap());
+    assert_eq!(Datum::from(100000i64), block.columns.get(1).unwrap().get(0).unwrap());
 
 
     let block = exec_node.next();

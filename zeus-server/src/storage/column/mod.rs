@@ -3,7 +3,7 @@ pub mod const_column_data;
 
 use std::iter::Iterator;
 use std::convert::From;
-use std::boxed::Box;
+use std::sync::Arc;
 
 use self::vec_column_data::VecColumnData;
 use self::vec_column_data::Datum;
@@ -15,7 +15,9 @@ use util::errors::*;
 
 pub struct Column {
   field_type: ColumnType,
-  column_data: Box<ColumnData>
+  column_name: Option<String>,
+  column_id: Option<i32>,
+  column_data: Arc<ColumnData>
 }
 
 pub struct ColumnIter<'a> {
@@ -33,7 +35,7 @@ impl<'a> Iterator for ColumnIter<'a> {
   }
 }
 
-trait ColumnData: Send {
+trait ColumnData: Send+Sync {
   fn len(&self) -> usize;
   fn get(&self, idx: usize) -> Option<Datum>;
   fn iter(&self) -> ColumnIter;
@@ -48,14 +50,18 @@ impl Column {
   pub fn new_vec(field_type: ColumnType, data: VecColumnData) -> Column {
     Column {
       field_type,
-      column_data: box data
+      column_name: None,
+      column_id: None,
+      column_data: Arc::new(data)
     }
   }
 
   pub fn new_const(field_type: ColumnType, datum: Datum, size: usize) -> Column {
     Column {
       field_type,
-      column_data: box ConstColumnData::new(size, datum)
+      column_name: None,
+      column_id: None,
+      column_data: Arc::new(ConstColumnData::new(size, datum))
     }
   }
 
@@ -85,7 +91,9 @@ impl Column {
 
     Column {
       field_type: self.field_type,
-      column_data: box VecColumnData::from(data)
+      column_name: self.column_name.clone(),
+      column_id: self.column_id.clone(),
+      column_data: Arc::new(VecColumnData::from(data))
     }
   }
 
@@ -110,7 +118,9 @@ impl Column {
 
     Ok(Column {
       field_type: self.field_type,
-      column_data: box VecColumnData::from(datums)
+      column_name: self.column_name.clone(),
+      column_id: self.column_id.clone(),
+      column_data: Arc::new(VecColumnData::from(datums))
     })
   }
 }

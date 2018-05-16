@@ -5,7 +5,6 @@ use std::default::Default;
 
 use storage::column::vec_column_data::Datum;
 use storage::column::Column;
-use exec::ColumnWithInfo;
 use exec::Block;
 use rpc::zeus_expr::Expression;
 use rpc::zeus_expr::ExpressionType;
@@ -72,9 +71,8 @@ impl Expr {
   pub fn eval(&mut self, _context: &EvalContext, input: &Block) -> Result<Block> {
     match self {
       Expr::Literal(ref literal) => {
-        let column_with_info = ColumnWithInfo::from(
-          Column::new_const(literal.column_type, literal.data.clone(), input.len()));
-        Ok(Block::from(vec![column_with_info]))
+        let column = Column::new_const(literal.column_type, literal.data.clone(), input.len());
+        Ok(Block::from(vec![column]))
       }
       Expr::ScalarFunc(ref mut scalar_func)  => scalar_func.eval(_context, input),
       _ => unimplemented!()

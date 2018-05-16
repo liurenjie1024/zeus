@@ -30,37 +30,13 @@ use self::project_node::ProjectNode;
 use self::agg_node::AggNode;
 use self::topn_node::TopNNode;
 
-pub struct ColumnWithInfo {
-  pub name: String,
-  pub id: Option<i32>,
-  pub column: Column,
-}
-
-impl ColumnWithInfo {
-  pub fn from(column: Column) -> ColumnWithInfo {
-    ColumnWithInfo {
-      name: "".to_string(),
-      id: None,
-      column,
-    }
-  }
-
-  pub fn take(&self, num: usize) -> ColumnWithInfo {
-    ColumnWithInfo {
-      name: self.name.clone(),
-      id: self.id,
-      column: self.column.take(num)
-    }
-  }
-}
-
 pub struct Block {
-  pub columns: Vec<ColumnWithInfo>,
+  pub columns: Vec<Column>,
   pub eof: bool,
 }
 
 impl Block {
-  pub fn from(columns: Vec<ColumnWithInfo>) -> Block {
+  pub fn from(columns: Vec<Column>) -> Block {
     //TODO: Check that columns are equal length
     Block {
       columns,
@@ -70,7 +46,7 @@ impl Block {
 
   pub fn len(&self) -> usize {
     self.columns.first()
-      .map_or(0usize, |c| c.column.size())
+      .map_or(0usize, |c| c.size())
   }
 
   pub fn take(&self, num: usize) -> Block {
@@ -83,16 +59,12 @@ impl Block {
   pub fn filter(&self, masks_block: &Block) -> Result<Block> {
     ensure!(masks_block.columns.len() == 1, "Filters length can only be 1");
 
-    let masks = &masks_block.columns[0].column;
+    let masks = &masks_block.columns[0];
 
     let columns = self.columns.iter()
-        .try_fold(Vec::new(), |mut res, input| -> Result<Vec<ColumnWithInfo>> {
-          let filtered_column = input.column.filter(masks)?;
-          res.push(ColumnWithInfo {
-            name: input.name.clone(),
-            id: input.id.clone(),
-            column: filtered_column
-          });
+        .try_fold(Vec::new(), |mut res, input| -> Result<Vec<Column>> {
+          let filtered_column = input.filter(masks)?;
+          res.push(filtered_column);
           Ok(res)
         })?;
 
@@ -209,7 +181,7 @@ impl DAGExecutor {
       let block = self.root.next()?;
 
       let mut column_iterators: Vec<ColumnValueIter> =
-        block.columns.iter().map(|c| c.column.column_value_iter()).collect();
+        block.columns.iter().map(|c| c.column_value_iter()).collect();
 
       loop {
         let mut incomplete = 0usize;
@@ -253,7 +225,6 @@ mod tests {
   use super::ExecNode;
   use super::Block;
   use super::ExecContext;
-  use super::ColumnWithInfo;
   use super::DAGExecutor;
   use rpc::zeus_data::RowResult;
   use rpc::zeus_meta::ColumnValue;
@@ -292,12 +263,12 @@ mod tests {
   fn test_run() {
     let column1 = Column::new_vec(ColumnType::BOOL, VecColumnData::from(vec![true, false]));
     let column2 = Column::new_vec(ColumnType::INT64, VecColumnData::from(vec![12i64, 14i64]));
-    let block1 = vec![ColumnWithInfo::from(column1), ColumnWithInfo::from(column2)];
+    let block1 = vec![column1, column2];
     let block1 = Block::from(block1);
 
     let column3 = Column::new_vec(ColumnType::BOOL, VecColumnData::from(vec![false, true]));
     let column4 = Column::new_vec(ColumnType::INT64, VecColumnData::from(vec![100000i64, 54321i64]));
-    let block2 = vec![ColumnWithInfo::from(column3), ColumnWithInfo::from(column4)];
+    let block2 = vec![column3, column4];
     let block2 = Block::from(block2);
 
     let mem_blocks = box MemoryBlocks {

@@ -5,7 +5,6 @@ use storage::column::Column;
 use storage::column::vec_column_data::VecColumnData;
 use storage::column::vec_column_data::Datum;
 use exec::Block;
-use exec::ColumnWithInfo;
 use exec::expression::EvalContext;
 use rpc::zeus_meta::ColumnType;
 
@@ -19,7 +18,7 @@ impl ScalarFunc for ReducedLogicalOperator {
     let mut ret = Vec::with_capacity(input.len());
     for i in 0..input.len() {
       let cur = input.columns.iter()
-        .map(|c| c.column.get(i).unwrap())
+        .map(|c| c.get(i).unwrap())
         .try_fold(Datum::Bool(true), |left, right| -> Result<Datum> {
           (self.reducer)(&left, &right)
         })?;
@@ -28,7 +27,7 @@ impl ScalarFunc for ReducedLogicalOperator {
     }
 
     let column = Column::new_vec(ColumnType::BOOL, VecColumnData::from(ret));
-    Ok(Block::from(vec![ColumnWithInfo::from(column)]))
+    Ok(Block::from(vec![column]))
   }
 }
 

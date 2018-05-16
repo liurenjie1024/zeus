@@ -16,7 +16,6 @@ use protobuf::parse_from_reader;
 
 use exec::ExecPhase;
 use exec::Block;
-use exec::ColumnWithInfo;
 use storage::column::Column;
 use storage::column::vec_column_data::VecColumnData;
 use storage::ScanContext;
@@ -148,7 +147,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
     let mut sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
     sorted_column_ids.sort_by_key(|id| block_handle.column_node[id].start);
 
-    let mut columns: Vec<ColumnWithInfo> = Vec::new();
+    let mut columns: Vec<Column> = Vec::new();
     for column_id in &sorted_column_ids {
       let column_handle = block_handle.get_column_node().get(column_id).unwrap();
       let column = FileSegmentBlockInputStream::load_column(
@@ -156,11 +155,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
         &column_handle,
         self.column_types[column_id],
         block_handle.block_column_size as usize)?;
-      columns.push(ColumnWithInfo {
-        name: self.column_names.get(column_id).unwrap().clone(),
-        id: Some(*column_id),
-        column,
-      });
+      columns.push(column);
     }
 
     self.next_block_idx += 1;
