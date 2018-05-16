@@ -70,7 +70,7 @@ mod tests {
   use std::convert::From;
 
   use storage::column::Column;
-  use storage::column::column_data::ColumnData;
+  use storage::column::column_data::VecColumnData;
   use exec::tests::MemoryBlocks;
   use exec::ColumnWithInfo;
   use exec::Block;
@@ -82,13 +82,13 @@ mod tests {
   use server::ServerContext;
 
   fn create_memory_block() -> Box<ExecNode> {
-    let column1 = Column::new(ColumnType::BOOL, ColumnData::from(vec![true, false]));
-    let column2 = Column::new(ColumnType::INT64, ColumnData::from(vec![12i64, 14i64]));
+    let column1 = Column::new(ColumnType::BOOL, VecColumnData::from(vec![true, false]));
+    let column2 = Column::new(ColumnType::INT64, VecColumnData::from(vec![12i64, 14i64]));
     let block1 = vec![ColumnWithInfo::from(column1), ColumnWithInfo::from(column2)];
     let block1 = Block::from(block1);
 
-    let column3 = Column::new(ColumnType::BOOL, ColumnData::from(vec![false, true]));
-    let column4 = Column::new(ColumnType::INT64, ColumnData::from(vec![100000i64, 54321i64]));
+    let column3 = Column::new(ColumnType::BOOL, VecColumnData::from(vec![false, true]));
+    let column4 = Column::new(ColumnType::INT64, VecColumnData::from(vec![100000i64, 54321i64]));
     let block2 = vec![ColumnWithInfo::from(column3), ColumnWithInfo::from(column4)];
     let block2 = Block::from(block2);
 

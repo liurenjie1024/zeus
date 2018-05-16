@@ -96,11 +96,11 @@ datum_from!(f64, Float8);
 datum_from!(String, UTF8);
 
 
-pub struct ColumnData {
+pub struct VecColumnData {
   pub(super) datums: Vec<Datum>
 }
 
-impl ColumnData {
+impl VecColumnData {
   pub fn len(&self) -> usize {
     self.datums.len()
   }
@@ -108,12 +108,12 @@ impl ColumnData {
 
 macro_rules! column_data_from_vec {
   ($dt: ty) => {
-    impl From<Vec<$dt>> for ColumnData {
-      fn from(data: Vec<$dt>) -> ColumnData {
+    impl From<Vec<$dt>> for VecColumnData {
+      fn from(data: Vec<$dt>) -> VecColumnData {
         let datums = data.into_iter()
           .map(|x| x.into())
           .collect::<Vec<Datum>>();
-        ColumnData::from(datums)
+        VecColumnData::from(datums)
       }
     }
   };
@@ -128,9 +128,9 @@ column_data_from_vec!(f32);
 column_data_from_vec!(f64);
 column_data_from_vec!(String);
 
-impl From<Vec<Datum>> for ColumnData {
-  fn from(datums: Vec<Datum>) -> ColumnData {
-    ColumnData {
+impl From<Vec<Datum>> for VecColumnData {
+  fn from(datums: Vec<Datum>) -> VecColumnData {
+    VecColumnData {
       datums
     }
   }

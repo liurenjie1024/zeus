@@ -4,7 +4,7 @@ use std::iter::Iterator;
 use std::slice::Iter;
 use std::convert::From;
 
-use self::column_data::ColumnData;
+use self::column_data::VecColumnData;
 use self::column_data::Datum;
 use rpc::zeus_meta::ColumnType;
 use rpc::zeus_meta::ColumnValue;
@@ -13,7 +13,7 @@ use util::errors::*;
 
 pub struct Column {
   field_type: ColumnType,
-  data: ColumnData
+  data: VecColumnData
 }
 
 pub struct ColumnValueIter<'a> {
@@ -21,7 +21,7 @@ pub struct ColumnValueIter<'a> {
 }
 
 impl Column {
-  pub fn new(field_type: ColumnType, data: ColumnData) -> Column {
+  pub fn new(field_type: ColumnType, data: VecColumnData) -> Column {
     Column {
       field_type,
       data
@@ -54,7 +54,7 @@ impl Column {
 
     Column {
       field_type: self.field_type,
-      data: ColumnData::from(data)
+      data: VecColumnData::from(data)
     }
   }
 
@@ -79,7 +79,7 @@ impl Column {
 
     Ok(Column {
       field_type: self.field_type,
-      data: ColumnData::from(datums)
+      data: VecColumnData::from(datums)
     })
   }
 }
