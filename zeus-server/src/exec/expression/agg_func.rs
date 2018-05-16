@@ -1,5 +1,5 @@
 use exec::Block;
-use storage::column::column_data::Datum;
+use storage::column::vec_column_data::Datum;
 use util::errors::*;
 
 

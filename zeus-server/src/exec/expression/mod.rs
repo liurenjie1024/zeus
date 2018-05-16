@@ -3,7 +3,9 @@ pub mod agg_func;
 
 use std::default::Default;
 
-use storage::column::column_data::Datum;
+use storage::column::vec_column_data::Datum;
+use storage::column::Column;
+use exec::ColumnWithInfo;
 use exec::Block;
 use rpc::zeus_expr::Expression;
 use rpc::zeus_expr::ExpressionType;
@@ -18,8 +20,8 @@ pub enum Expr {
 }
 
 pub struct LiteralExpr {
-  _column_type: ColumnType,
-  _data: Datum
+  column_type: ColumnType,
+  data: Datum
 }
 
 pub struct ColumnRefExpr {
@@ -44,8 +46,8 @@ impl Expr {
   pub fn new(rpc_expr: &Expression) -> Result<Expr> {
     match rpc_expr.expression_type {
       ExpressionType::LITERAL => Ok(Expr::Literal(LiteralExpr {
-        _column_type: rpc_expr.get_literal().get_field_type(),
-        _data: Datum::from(rpc_expr.get_literal())
+        column_type: rpc_expr.get_literal().get_field_type(),
+        data: Datum::from(rpc_expr.get_literal())
       })),
       ExpressionType::COLUMN_REF => Ok(Expr::ColumnRef(ColumnRefExpr {
         _column_name: rpc_expr.get_column().get_name().to_string()
@@ -67,8 +69,16 @@ impl Expr {
     }
   }
 
-  pub fn eval(&mut self, _context: &EvalContext, _input: &Block) -> Result<Block> {
-    unimplemented!()
+  pub fn eval(&mut self, _context: &EvalContext, input: &Block) -> Result<Block> {
+    match self {
+      Expr::Literal(ref literal) => {
+        let column_with_info = ColumnWithInfo::from(
+          Column::new_const(literal.column_type, literal.data.clone(), input.len()));
+        Ok(Block::from(vec![column_with_info]))
+      }
+      Expr::ScalarFunc(ref mut scalar_func)  => scalar_func.eval(_context, input),
+      _ => unimplemented!()
+    }
   }
 }
 

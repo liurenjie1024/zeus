@@ -2,8 +2,8 @@
 use super::ScalarFunc;
 use util::errors::*;
 use storage::column::Column;
-use storage::column::column_data::VecColumnData;
-use storage::column::column_data::Datum;
+use storage::column::vec_column_data::VecColumnData;
+use storage::column::vec_column_data::Datum;
 use exec::Block;
 use exec::ColumnWithInfo;
 use exec::expression::EvalContext;
@@ -27,7 +27,7 @@ impl ScalarFunc for ReducedLogicalOperator {
       ret.push(cur);
     }
 
-    let column = Column::new(ColumnType::BOOL, VecColumnData::from(ret));
+    let column = Column::new_vec(ColumnType::BOOL, VecColumnData::from(ret));
     Ok(Block::from(vec![ColumnWithInfo::from(column)]))
   }
 }

@@ -18,7 +18,7 @@ use exec::ExecPhase;
 use exec::Block;
 use exec::ColumnWithInfo;
 use storage::column::Column;
-use storage::column::column_data::VecColumnData;
+use storage::column::vec_column_data::VecColumnData;
 use storage::ScanContext;
 use storage::BlockInputStream;
 use storage::ErrorKind as DBErrorKind;
@@ -238,35 +238,35 @@ impl FileSegmentBlockInputStream {
           .map(|x| x>0)
           .collect::<Vec<bool>>();
 
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::INT8 => {
         let ret = create_vector!(reader, read_i8, column_len);
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::INT16 => {
         let ret = create_vector!(reader, read_i16, LittleEndian, column_len);
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::INT32 => {
         let ret = create_vector!(reader, read_i32, LittleEndian, column_len);
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::INT64 => {
         let ret = create_vector!(reader, read_i64, LittleEndian, column_len);
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::FLOAT4 => {
         let ret = create_vector!(reader, read_f32, LittleEndian, column_len);
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::FLOAT8 => {
         let ret = create_vector!(reader, read_f64, LittleEndian, column_len);
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::TIMESTAMP => {
         let ret = create_vector!(reader, read_i64, LittleEndian, column_len);
-        Column::new(column_type, VecColumnData::from(ret))
+        Column::new_vec(column_type, VecColumnData::from(ret))
       },
       ColumnType::STRING => {
         let offsets = create_vector!(reader, read_i32, LittleEndian, column_len + 1)
@@ -295,7 +295,7 @@ impl FileSegmentBlockInputStream {
           strs.push(utf8)
         }
 
-        Column::new(column_type, VecColumnData::from(strs))
+        Column::new_vec(column_type, VecColumnData::from(strs))
       }
     };
 

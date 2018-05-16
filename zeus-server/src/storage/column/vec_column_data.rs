@@ -6,6 +6,8 @@ use std::convert::Into;
 use rpc::zeus_meta::ColumnValue;
 use rpc::zeus_meta::ColumnType;
 use rpc::zeus_expr::LiteralExpression;
+use super::ColumnData;
+use super::ColumnIter;
 
 use util::errors::*;
 
@@ -95,7 +97,7 @@ datum_from!(f32, Float4);
 datum_from!(f64, Float8);
 datum_from!(String, UTF8);
 
-
+#[derive(Clone)]
 pub struct VecColumnData {
   pub(super) datums: Vec<Datum>
 }
@@ -103,6 +105,24 @@ pub struct VecColumnData {
 impl VecColumnData {
   pub fn len(&self) -> usize {
     self.datums.len()
+  }
+}
+
+impl ColumnData for VecColumnData {
+  fn len(&self) -> usize  {
+    self.datums.len()
+  }
+
+  fn get(&self, idx: usize) -> Option<Datum> {
+    self.datums.get(idx)
+      .map(|x| x.clone())
+  }
+
+  fn iter(&self) -> ColumnIter {
+    ColumnIter {
+      column_data: self,
+      idx: 0 as usize
+    }
   }
 }
 
