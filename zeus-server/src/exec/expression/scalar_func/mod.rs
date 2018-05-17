@@ -1,4 +1,5 @@
 pub mod logical_op;
+pub mod cmp_op;
 
 use super::EvalContext;
 use super::ScalarFuncExpr;
@@ -14,7 +15,7 @@ trait ScalarFunc {
 
 impl ScalarFuncExpr {
   pub fn eval(&mut self, ctx: &EvalContext, input: &Block) -> Result<Block> {
-    let columns = self._args.iter_mut()
+    let columns = self.args.iter_mut()
       .try_fold(Vec::new(), |mut columns, arg| -> Result<Vec<Column>> {
         let mut block = arg.eval(ctx, input)?;
         columns.append(&mut block.columns);

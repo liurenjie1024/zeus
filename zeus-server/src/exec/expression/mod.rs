@@ -24,12 +24,12 @@ pub struct LiteralExpr {
 }
 
 pub struct ColumnRefExpr {
-  _column_name: String
+  column_name: String
 }
 
 pub struct ScalarFuncExpr {
   id: ScalarFuncId,
-  _args: Vec<Expr>
+  args: Vec<Expr>
 }
 
 pub struct EvalContext {
@@ -49,7 +49,7 @@ impl Expr {
         data: Datum::from(rpc_expr.get_literal())
       })),
       ExpressionType::COLUMN_REF => Ok(Expr::ColumnRef(ColumnRefExpr {
-        _column_name: rpc_expr.get_column().get_name().to_string()
+        column_name: rpc_expr.get_column().get_name().to_string()
       })),
       ExpressionType::SCALAR_FUNCTION => {
         let args = rpc_expr.get_scalar_func().get_children()
@@ -61,21 +61,26 @@ impl Expr {
 
         Ok(Expr::ScalarFunc(ScalarFuncExpr {
           id: rpc_expr.get_scalar_func().get_func_id(),
-          _args: args
+          args
         }))
       },
       ExpressionType::AGG_FUNCTION => bail!("Aggregation Function can't be constructed from expr")
     }
   }
 
-  pub fn eval(&mut self, _context: &EvalContext, input: &Block) -> Result<Block> {
+  pub fn eval(&mut self, context: &EvalContext, input: &Block) -> Result<Block> {
     match self {
       Expr::Literal(ref literal) => {
         let column = Column::new_const(literal.column_type, literal.data.clone(), input.len());
         Ok(Block::from(vec![column]))
       }
-      Expr::ScalarFunc(ref mut scalar_func)  => scalar_func.eval(_context, input),
-      _ => unimplemented!()
+      Expr::ScalarFunc(ref mut scalar_func)  => scalar_func.eval(context, input),
+      Expr::ColumnRef(ref column) => {
+        let column = input.column_by_name(column.column_name.as_str())
+          .ok_or(ErrorKind::ColumnNameNotFound(column.column_name.clone()))?;
+
+        Ok(Block::from(vec![column]))
+      }
     }
   }
 }

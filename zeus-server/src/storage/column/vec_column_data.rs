@@ -78,6 +78,7 @@ impl Datum {
   }
 }
 
+
 macro_rules! datum_from {
   ($dt: ty, $var: ident) => {
     impl From<$dt> for Datum {
@@ -96,6 +97,81 @@ datum_from!(i64, Int64);
 datum_from!(f32, Float4);
 datum_from!(f64, Float8);
 datum_from!(String, UTF8);
+
+
+impl Datum {
+  pub fn to_bool(&self) -> Result<bool> {
+    match self {
+      Datum::Bool(v) => Ok(*v),
+      _ => bail!("'{:?}' can't cast to bool.", self)
+    }
+  }
+
+  pub fn to_i8(&self) -> Result<i8> {
+    match self {
+      Datum::Int8(v) => Ok(*v),
+      _ => bail!("'{:?}' can't cast to i8.", self)
+    }
+  }
+
+  pub fn to_i16(&self) -> Result<i16> {
+    match self {
+      Datum::Int8(v) => Ok(*v as i16),
+      Datum::Int16(v) => Ok(*v),
+      _ => bail!("'{:?}' can't cast to i16.", self)
+    }
+  }
+
+  pub fn to_i32(&self) -> Result<i32> {
+    match self {
+      Datum::Int8(v)  => Ok(*v as i32),
+      Datum::Int16(v)  => Ok(*v as i32),
+      Datum::Int32(v) => Ok(*v),
+      _ => bail!("'{:?}' can't cast to i32.", self)
+    }
+  }
+
+  pub fn to_i64(&self) -> Result<i64> {
+    match self {
+      Datum::Int8(v) => Ok(*v as i64),
+      Datum::Int16(v) => Ok(*v as i64),
+      Datum::Int32(v) => Ok(*v as i64),
+      Datum::Int64(v) => Ok(*v as i64),
+      _ => bail!("'{:?}' can't cast to i64.", self)
+    }
+  }
+
+  pub fn to_f32(&self) -> Result<f32> {
+    match self {
+      Datum::Int8(v) => Ok(*v as f32),
+      Datum::Int16(v) => Ok(*v as f32),
+      Datum::Int32(v) => Ok(*v as f32),
+      Datum::Int64(v) => Ok(*v as f32),
+      Datum::Float4(v) => Ok(*v),
+      _ => bail!("'{:?}' can't cast to f32.", self)
+    }
+  }
+
+  pub fn to_f64(&self) -> Result<f64> {
+    match self {
+      Datum::Int8(v)  => Ok(*v as f64),
+      Datum::Int16(v)  => Ok(*v as f64),
+      Datum::Int32(v)  => Ok(*v as f64),
+      Datum::Int64(v)  => Ok(*v as f64),
+      Datum::Float4(v)  => Ok(*v as f64),
+      Datum::Float8(v) => Ok(*v),
+      _ => bail!("'{:?}' can't cast to f64.", self)
+    }
+  }
+
+  pub fn to_str(&self) -> Result<&str> {
+    match self {
+      Datum::UTF8(ref v) => Ok(v.as_str()),
+      _ => bail!("'{:?}' can't cast to str.", self)
+    }
+  }
+}
+
 
 #[derive(Clone)]
 pub struct VecColumnData {

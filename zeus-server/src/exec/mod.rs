@@ -56,6 +56,12 @@ impl Block {
     }
   }
 
+  pub fn column_by_name(&self, name: &str) -> Option<Column> {
+    self.columns.iter()
+      .find(|x| x.name() == Some(name))
+      .map(|c| c.clone())
+  }
+
   pub fn filter(&self, masks_block: &Block) -> Result<Block> {
     ensure!(masks_block.columns.len() == 1, "Filters length can only be 1");
 
@@ -93,6 +99,12 @@ pub enum ExecPhase {
 }
 
 pub struct ExecContext {}
+
+impl Default for ExecContext {
+  fn default() -> Self {
+    ExecContext {}
+  }
+}
 
 pub trait ExecNode: Send + 'static {
   fn open(

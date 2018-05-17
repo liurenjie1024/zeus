@@ -74,6 +74,7 @@ mod tests {
   use exec::tests::MemoryBlocks;
   use exec::Block;
   use exec::ExecNode;
+  use exec::ExecContext;
   use super::FilterExecNode;
   use rpc::zeus_plan::{FilterNode, PlanNode, PlanNodeType};
   use rpc::zeus_expr::{Expression, ExpressionType, LiteralExpression};
@@ -160,6 +161,36 @@ mod tests {
     let children = vec![create_memory_block(), create_memory_block()];
 
     assert!(FilterExecNode::new(&plan_node, &server_context, children).is_err());
+  }
+
+  #[test]
+  fn test_execute_filter_exec_node() {
+    let plan_node = create_filter_plan_node();
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    let mut filter_node = FilterExecNode::new(&plan_node, &server_context, children).unwrap();
+    let mut exec_context = ExecContext::default();
+
+    assert!(filter_node.open(&mut exec_context).is_ok());
+
+    // First block
+    let ret = filter_node.next();
+    assert!(ret.is_ok());
+
+    let ret = ret.unwrap();
+    assert_eq!(2, ret.len());
+    assert_eq!(2, ret.columns.len());
+    assert!(!ret.eof);
+
+    // Second block
+    let ret = filter_node.next();
+    assert!(ret.is_ok());
+
+    let ret = ret.unwrap();
+    assert_eq!(2, ret.len());
+    assert_eq!(2, ret.columns.len());
+    assert!(ret.eof);
   }
 }
 

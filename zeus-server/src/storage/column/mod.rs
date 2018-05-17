@@ -3,6 +3,7 @@ pub mod const_column_data;
 
 use std::iter::Iterator;
 use std::convert::From;
+use std::clone::Clone;
 use std::sync::Arc;
 
 use self::vec_column_data::VecColumnData;
@@ -13,6 +14,7 @@ use rpc::zeus_meta::ColumnValue;
 use util::errors::*;
 
 
+#[derive(Clone)]
 pub struct Column {
   field_type: ColumnType,
   column_name: Option<String>,
@@ -71,6 +73,10 @@ impl Column {
 
   pub fn field_type(&self) -> ColumnType {
     self.field_type
+  }
+
+  pub fn name(&self) -> Option<&str> {
+    self.column_name.as_ref().map(|t| t.as_str())
   }
 
   pub fn column_value_iter(&self) -> ColumnValueIter {

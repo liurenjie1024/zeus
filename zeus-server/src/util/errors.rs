@@ -28,6 +28,10 @@ error_chain! {
     }
     Scheduler(inner: scheduler::ErrorKind) {
     }
+    ColumnNameNotFound(column_name: String) {
+      description("invalid column name")
+      display("invalid column name: '{}'", column_name)
+    }
   }
 }
 
