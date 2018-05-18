@@ -10,7 +10,7 @@ use super::ScalarFunc;
 
 use util::errors::*;
 
-enum CmpOp {
+pub enum CmpOp {
   Less,
   Greater,
   LessEqual,
@@ -32,23 +32,20 @@ impl CmpOp {
   }
 }
 
-
-struct CmpOperator<T> {
+struct CmpOperator {
   op: CmpOp,
-  eval_fn: fn(&Datum) -> Result<T>
+  order_fn: fn(&Datum, &Datum) -> Result<Ordering>
 }
 
-impl<T> ScalarFunc for CmpOperator<T>
-  where T: Ord {
-  fn eval(self, _ctx: &EvalContext, input: &Block) -> Result<Block> {
+impl ScalarFunc for CmpOperator {
+  fn eval(self, _ctx: &EvalContext, input: &Block) -> Result<Block>
+  {
     ensure!(input.columns.len() >= 2, "Input block need at least 2 columns");
     let cmp_results = input.columns[0].iter()
       .zip(input.columns[1].iter())
-      .try_fold(Vec::new(), |mut cmp_results, args| -> Result<Vec<Datum>> {
-        let lhs = (self.eval_fn)(&args.0)?;
-        let rhs = (self.eval_fn)(&args.1)?;
-
-        cmp_results.push(Datum::Bool(self.op.is_match(lhs.cmp(&rhs))));
+      .try_fold(Vec::new(), move |mut cmp_results, args| -> Result<Vec<Datum>> {
+        let order = (self.order_fn)(&args.0, &args.1)?;
+        cmp_results.push(Datum::Bool(self.op.is_match(order)));
         Ok(cmp_results)
       })?;
 
@@ -56,60 +53,74 @@ impl<T> ScalarFunc for CmpOperator<T>
   }
 }
 
-macro_rules! cmp_op_for {
-  ($dt: ty, $eval_fn: path) => {
-    impl CmpOperator<$dt> {
-      fn lt() -> CmpOperator<$dt> {
-        CmpOperator {
-          op: CmpOp::Less,
-          eval_fn: $eval_fn
-        }
-      }
+impl CmpOperator {
+  fn order_of_copy<F, T>(left: &Datum, right: &Datum, eval_fn: F) -> Result<Ordering>
+    where T: Copy + Ord,
+          F: Fn(&Datum) -> Result<T>
+  {
+    let lhs = eval_fn(left)?;
+    let rhs = eval_fn(right)?;
 
-      fn gt() -> CmpOperator<$dt> {
-        CmpOperator {
-          op: CmpOp::Greater,
-          eval_fn: $eval_fn
-        }
-      }
+    Ok(lhs.cmp(&rhs))
+  }
 
-      fn le() -> CmpOperator<$dt> {
-        CmpOperator {
-          op: CmpOp::LessEqual,
-          eval_fn: $eval_fn
-        }
-      }
+  fn order_of_ref<F, T>(left: &Datum, right: &Datum, eval_fn: F) -> Result<Ordering>
+    where T: ?Sized + Ord,
+          F: for<'a> Fn(&'a Datum) -> Result<&'a T>
+  {
+    let lhs = eval_fn(left)?;
+    let rhs = eval_fn(right)?;
 
-      fn ge() -> CmpOperator<$dt> {
-        CmpOperator {
-          op: CmpOp::GreaterEqual,
-          eval_fn: $eval_fn
-        }
-      }
+    Ok(lhs.cmp(&rhs))
+  }
 
-      fn eq() -> CmpOperator<$dt> {
-        CmpOperator {
-          op: CmpOp::Equal,
-          eval_fn: $eval_fn
-        }
-      }
-
-      fn ne() -> CmpOperator<$dt> {
-        CmpOperator {
-          op: CmpOp::NotEqual,
-          eval_fn: $eval_fn
-        }
-      }
+  fn new(op: CmpOp,
+    order_fn: fn(&Datum, &Datum) -> Result<Ordering>) -> impl ScalarFunc {
+    CmpOperator {
+      op,
+      order_fn
     }
+  }
+
+  pub fn bool_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_bool))
+  }
+
+  pub fn i8_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i8))
+  }
+
+  pub fn i16_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+     |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i16))
+  }
+
+  pub fn i32_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i32))
+  }
+
+  pub fn i64_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i64))
+  }
+
+  pub fn f4_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_f32))
+  }
+
+  pub fn f8_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_f64))
+  }
+
+  pub fn str_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+    CmpOperator::new(op,
+      |left, right| CmpOperator::order_of_ref(left, right, Datum::to_str))
   }
 }
 
-cmp_op_for!(bool, Datum::to_bool);
-cmp_op_for!(i8, Datum::to_i8);
-cmp_op_for!(i16, Datum::to_i16);
-cmp_op_for!(i32, Datum::to_i32);
-cmp_op_for!(i64, Datum::to_i64);
-cmp_op_for!(f32, Datum::to_f32);
-cmp_op_for!(f64, Datum::to_f64);
-//cmp_op_for!(&str, Datum::to_str);
 
