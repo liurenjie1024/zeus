@@ -1,6 +1,7 @@
 #![feature(iterator_try_fold)]
 #![feature(fnbox)]
 #![feature(box_syntax)]
+#![recursion_limit="128"]
 
 extern crate bytes;
 extern crate futures;

@@ -32,6 +32,8 @@ error_chain! {
       description("invalid column name")
       display("invalid column name: '{}'", column_name)
     }
+    UnableToCompare (msg: String) {
+    }
   }
 }
 

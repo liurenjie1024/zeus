@@ -9,7 +9,7 @@ use rpc::zeus_expr::ScalarFuncId;
 use self::logical_op::ReducedLogicalOperator;
 use util::errors::*;
 
-trait ScalarFunc {
+pub trait ScalarFunc {
   fn eval(self, ctx: &EvalContext, input: &Block) -> Result<Block>;
 }
 

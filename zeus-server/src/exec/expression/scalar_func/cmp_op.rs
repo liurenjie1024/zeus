@@ -1,5 +1,6 @@
-use std::cmp::Ord;
+use std::cmp::PartialOrd;
 use std::cmp::Ordering;
+use std::fmt::Display;
 
 use storage::column::vec_column_data::{VecColumnData, Datum};
 use storage::column::Column;
@@ -32,7 +33,7 @@ impl CmpOp {
   }
 }
 
-struct CmpOperator {
+pub struct CmpOperator {
   op: CmpOp,
   order_fn: fn(&Datum, &Datum) -> Result<Ordering>
 }
@@ -55,23 +56,25 @@ impl ScalarFunc for CmpOperator {
 
 impl CmpOperator {
   fn order_of_copy<F, T>(left: &Datum, right: &Datum, eval_fn: F) -> Result<Ordering>
-    where T: Copy + Ord,
+    where T: Copy + PartialOrd + Display,
           F: Fn(&Datum) -> Result<T>
   {
     let lhs = eval_fn(left)?;
     let rhs = eval_fn(right)?;
 
-    Ok(lhs.cmp(&rhs))
+    lhs.partial_cmp(&rhs).ok_or_else(
+      move || ErrorKind::UnableToCompare(format!("Unable to compare:{}, {}", lhs, rhs)).into())
   }
 
   fn order_of_ref<F, T>(left: &Datum, right: &Datum, eval_fn: F) -> Result<Ordering>
-    where T: ?Sized + Ord,
+    where T: ?Sized + PartialOrd + Display,
           F: for<'a> Fn(&'a Datum) -> Result<&'a T>
   {
     let lhs = eval_fn(left)?;
     let rhs = eval_fn(right)?;
 
-    Ok(lhs.cmp(&rhs))
+    lhs.partial_cmp(&rhs).ok_or_else(
+      || ErrorKind::UnableToCompare("Unable to compare".to_string()).into())
   }
 
   fn new(op: CmpOp,
