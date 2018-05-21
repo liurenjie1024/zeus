@@ -18,6 +18,62 @@ enum ScalarFuncId {
 
     // Logical operators
     AND = 1;
+
+
+    // Compare operator
+    GT_BOOL = 21;
+    GT_I8 = 22;
+    GT_I16 = 23;
+    GT_I32 = 24;
+    GT_I64 = 25;
+    GT_F4 = 26;
+    GT_F8 = 27;
+    GT_STR = 28;
+
+    GE_BOOL = 29;
+    GE_I8 = 30;
+    GE_I16 = 31;
+    GE_I32 = 32;
+    GE_I64 = 33;
+    GE_F4 = 34;
+    GE_F8 = 35;
+    GE_STR = 36;
+
+    LT_BOOL = 37;
+    LT_I8 = 38;
+    LT_I16 = 39;
+    LT_I32 = 40;
+    LT_I64 = 41;
+    LT_F4 = 42;
+    LT_F8 = 43;
+    LT_STR = 44;
+
+    LE_BOOL = 45;
+    LE_I8 = 46;
+    LE_I16 = 47;
+    LE_I32 = 48;
+    LE_I64 = 49;
+    LE_F4 = 50;
+    LE_F8 = 51;
+    LE_STR = 52;
+
+    EQ_BOOL = 53;
+    EQ_I8 = 54;
+    EQ_I16 = 55;
+    EQ_I32 = 56;
+    EQ_I64 = 57;
+    EQ_F4 = 58;
+    EQ_F8 = 59;
+    EQ_STR = 60;
+
+    NE_BOOL = 61;
+    NE_I8 = 62;
+    NE_I16 = 63;
+    NE_I32 = 64;
+    NE_I64 = 65;
+    NE_F4 = 66;
+    NE_F8 = 67;
+    NE_STR = 68;
 }
 
 enum AggFuncId {
