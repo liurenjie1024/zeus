@@ -25,8 +25,11 @@ message FilterNode {
 }
 
 message ProjectNode {
-    repeated Expression expressions = 1;
-    repeated string names = 2;
+    message ProjectItem {
+       Expression expression = 1;
+       string alias = 2;
+    }
+    repeated ProjectItem items = 1;
 }
 
 message AggregationNode {

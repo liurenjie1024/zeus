@@ -132,6 +132,10 @@ impl Column {
     }
   }
 
+  pub fn set_name<S: ToString>(&mut self, name: S) {
+    self.column_name = Some(name.to_string());
+  }
+
   pub fn iter(&self) -> ColumnIter {
     self.column_data.iter()
   }

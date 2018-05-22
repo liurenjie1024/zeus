@@ -13,6 +13,7 @@ use util::errors::*;
 
 pub struct ProjectExecNode {
   mappers: Vec<Expr>,
+  output_names: Vec<Option<String>>,
   input: Box<ExecNode>
 }
 
@@ -25,12 +26,19 @@ impl ExecNode for ProjectExecNode {
     let next_input_block = self.input.next()?;
     let eval_context = EvalContext::default();
 
-    let columns = self.mappers.iter_mut()
+    let mut columns = self.mappers.iter_mut()
       .try_fold(Vec::new(), |mut columns, expr| -> Result<Vec<Column>> {
         let mut block = expr.eval(&eval_context, &next_input_block)?;
         columns.append(&mut block.columns);
         Ok(columns)
       })?;
+
+    columns.iter_mut()
+      .zip(self.output_names.iter())
+      .for_each(|t| match t.1 {
+        Some(name) => t.0.set_name(name),
+        None => ()
+      });
 
     Ok(Block::new(columns, next_input_block.eof))
   }
@@ -50,15 +58,28 @@ impl ProjectExecNode {
 
     let input = children.pop().unwrap();
 
-    let mappers = plan_node.get_project_node().get_expressions()
+    let output_names = plan_node.get_project_node()
+      .get_items()
       .iter()
-      .try_fold(Vec::new(), |mut res, expr| -> Result<Vec<Expr>> {
-        res.push(Expr::new(expr)?);
+      .map(|item| {
+        match item.get_alias() {
+          "" => None,
+          x  => Some(x.to_string())
+        }
+      }).collect();
+
+    let mappers = plan_node.get_project_node().get_items()
+      .iter()
+      .try_fold(Vec::new(), |mut res, item| -> Result<Vec<Expr>> {
+        res.push(Expr::new(item.get_expression())?);
         Ok(res)
       })?;
 
+
+
     Ok(box ProjectExecNode {
       mappers,
+      output_names,
       input
     })
   }
@@ -76,6 +97,7 @@ mod tests {
   use exec::ExecNode;
   use exec::ExecContext;
   use super::ProjectExecNode;
+  use rpc::zeus_plan::ProjectNode_ProjectItem;
   use rpc::zeus_plan::{ProjectNode, PlanNode, PlanNodeType};
   use rpc::zeus_expr::{Expression, ExpressionType, LiteralExpression, ScalarFunction, ScalarFuncId,
     ColumnRef};
@@ -151,7 +173,12 @@ mod tests {
       expr.set_expression_type(ExpressionType::SCALAR_FUNCTION);
       expr.set_scalar_func(scalar_func);
 
-      expr
+
+      let mut item = ProjectNode_ProjectItem::new();
+      item.set_expression(expr);
+      item.set_alias("x1".to_string());
+
+      item
     };
 
 
@@ -164,13 +191,16 @@ mod tests {
       expr.set_expression_type(ExpressionType::COLUMN_REF);
       expr.set_column(tmp);
 
-      expr
+      let mut item = ProjectNode_ProjectItem::new();
+      item.set_expression(expr);
+
+      item
     };
 
 
     let mut project_node = ProjectNode::new();
-    project_node.mut_expressions().push(expr_a_gt_18);
-    project_node.mut_expressions().push(expr_b);
+    project_node.mut_items().push(expr_a_gt_18);
+    project_node.mut_items().push(expr_b);
 
     let mut plan_node = PlanNode::new();
     plan_node.set_node_id(1);
@@ -229,7 +259,9 @@ mod tests {
     assert_eq!(2, ret.len());
     assert_eq!(2, ret.columns.len());
     assert_eq!(vec![Datum::Bool(true), Datum::Bool(false)], ret.columns[0].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("x1"), ret.columns[0].name());
     assert_eq!(vec![Datum::Bool(false), Datum::Bool(false)], ret.columns[1].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("b"), ret.columns[1].name());
     assert!(!ret.eof);
 
     // Second block
@@ -240,7 +272,9 @@ mod tests {
     assert_eq!(2, ret.len());
     assert_eq!(2, ret.columns.len());
     assert_eq!(vec![Datum::Bool(false), Datum::Bool(true)], ret.columns[0].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("x1"), ret.columns[0].name());
     assert_eq!(vec![Datum::Bool(true), Datum::Bool(true)], ret.columns[1].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("b"), ret.columns[1].name());
     assert!(ret.eof);
   }
 }
