@@ -2,6 +2,7 @@ use super::vec_column_data::Datum;
 use super::ColumnData;
 use super::ColumnIter;
 
+#[derive(Debug)]
 pub struct ConstColumnData {
   size: usize,
   data: Datum

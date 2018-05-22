@@ -58,6 +58,13 @@ impl<'a> From<&'a LiteralExpression> for Datum {
 }
 
 impl Datum {
+  pub fn vec_of<T>(vec_data: Vec<T>) -> Vec<Datum>
+    where T: Into<Datum> + Clone {
+    vec_data.iter()
+      .map(|x| x.clone().into())
+      .collect()
+  }
+
   pub fn add(left: &Datum, right: &Datum) -> Result<Datum> {
     match (left, right) {
       (&Datum::Int8(v1), &Datum::Int8(v2)) => Ok(Datum::Int8(v1+v2)),
@@ -173,7 +180,7 @@ impl Datum {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VecColumnData {
   pub(super) datums: Vec<Datum>
 }

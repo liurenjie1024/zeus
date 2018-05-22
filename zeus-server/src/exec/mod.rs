@@ -30,6 +30,7 @@ use self::project_node::ProjectNode;
 use self::agg_node::AggNode;
 use self::topn_node::TopNNode;
 
+#[derive(Debug)]
 pub struct Block {
   pub columns: Vec<Column>,
   pub eof: bool,

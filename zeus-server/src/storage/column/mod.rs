@@ -4,6 +4,7 @@ pub mod const_column_data;
 use std::iter::Iterator;
 use std::convert::From;
 use std::clone::Clone;
+use std::fmt::Debug;
 use std::sync::Arc;
 
 use self::vec_column_data::VecColumnData;
@@ -14,7 +15,7 @@ use rpc::zeus_meta::ColumnValue;
 use util::errors::*;
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Column {
   field_type: ColumnType,
   column_name: Option<String>,
@@ -27,6 +28,52 @@ pub struct ColumnIter<'a> {
   idx: usize
 }
 
+pub struct ColumnBuilder {
+  field_type: ColumnType,
+  column_name: Option<String>,
+  column_id: Option<i32>,
+  column_data: Arc<ColumnData>
+}
+
+impl ColumnBuilder {
+  pub fn new_vec(field_type: ColumnType, data: Vec<Datum>) -> ColumnBuilder  {
+    ColumnBuilder {
+      field_type,
+      column_name: None,
+      column_id: None,
+      column_data: Arc::new(VecColumnData::from(data))
+    }
+  }
+
+  pub fn new_const(field_type: ColumnType, datum: Datum, size: usize) -> ColumnBuilder {
+    ColumnBuilder {
+      field_type,
+      column_name: None,
+      column_id: None,
+      column_data: Arc::new(ConstColumnData::new(size, datum))
+    }
+  }
+
+  pub fn set_name<S: ToString>(mut self, name: S) -> ColumnBuilder {
+    self.column_name = Some(name.to_string());
+    self
+  }
+
+  pub fn set_id(mut self, id: i32) -> ColumnBuilder {
+    self.column_id = Some(id);
+    self
+  }
+
+  pub fn build(self) -> Column {
+    Column {
+      field_type: self.field_type,
+      column_name: self.column_name,
+      column_id: self.column_id,
+      column_data: self.column_data
+    }
+  }
+}
+
 impl<'a> Iterator for ColumnIter<'a> {
   type Item = Datum;
 
@@ -37,7 +84,7 @@ impl<'a> Iterator for ColumnIter<'a> {
   }
 }
 
-trait ColumnData: Send+Sync {
+trait ColumnData: Send + Sync + Debug {
   fn len(&self) -> usize;
   fn get(&self, idx: usize) -> Option<Datum>;
   fn iter(&self) -> ColumnIter;

@@ -67,28 +67,35 @@ impl FilterExecNode {
 mod tests {
 
   use std::default::Default;
-  use std::convert::From;
+  use std::vec::Vec;
 
-  use storage::column::Column;
-  use storage::column::vec_column_data::VecColumnData;
+  use storage::column::ColumnBuilder;
+  use storage::column::vec_column_data::Datum;
   use exec::tests::MemoryBlocks;
   use exec::Block;
   use exec::ExecNode;
   use exec::ExecContext;
   use super::FilterExecNode;
   use rpc::zeus_plan::{FilterNode, PlanNode, PlanNodeType};
-  use rpc::zeus_expr::{Expression, ExpressionType, LiteralExpression};
+  use rpc::zeus_expr::{Expression, ExpressionType, LiteralExpression, ScalarFunction, ScalarFuncId,
+    ColumnRef};
   use rpc::zeus_meta::{ColumnType, ColumnValue};
   use server::ServerContext;
 
   fn create_memory_block() -> Box<ExecNode> {
-    let column1 = Column::new_vec(ColumnType::BOOL, VecColumnData::from(vec![true, false]));
-    let column2 = Column::new_vec(ColumnType::INT64, VecColumnData::from(vec![12i64, 14i64]));
+    let column1 = ColumnBuilder::new_vec(ColumnType::BOOL, Datum::vec_of(vec![false, true]))
+      .build();
+    let column2 = ColumnBuilder::new_vec(ColumnType::INT64, Datum::vec_of(vec![10000i64, 16i64]))
+      .set_name("a")
+      .build();
     let block1 = vec![column1, column2];
     let block1 = Block::from(block1);
 
-    let column3 = Column::new_vec(ColumnType::BOOL, VecColumnData::from(vec![false, true]));
-    let column4 = Column::new_vec(ColumnType::INT64, VecColumnData::from(vec![100000i64, 54321i64]));
+    let column3 = ColumnBuilder::new_vec(ColumnType::BOOL, Datum::vec_of(vec![false, true]))
+      .build();
+    let column4 = ColumnBuilder::new_vec(ColumnType::INT64, Datum::vec_of(vec![5432i64, 12i64]))
+      .set_name("a")
+      .build();
     let block2 = vec![column3, column4];
     let block2 = Block::from(block2);
 
@@ -98,20 +105,57 @@ mod tests {
   }
 
   fn create_filter_plan_node() -> PlanNode {
-    let mut value = ColumnValue::new();
-    value.set_bool_value(true);
+    // create expression of a > 18
+    let scalar_func_expr = {
 
-    let mut literal_expr = LiteralExpression::new();
-    literal_expr.set_field_type(ColumnType::BOOL);
-    literal_expr.set_value(value);
+      // create column expression a
+      let column_expr_a = {
+        let mut tmp = ColumnRef::new();
+        tmp.set_name("a".to_string());
 
-    let mut expr = Expression::new();
-    expr.set_expression_type(ExpressionType::LITERAL);
-    expr.set_literal(literal_expr);
+        let mut expr = Expression::new();
+        expr.set_expression_type(ExpressionType::COLUMN_REF);
+        expr.set_column(tmp);
+
+        expr
+      };
+
+
+      // create literal expression 18
+      let const_expr = {
+        let mut value = ColumnValue::new();
+        value.set_i64_value(18i64);
+
+        let mut literal_expr = LiteralExpression::new();
+        literal_expr.set_field_type(ColumnType::INT64);
+        literal_expr.set_value(value);
+
+        let mut expr = Expression::new();
+        expr.set_expression_type(ExpressionType::LITERAL);
+        expr.set_literal(literal_expr);
+
+        expr
+      };
+
+
+      // create scala func expr
+      let mut scalar_func = ScalarFunction::new();
+      scalar_func.set_func_id(ScalarFuncId::GT_I64);
+      scalar_func.mut_children().push(column_expr_a);
+      scalar_func.mut_children().push(const_expr);
+
+
+      let mut expr = Expression::new();
+      expr.set_expression_type(ExpressionType::SCALAR_FUNCTION);
+      expr.set_scalar_func(scalar_func);
+
+      expr
+    };
+
 
 
     let mut filter_node = FilterNode::new();
-    filter_node.mut_conditions().push(expr);
+    filter_node.mut_conditions().push(scalar_func_expr);
 
     let mut plan_node = PlanNode::new();
     plan_node.set_node_id(1);
@@ -179,8 +223,10 @@ mod tests {
     assert!(ret.is_ok());
 
     let ret = ret.unwrap();
-    assert_eq!(2, ret.len());
+    assert_eq!(1, ret.len());
     assert_eq!(2, ret.columns.len());
+    assert_eq!(vec![Datum::Bool(false)], ret.columns[0].iter().collect::<Vec<Datum>>());
+    assert_eq!(vec![Datum::Int64(5432i64)], ret.columns[1].iter().collect::<Vec<Datum>>());
     assert!(!ret.eof);
 
     // Second block
@@ -188,8 +234,10 @@ mod tests {
     assert!(ret.is_ok());
 
     let ret = ret.unwrap();
-    assert_eq!(2, ret.len());
+    assert_eq!(1, ret.len());
     assert_eq!(2, ret.columns.len());
+    assert_eq!(vec![Datum::Bool(false)], ret.columns[0].iter().collect::<Vec<Datum>>());
+    assert_eq!(vec![Datum::Int64(10000i64)], ret.columns[1].iter().collect::<Vec<Datum>>());
     assert!(ret.eof);
   }
 }
