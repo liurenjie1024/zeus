@@ -65,7 +65,6 @@ impl FilterExecNode {
 
 #[cfg(test)]
 mod tests {
-
   use std::default::Default;
   use std::vec::Vec;
 

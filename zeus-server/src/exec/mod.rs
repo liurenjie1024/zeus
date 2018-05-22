@@ -26,7 +26,7 @@ use server::data_service::Rows;
 use self::table_scan_node::TableScanNode;
 use self::limit_node::LimitExecNode;
 use self::filter_node::FilterExecNode;
-use self::project_node::ProjectNode;
+use self::project_node::ProjectExecNode;
 use self::agg_node::AggNode;
 use self::topn_node::TopNNode;
 
@@ -37,6 +37,13 @@ pub struct Block {
 }
 
 impl Block {
+  pub fn new(columns: Vec<Column>, eof: bool) -> Block {
+    Block {
+      columns,
+      eof
+    }
+  }
+
   pub fn from(columns: Vec<Column>) -> Block {
     //TODO: Check that columns are equal length
     Block {
@@ -136,7 +143,7 @@ impl PlanNode {
       PlanNodeType::SCAN_NODE => TableScanNode::new(self.get_scan_node(), server_context, children),
       PlanNodeType::LIMIT_NODE => LimitExecNode::new(&self, server_context, children),
       PlanNodeType::FILTER_NODE => FilterExecNode::new(&self, server_context, children),
-      PlanNodeType::PROJECT_NODE => ProjectNode::new(&self, server_context, children),
+      PlanNodeType::PROJECT_NODE => ProjectExecNode::new(&self, server_context, children),
       PlanNodeType::AGGREGATE_NODE => AggNode::new(&self, server_context, children),
       PlanNodeType::TOPN_NODE => TopNNode::new(&self, server_context, children)
     }
