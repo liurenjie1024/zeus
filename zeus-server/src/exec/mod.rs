@@ -87,6 +87,11 @@ impl Block {
       eof: self.eof
     })
   }
+
+  pub fn merge(&mut self, other: Block) -> Result<()> {
+    self.columns.append(&mut other.columns);
+    Ok(())
+  }
 }
 
 impl Default for Block {
