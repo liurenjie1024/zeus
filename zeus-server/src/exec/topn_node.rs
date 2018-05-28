@@ -3,10 +3,15 @@ use std::cmp;
 use std::collections::BinaryHeap;
 use std::cmp::Ord;
 use std::cmp::Ordering;
+use std::default::Default;
 
 use rpc::zeus_plan::PlanNodeType;
 use rpc::zeus_plan::PlanNode;
 use rpc::zeus_plan::TopNNode_SortItem;
+use rpc::zeus_meta::ColumnType;
+use storage::column::Column;
+use storage::column::ColumnBuilder;
+use storage::column::vec_column_data::Datum;
 use super::ServerContext;
 use super::ExecNode;
 use super::ExecContext;
@@ -39,6 +44,8 @@ impl ExecNode for TopNNode {
 
     let eval_context = EvalContext::default();
 
+
+    // Get source blocks
     let mut source_blocks = Vec::new();
     loop {
       let block = self.input.next()?;
@@ -50,9 +57,10 @@ impl ExecNode for TopNNode {
       }
     }
 
+    // Calculate sort by blocks
     let sort_item_blocks = source_blocks.iter()
-      .try_fold(Vec::new(), |mut blocks, b| -> Result<Block> {
-        blocks.push(self.get_sort_by_blocks(eval_context, b)?);
+      .try_fold(Vec::new(), |mut blocks, b| -> Result<Vec<Block>> {
+        blocks.push(self.get_sort_by_block(&eval_context, b)?);
         Ok(blocks)
       })?;
 
@@ -61,21 +69,49 @@ impl ExecNode for TopNNode {
       desc: self._sort_items.iter().map(|x| x._desc).collect()
     };
 
+
+    // Heap meta data
     let row_count = source_blocks.iter()
       .map(|b| b.len())
       .fold(0usize, |acc, x| acc + x);
 
     let limit = match self._limit {
-      x if x <=0 => None,
+      x if x <= 0 => None,
       y => Some(y as usize)
     };
 
     let mut heap = TopNHeap::new(row_count, limit);
 
+    // insert data to heap
     sort_item_blocks.iter()
-      .for_each(|r| heap.push(r));
+      .try_for_each(|r| heap.push(r));
 
 
+    let source_blocks = BlockChain::new(source_blocks);
+
+    // sorted rows
+    let rows = heap.into_sorted_vec().iter()
+      .map(|x| x.change_block_chain(&source_blocks))
+      .collect::<Vec<BlockChainRow>>();
+
+    let column_cnt = source_blocks.column_size();
+
+    let mut column_vec = Vec::new();
+    for column_idx in 0..column_cnt {
+      let column_data = rows.iter()
+        .try_fold(Vec::new(), |mut c, r| -> Result<Vec<Datum>> {
+          c.push(r.get_data(column_idx)?);
+          Ok(c)
+        })?;
+
+      //TODO: Check this
+      let column_type = source_blocks.column_type(column_idx).unwrap();
+      let column = ColumnBuilder::new_vec(column_type, column)
+        .build();
+      column_vec.push(column);
+    }
+
+    Ok(Block::new(column_vec, true))
   }
 
   fn close(&mut self) -> Result<()> {
@@ -84,7 +120,7 @@ impl ExecNode for TopNNode {
 }
 
 impl TopNNode {
-  fn get_sort_by_blocks(&mut self, eval_ctx: &EvalContext, input: &Block) -> Result<Block> {
+  fn get_sort_by_block(&mut self, eval_ctx: &EvalContext, input: &Block) -> Result<Block> {
     self._sort_items.iter()
       .try_fold(Block::default(), |mut b, sort_item| -> Result<Block> {
         let sort_block = sort_item._item.eval(eval_ctx, input)?;
@@ -93,8 +129,6 @@ impl TopNNode {
       })
   }
 }
-
-
 
 impl SortItem {
   fn new(rpc_sort_item: &TopNNode_SortItem) -> Result<SortItem> {
@@ -125,7 +159,8 @@ impl TopNNode {
     Ok(box TopNNode {
       _sort_items: sort_items,
       _limit: plan_node.get_topn_node().get_limit(),
-      input
+      input,
+      executed: false
     })
   }
 }
@@ -135,7 +170,23 @@ struct BlockChain {
   desc: Vec<bool>
 }
 
+impl Default for BlockChain {
+  fn default() -> Self {
+    BlockChain {
+      blocks: Vec::new(),
+      desc: Vec::new()
+    }
+  }
+}
+
 impl BlockChain {
+  fn new(blocks: Vec<Block>) -> BlockChain {
+    BlockChain {
+      blocks,
+      desc: Vec::new()
+    }
+  }
+
   fn iter(&self) -> impl Iterator<Item = BlockChainRow> {
     self.blocks.iter()
       .enumerate()
@@ -146,6 +197,33 @@ impl BlockChain {
           row: y
         }
       }))
+  }
+
+  fn get_data(&self, block: usize, row: usize, col: usize) -> Result<Datum> {
+    self.blocks.get(block)
+      .and_then(|b| b.columns.get(col))
+      .and_then(|c| c.get(row))
+      .ok_or_else(|| format!("No data found in block {}, row {}, column {}", block, row, col).into())
+  }
+
+  fn column_size(&self) -> usize {
+    self.blocks.get(0)
+      .map(|b| b.columns.len())
+      .unwrap_or(0usize)
+  }
+
+  fn column_type(&self, column_idx: usize) -> Option<ColumnType> {
+    self.blocks.get(0)
+      .and_then(|b| b.columns.get(column_idx))
+      .map(|c| c.field_type())
+  }
+
+  fn add_block(&mut self, block: Block) -> Result<()> {
+    if self.blocks.is_empty() {
+      return Ok(());
+    }
+
+
   }
 }
 
@@ -164,7 +242,7 @@ impl<'a> Ord for BlockChainRow<'a> {
 
 impl<'a> PartialOrd for BlockChainRow<'a> {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.cmp(other))
+    Some(self.cmp(&other))
   }
 }
 
@@ -175,6 +253,32 @@ impl<'a> PartialEq<Self> for BlockChainRow<'a> {
 }
 
 impl<'a> Eq for BlockChainRow<'a> {
+}
+
+impl<'a> BlockChainRow<'a> {
+  fn get_blocks<I>(mut rows: I, column_idx: usize, column_type: ColumnType) -> Result<Column>
+    where I: Iterator<BlockChainRow<'a>> {
+
+    let column = rows.try_fold(Vec::new(), |mut c, r| -> Result<Vec<Datum>> {
+      c.push(r.get_data(column_idx)?);
+      Ok(c)
+    })?;
+
+    Ok(ColumnBuilder::new_vec(column_type, column).build())
+  }
+
+
+  fn get_data(&self, column_idx: usize) -> Result<Datum> {
+    self.block_chain.get_data(self.block, self.row, column_idx)
+  }
+
+  fn change_block_chain<'b>(&self, block_chain: &'b BlockChain) -> BlockChainRow<'a> {
+    BlockChainRow {
+      block_chain,
+      block: self.block,
+      row: self.row
+    }
+  }
 }
 
 struct TopNHeap<'a> {

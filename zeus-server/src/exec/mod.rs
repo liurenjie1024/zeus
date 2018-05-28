@@ -92,6 +92,15 @@ impl Block {
     self.columns.append(&mut other.columns);
     Ok(())
   }
+
+  pub fn is_same_type(&self, other: &Block) -> bool {
+    if self.columns.len() != other.columns.len() {
+      return false;
+    }
+
+    self.columns.iter().zip(other.columns.iter())
+      .all(|left, right| left.field_type() == right.field_type())
+  }
 }
 
 impl Default for Block {
