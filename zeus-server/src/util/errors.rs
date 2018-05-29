@@ -34,6 +34,12 @@ error_chain! {
     }
     UnableToCompare (msg: String) {
     }
+    BlockTypeNotMatch(msg: String) {
+    }
+    IndexOutOfBound(pos: usize, bound: usize) {
+      description("Index out of bound")
+      display("Index out of bound, index is {}, bound is {}", pos, bound)
+    }
   }
 }
 

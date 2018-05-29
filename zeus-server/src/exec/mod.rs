@@ -88,7 +88,8 @@ impl Block {
     })
   }
 
-  pub fn merge(&mut self, other: Block) -> Result<()> {
+  pub fn merge(&mut self, mut other: Block) -> Result<()> {
+    // TODO: Check that all columns are equal length
     self.columns.append(&mut other.columns);
     Ok(())
   }
@@ -99,7 +100,7 @@ impl Block {
     }
 
     self.columns.iter().zip(other.columns.iter())
-      .all(|left, right| left.field_type() == right.field_type())
+      .all(|t| t.0.field_type() == t.1.field_type())
   }
 }
 

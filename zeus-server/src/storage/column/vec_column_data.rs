@@ -2,6 +2,7 @@ use std::vec::Vec;
 use std::clone::Clone;
 use std::convert::From;
 use std::convert::Into;
+use std::cmp::Ordering;
 
 use rpc::zeus_meta::ColumnValue;
 use rpc::zeus_meta::ColumnType;
@@ -77,6 +78,25 @@ impl Datum {
     }
   }
 
+  pub fn try_cmp(left: &Datum, right: &Datum) -> Result<Ordering> {
+    match (left, right) {
+      (&Datum::Int8(v1), &Datum::Int8(v2)) => Ok(v1.cmp(&v2)),
+      (&Datum::Int16(v1), &Datum::Int16(v2)) => Ok(v1.cmp(&v2)),
+      (&Datum::Int32(v1), &Datum::Int32(v2)) => Ok(v1.cmp(&v2)),
+      (&Datum::Int64(v1), &Datum::Int64(v2)) => Ok(v1.cmp(&v2)),
+      (&Datum::Float4(v1), &Datum::Float4(v2)) => {
+        let msg = format!("Unable to compare: '{}', '{}'", v1, v2);
+        v1.partial_cmp(&v2).ok_or(ErrorKind::UnableToCompare(msg).into())
+      }
+      (&Datum::Float8(v1), &Datum::Float8(v2)) => {
+        let msg = format!("Unable to compare: '{}', '{}'", v1, v2);
+        v1.partial_cmp(&v2).ok_or(ErrorKind::UnableToCompare(msg).into())
+      },
+      (&Datum::UTF8(ref v1), &Datum::UTF8(ref v2)) => Ok(v1.cmp(&v2)),
+      (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
+    }
+  }
+
   pub fn and(left: &Datum, right: &Datum) -> Result<Datum> {
     match (left, right) {
       (&Datum::Bool(v1), &Datum::Bool(v2)) => Ok(Datum::Bool(v1 & v2)),
@@ -84,7 +104,6 @@ impl Datum {
     }
   }
 }
-
 
 macro_rules! datum_from {
   ($dt: ty, $var: ident) => {
