@@ -284,18 +284,6 @@ impl<'a> Eq for BlockChainRow<'a> {
 }
 
 impl<'a> BlockChainRow<'a> {
-//  fn get_blocks<I>(mut rows: I, column_idx: usize, column_type: ColumnType) -> Result<Column>
-//    where I: Iterator<Item = BlockChainRow<'a>> {
-//
-//    let column = rows.try_fold(Vec::new(), |mut c, r| -> Result<Vec<Datum>> {
-//      c.push(r.get_data(column_idx)?);
-//      Ok(c)
-//    })?;
-//
-//    Ok(ColumnBuilder::new_vec(column_type, column).build())
-//  }
-
-
   fn get_data(&self, column_idx: usize) -> Result<Datum> {
     self.block_chain.get_data(self.block, self.row, column_idx)
   }
@@ -342,3 +330,7 @@ impl<'a> TopNHeap<'a> {
   }
 }
 
+#[cfg(test)]
+mod tests {
+
+}

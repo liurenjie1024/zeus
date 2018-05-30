@@ -241,7 +241,7 @@ mod tests {
   }
 
   #[test]
-  fn test_execute_filter_exec_node() {
+  fn test_execute_project_exec_node() {
     let plan_node = create_project_plan_node();
     let server_context = ServerContext::default();
     let children = vec![create_memory_block()];
