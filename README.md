@@ -47,3 +47,9 @@ insertion. The following features will be implemented.
 This is project is still under heavy development...
 
 
+## How to build
+
+* Install protoc
+* Install rust protobuf 1.7.3
+* Install rust grpc
+* make -s

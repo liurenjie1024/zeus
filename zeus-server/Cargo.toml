@@ -5,7 +5,7 @@ authors = ["liurenjie1024 <liurenjie2008@gmail.com>"]
 
 [dependencies]
 grpcio = "0.2.0"
-protobuf="1.4"
+protobuf="1.7.3"
 log = "0.4.1"
 futures = "0.1"
 futures-cpupool = "0.1.8"

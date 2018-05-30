@@ -2174,11 +2174,7 @@ impl ::protobuf::Message for PlanNode {
                     ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.children)?;
                 },
                 3 => {
-                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
-                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
-                    }
-                    let tmp = is.read_enum()?;
-                    self.plan_node_type = tmp;
+                    ::protobuf::rt::read_proto3_enum_with_unknown_fields_into(wire_type, is, &mut self.plan_node_type, 3, &mut self.unknown_fields)?
                 },
                 4 => {
                     ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.scan_node)?;
