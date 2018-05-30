@@ -242,7 +242,6 @@ impl<'a> BlockChainRow<'a> {
 
       let mut ord = Datum::try_cmp(&this_data, &other_data)?;
 
-//      let desc = desc?;
       if desc {
         ord = ord.reverse();
       }
