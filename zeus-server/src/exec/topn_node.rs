@@ -24,14 +24,14 @@ struct SortItem {
   _desc: bool
 }
 
-pub struct TopNNode {
+pub struct TopNExecNode {
   _sort_items: Vec<SortItem>,
   _limit: i32,
   input: Box<ExecNode>,
   executed: bool
 }
 
-impl ExecNode for TopNNode {
+impl ExecNode for TopNExecNode {
   fn open(&mut self, context: &mut ExecContext) -> Result<()> {
     self.input.open(context)
   }
@@ -42,6 +42,7 @@ impl ExecNode for TopNNode {
     }
 
     let eval_context = EvalContext::default();
+    self.executed = true;
 
 
     // Get source blocks
@@ -102,9 +103,13 @@ impl ExecNode for TopNNode {
         })?;
 
       let column_type = source_blocks.column_type(column_idx).unwrap();
-      let column = ColumnBuilder::new_vec(column_type, column_data)
-        .build();
-      column_vec.push(column);
+      let mut column = ColumnBuilder::new_vec(column_type, column_data);
+
+      if let Some(name) = source_blocks.column_name(column_idx) {
+        column = column.set_name(name);
+      }
+
+      column_vec.push(column.build());
     }
 
     Ok(Block::new(column_vec, true))
@@ -115,7 +120,7 @@ impl ExecNode for TopNNode {
   }
 }
 
-impl TopNNode {
+impl TopNExecNode {
   fn get_sort_by_block(&mut self, eval_ctx: &EvalContext, input: &Block) -> Result<Block> {
     self._sort_items.iter_mut()
       .try_fold(Block::default(), |mut b, sort_item| -> Result<Block> {
@@ -135,7 +140,7 @@ impl SortItem {
   }
 }
 
-impl TopNNode {
+impl TopNExecNode {
   pub fn new(plan_node: &PlanNode, _server_context: &ServerContext, mut children: Vec<Box<ExecNode>>)
     -> Result<Box<ExecNode>> {
     ensure!(plan_node.get_plan_node_type() == PlanNodeType::TOPN_NODE,
@@ -152,7 +157,7 @@ impl TopNNode {
         Ok(res)
       })?;
 
-    Ok(box TopNNode {
+    Ok(box TopNExecNode {
       _sort_items: sort_items,
       _limit: plan_node.get_topn_node().get_limit(),
       input,
@@ -205,6 +210,13 @@ impl BlockChain {
     self.blocks.get(0)
       .and_then(|b| b.columns.get(column_idx))
       .map(|c| c.field_type())
+  }
+
+  fn column_name(&self, column_idx: usize) -> Option<String> {
+    self.blocks.get(0)
+      .and_then(|b| b.columns.get(column_idx))
+      .and_then(|c| c.name())
+      .map(|n| n.to_string())
   }
 
   fn add_block(&mut self, block: Block) -> Result<()> {
@@ -332,5 +344,171 @@ impl<'a> TopNHeap<'a> {
 
 #[cfg(test)]
 mod tests {
+  use std::default::Default;
+  use std::vec::Vec;
 
+  use storage::column::ColumnBuilder;
+  use storage::column::vec_column_data::Datum;
+  use exec::tests::MemoryBlocks;
+  use exec::Block;
+  use exec::ExecNode;
+  use exec::ExecContext;
+  use super::TopNExecNode;
+  use rpc::zeus_plan::ProjectNode_ProjectItem;
+  use rpc::zeus_plan::{ProjectNode, PlanNode, PlanNodeType};
+  use rpc::zeus_plan::TopNNode;
+  use rpc::zeus_plan::TopNNode_SortItem;
+  use rpc::zeus_expr::{Expression, ExpressionType, LiteralExpression, ScalarFunction, ScalarFuncId,
+                       ColumnRef};
+  use rpc::zeus_meta::{ColumnType, ColumnValue};
+  use server::ServerContext;
+
+  fn create_memory_block() -> Box<ExecNode> {
+    let column1 = ColumnBuilder::new_vec(ColumnType::BOOL, Datum::vec_of(vec![true, true]))
+      .set_name("a")
+      .build();
+    let column2 = ColumnBuilder::new_vec(ColumnType::INT64, Datum::vec_of(vec![16i64, 10000i64]))
+      .set_name("b")
+      .build();
+    let column3 = ColumnBuilder::new_vec(
+      ColumnType::STRING, Datum::vec_of(vec!["hate".to_string(), "cpp".to_string()]))
+      .set_name("c")
+      .build();
+    let block1 = vec![column1, column2, column3];
+    let block1 = Block::from(block1);
+
+    let column1 = ColumnBuilder::new_vec(ColumnType::BOOL, Datum::vec_of(vec![false, false]))
+      .set_name("a")
+      .build();
+    let column2 = ColumnBuilder::new_vec(ColumnType::INT64, Datum::vec_of(vec![10000i64, 12i64]))
+      .set_name("b")
+      .build();
+    let column3 = ColumnBuilder::new_vec(
+      ColumnType::STRING, Datum::vec_of(vec!["love".to_string(), "rust".to_string()]))
+      .set_name("c")
+      .build();
+    let block2 = vec![column1, column2, column3];
+    let block2 = Block::from(block2);
+
+    box MemoryBlocks {
+      blocks: vec![block1, block2],
+    }
+  }
+
+  fn create_topn_plan_node() -> PlanNode {
+    // create expression of a
+    let expr_b = {
+      let mut tmp = ColumnRef::new();
+      tmp.set_name("b".to_string());
+
+      let mut expr = Expression::new();
+      expr.set_expression_type(ExpressionType::COLUMN_REF);
+      expr.set_column(tmp);
+
+      let mut sort_item = TopNNode_SortItem::new();
+      sort_item.set_expr(expr);
+      sort_item.set_desc(true);
+
+      sort_item
+    };
+
+
+    // create expression b
+    let expr_c = {
+      let mut tmp = ColumnRef::new();
+      tmp.set_name("c".to_string());
+
+      let mut expr = Expression::new();
+      expr.set_expression_type(ExpressionType::COLUMN_REF);
+      expr.set_column(tmp);
+
+      let mut sort_item = TopNNode_SortItem::new();
+      sort_item.set_expr(expr);
+      sort_item.set_desc(false);
+
+      sort_item
+    };
+
+
+    let mut topn_node = TopNNode::new();
+    topn_node.mut_sort_item().push(expr_b);
+    topn_node.mut_sort_item().push(expr_c);
+
+    let mut plan_node = PlanNode::new();
+    plan_node.set_node_id(1);
+    plan_node.set_plan_node_type(PlanNodeType::TOPN_NODE);
+    plan_node.set_topn_node(topn_node);
+
+    plan_node
+  }
+
+  #[test]
+  fn test_create_topn_exec_node() {
+    let plan_node = create_topn_plan_node();
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    assert!(TopNExecNode::new(&plan_node, &server_context, children).is_ok());
+  }
+
+  #[test]
+  fn test_create_topn_exec_node_wrong_type() {
+    let mut plan_node = create_topn_plan_node();
+    plan_node.set_plan_node_type(PlanNodeType::SCAN_NODE);
+
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    assert!(TopNExecNode::new(&plan_node, &server_context, children).is_err());
+  }
+
+  #[test]
+  fn test_create_topn_exec_node_wrong_children() {
+    let plan_node = create_topn_plan_node();
+
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block(), create_memory_block()];
+
+    assert!(TopNExecNode::new(&plan_node, &server_context, children).is_err());
+  }
+
+  #[test]
+  fn test_execute_topn_exec_node() {
+    let plan_node = create_topn_plan_node();
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    let mut topn_node = TopNExecNode::new(&plan_node, &server_context, children).unwrap();
+    let mut exec_context = ExecContext::default();
+
+    assert!(topn_node.open(&mut exec_context).is_ok());
+
+    // First block
+    let ret = topn_node.next();
+    assert!(ret.is_ok());
+
+    let ret = ret.unwrap();
+    assert_eq!(4, ret.len());
+    assert_eq!(3, ret.columns.len());
+    assert_eq!(vec![Datum::Bool(true), Datum::Bool(false), Datum::Bool(true), Datum::Bool(false)],
+               ret.columns[0].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("a"), ret.columns[0].name());
+    assert_eq!(vec![Datum::Int64(10000i64), Datum::Int64(10000i64),
+                    Datum::Int64(16i64), Datum::Int64(12i64)],
+               ret.columns[1].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("b"), ret.columns[1].name());
+    assert_eq!(vec![Datum::UTF8("cpp".to_string()), Datum::UTF8("love".to_string()),
+                    Datum::UTF8("hate".to_string()), Datum::UTF8("rust".to_string())],
+               ret.columns[2].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("c"), ret.columns[2].name());
+    assert!(ret.eof);
+
+    // Second block
+    let ret = topn_node.next();
+    assert!(ret.is_ok());
+
+    let ret = ret.unwrap();
+    assert_eq!(0, ret.len());
+    assert!(ret.eof);
+  }
 }

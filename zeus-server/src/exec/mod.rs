@@ -28,7 +28,7 @@ use self::limit_node::LimitExecNode;
 use self::filter_node::FilterExecNode;
 use self::project_node::ProjectExecNode;
 use self::agg_node::AggNode;
-use self::topn_node::TopNNode;
+use self::topn_node::TopNExecNode;
 
 #[derive(Debug)]
 pub struct Block {
@@ -160,7 +160,7 @@ impl PlanNode {
       PlanNodeType::FILTER_NODE => FilterExecNode::new(&self, server_context, children),
       PlanNodeType::PROJECT_NODE => ProjectExecNode::new(&self, server_context, children),
       PlanNodeType::AGGREGATE_NODE => AggNode::new(&self, server_context, children),
-      PlanNodeType::TOPN_NODE => TopNNode::new(&self, server_context, children)
+      PlanNodeType::TOPN_NODE => TopNExecNode::new(&self, server_context, children)
     }
   }
 }
