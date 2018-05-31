@@ -20,13 +20,13 @@ use super::expression::EvalContext;
 use util::errors::*;
 
 struct SortItem {
-  _item: Expr,
-  _desc: bool
+  item: Expr,
+  desc: bool
 }
 
 pub struct TopNExecNode {
-  _sort_items: Vec<SortItem>,
-  _limit: i32,
+  sort_items: Vec<SortItem>,
+  limit: i32,
   input: Box<ExecNode>,
   executed: bool
 }
@@ -66,7 +66,7 @@ impl ExecNode for TopNExecNode {
 
     let sort_item_blocks = BlockChain {
       blocks: sort_item_blocks,
-      sort_order: self._sort_items.iter().map(|x| x._desc).collect()
+      sort_order: self.sort_items.iter().map(|x| x.desc).collect()
     };
 
 
@@ -75,7 +75,7 @@ impl ExecNode for TopNExecNode {
       .map(|b| b.len())
       .fold(0usize, |acc, x| acc + x);
 
-    let limit = match self._limit {
+    let limit = match self.limit {
       x if x <= 0 => None,
       y => Some(y as usize)
     };
@@ -122,9 +122,9 @@ impl ExecNode for TopNExecNode {
 
 impl TopNExecNode {
   fn get_sort_by_block(&mut self, eval_ctx: &EvalContext, input: &Block) -> Result<Block> {
-    self._sort_items.iter_mut()
+    self.sort_items.iter_mut()
       .try_fold(Block::default(), |mut b, sort_item| -> Result<Block> {
-        let sort_block = sort_item._item.eval(eval_ctx, input)?;
+        let sort_block = sort_item.item.eval(eval_ctx, input)?;
         b.merge(sort_block)?;
         Ok(b)
       })
@@ -134,8 +134,8 @@ impl TopNExecNode {
 impl SortItem {
   fn new(rpc_sort_item: &TopNNode_SortItem) -> Result<SortItem> {
     Ok(SortItem {
-      _item: Expr::new(rpc_sort_item.get_expr())?,
-      _desc: rpc_sort_item.get_desc()
+      item: Expr::new(rpc_sort_item.get_expr())?,
+      desc: rpc_sort_item.get_desc()
     })
   }
 }
@@ -158,8 +158,8 @@ impl TopNExecNode {
       })?;
 
     Ok(box TopNExecNode {
-      _sort_items: sort_items,
-      _limit: plan_node.get_topn_node().get_limit(),
+      sort_items: sort_items,
+      limit: plan_node.get_topn_node().get_limit(),
       input,
       executed: false
     })
