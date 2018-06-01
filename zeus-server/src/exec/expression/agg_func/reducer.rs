@@ -1,14 +1,9 @@
 use exec::Block;
 use storage::column::vec_column_data::Datum;
+use super::AggFunc;
 use util::errors::*;
 
-
-pub trait AggFunc: Send {
-  fn aggregate(&mut self, args: &Block, pos: usize) -> Result<()>;
-  fn collect(&mut self) -> Result<Datum>;
-}
-
-pub struct Reducer {
+pub(super) struct Reducer {
   result: Option<Datum>,
   _aggregator: fn(&Datum, &Datum) -> Result<Datum>
 }
@@ -43,4 +38,3 @@ impl Reducer {
     }
   }
 }
-

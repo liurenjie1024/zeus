@@ -124,8 +124,8 @@ impl TopNExecNode {
   fn get_sort_by_block(&mut self, eval_ctx: &EvalContext, input: &Block) -> Result<Block> {
     self.sort_items.iter_mut()
       .try_fold(Block::default(), |mut b, sort_item| -> Result<Block> {
-        let sort_block = sort_item.item.eval(eval_ctx, input)?;
-        b.merge(sort_block)?;
+        let sort_column = sort_item.item.eval(eval_ctx, input)?;
+        b.merge(sort_column)?;
         Ok(b)
       })
   }

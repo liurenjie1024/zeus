@@ -70,11 +70,7 @@ impl Block {
       .map(|c| c.clone())
   }
 
-  pub fn filter(&self, masks_block: &Block) -> Result<Block> {
-    ensure!(masks_block.columns.len() == 1, "Filters length can only be 1");
-
-    let masks = &masks_block.columns[0];
-
+  pub fn filter(&self, masks: &Column) -> Result<Block> {
     let columns = self.columns.iter()
         .try_fold(Vec::new(), |mut res, input| -> Result<Vec<Column>> {
           let filtered_column = input.filter(masks)?;
@@ -88,9 +84,9 @@ impl Block {
     })
   }
 
-  pub fn merge(&mut self, mut other: Block) -> Result<()> {
+  pub fn merge(&mut self, other: Column) -> Result<()> {
     // TODO: Check that all columns are equal length
-    self.columns.append(&mut other.columns);
+    self.columns.push(other);
     Ok(())
   }
 

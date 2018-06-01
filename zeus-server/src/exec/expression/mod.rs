@@ -68,18 +68,18 @@ impl Expr {
     }
   }
 
-  pub fn eval(&mut self, context: &EvalContext, input: &Block) -> Result<Block> {
+  pub fn eval(&mut self, context: &EvalContext, input: &Block) -> Result<Column> {
     match self {
       Expr::Literal(ref literal) => {
         let column = Column::new_const(literal.column_type, literal.data.clone(), input.len());
-        Ok(Block::from(vec![column]))
+        Ok(column)
       }
       Expr::ScalarFunc(ref mut scalar_func)  => scalar_func.eval(context, input),
       Expr::ColumnRef(ref column) => {
         let column = input.column_by_name(column.column_name.as_str())
           .ok_or(ErrorKind::ColumnNameNotFound(column.column_name.clone()))?;
 
-        Ok(Block::from(vec![column]))
+        Ok(column)
       }
     }
   }

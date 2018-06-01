@@ -14,7 +14,7 @@ pub struct ReducedLogicalOperator {
 }
 
 impl ScalarFunc for ReducedLogicalOperator {
-  fn eval(self, _ctx: &EvalContext, input: &Block) -> Result<Block> {
+  fn eval(self, _ctx: &EvalContext, input: &Block) -> Result<Column> {
     let mut ret = Vec::with_capacity(input.len());
     for i in 0..input.len() {
       let cur = input.columns.iter()
@@ -27,7 +27,7 @@ impl ScalarFunc for ReducedLogicalOperator {
     }
 
     let column = Column::new_vec(ColumnType::BOOL, VecColumnData::from(ret));
-    Ok(Block::from(vec![column]))
+    Ok(column)
   }
 }
 

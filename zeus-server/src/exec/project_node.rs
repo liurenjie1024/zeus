@@ -28,8 +28,8 @@ impl ExecNode for ProjectExecNode {
 
     let mut columns = self.mappers.iter_mut()
       .try_fold(Vec::new(), |mut columns, expr| -> Result<Vec<Column>> {
-        let mut block = expr.eval(&eval_context, &next_input_block)?;
-        columns.append(&mut block.columns);
+        let mut column = expr.eval(&eval_context, &next_input_block)?;
+        columns.push(column);
         Ok(columns)
       })?;
 

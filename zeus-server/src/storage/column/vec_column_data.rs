@@ -12,7 +12,7 @@ use super::ColumnIter;
 
 use util::errors::*;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash)]
 pub enum Datum {
   Bool(bool),
   Int8(i8),
@@ -198,6 +198,7 @@ impl Datum {
   }
 }
 
+impl Eq for Datum {}
 
 #[derive(Clone, Debug)]
 pub struct VecColumnData {

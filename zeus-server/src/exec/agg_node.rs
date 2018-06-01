@@ -12,6 +12,7 @@ use rpc::zeus_expr::Expression;
 use rpc::zeus_expr::ExpressionType;
 use rpc::zeus_plan::PlanNode;
 use rpc::zeus_plan::PlanNodeType;
+use storage::column::vec_column_data::Datum;
 use util::errors::*;
 
 struct AggExpr {
@@ -22,13 +23,14 @@ struct AggExpr {
 pub struct AggNode {
   _group_bys: Vec<Expr>,
   _aggs: Vec<AggExpr>,
-  _data: HashMap<Vec<u8>, Vec<Box<AggFunc>>>,
-  input: Box<ExecNode>
+  _data: HashMap<Vec<Datum>, Vec<Box<AggFunc>>>,
+  input: Box<ExecNode>,
+  executed: bool
 }
 
 impl ExecNode for AggNode {
-  fn open(&mut self, _context: &mut ExecContext) -> Result<()> {
-    unimplemented!()
+  fn open(&mut self, context: &mut ExecContext) -> Result<()> {
+    self.input.open(context)
   }
 
   fn next(&mut self) -> Result<Block> {
@@ -88,7 +90,8 @@ impl AggNode {
       _group_bys: group_bys,
       _aggs: aggs,
       _data: HashMap::new(),
-      input
+      input,
+      executed: false
     })
   }
 }

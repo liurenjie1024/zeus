@@ -11,15 +11,15 @@ use self::cmp_op::{CmpOperator, CmpOp};
 use util::errors::*;
 
 pub trait ScalarFunc {
-  fn eval(self, ctx: &EvalContext, input: &Block) -> Result<Block>;
+  fn eval(self, ctx: &EvalContext, input: &Block) -> Result<Column>;
 }
 
 impl ScalarFuncExpr {
-  pub fn eval(&mut self, ctx: &EvalContext, input: &Block) -> Result<Block> {
+  pub fn eval(&mut self, ctx: &EvalContext, input: &Block) -> Result<Column> {
     let columns = self.args.iter_mut()
       .try_fold(Vec::new(), |mut columns, arg| -> Result<Vec<Column>> {
-        let mut block = arg.eval(ctx, input)?;
-        columns.append(&mut block.columns);
+        let column = arg.eval(ctx, input)?;
+        columns.push(column);
         Ok(columns)
       })?;
 
@@ -28,7 +28,7 @@ impl ScalarFuncExpr {
     dispatch_scalar_func_call(self.id, &ctx, &args)
   }
 
-  fn eval_operator<F: ScalarFunc>(op: F, ctx: &EvalContext, args: &Block) -> Result<Block> {
+  fn eval_operator<F: ScalarFunc>(op: F, ctx: &EvalContext, args: &Block) -> Result<Column> {
     op.eval(ctx, args)
   }
 }
@@ -36,7 +36,7 @@ impl ScalarFuncExpr {
 macro_rules! dispatch {
   ($($scalar_func_id: ident => $scalar_func: expr,)*) => {
     fn dispatch_scalar_func_call(id: ScalarFuncId, ctx: &EvalContext, args: &Block)
-      -> Result<Block> {
+      -> Result<Column> {
       match id {
         $(
           ScalarFuncId::$scalar_func_id => ScalarFuncExpr::eval_operator($scalar_func, ctx, args),

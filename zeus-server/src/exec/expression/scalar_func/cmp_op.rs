@@ -39,7 +39,7 @@ pub struct CmpOperator {
 }
 
 impl ScalarFunc for CmpOperator {
-  fn eval(self, _ctx: &EvalContext, input: &Block) -> Result<Block>
+  fn eval(self, _ctx: &EvalContext, input: &Block) -> Result<Column>
   {
     ensure!(input.columns.len() >= 2, "Input block need at least 2 columns");
     let cmp_results = input.columns[0].iter()
@@ -50,7 +50,7 @@ impl ScalarFunc for CmpOperator {
         Ok(cmp_results)
       })?;
 
-    Ok(Block::from(vec![Column::new_vec(ColumnType::BOOL, VecColumnData::from(cmp_results))]))
+    Ok(Column::new_vec(ColumnType::BOOL, VecColumnData::from(cmp_results)))
   }
 }
 
