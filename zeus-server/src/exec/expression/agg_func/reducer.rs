@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use exec::Block;
 use storage::column::vec_column_data::Datum;
 use super::AggFunc;

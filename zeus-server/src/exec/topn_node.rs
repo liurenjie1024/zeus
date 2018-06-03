@@ -354,13 +354,11 @@ mod tests {
   use exec::ExecNode;
   use exec::ExecContext;
   use super::TopNExecNode;
-  use rpc::zeus_plan::ProjectNode_ProjectItem;
-  use rpc::zeus_plan::{ProjectNode, PlanNode, PlanNodeType};
+  use rpc::zeus_plan::{PlanNode, PlanNodeType};
   use rpc::zeus_plan::TopNNode;
   use rpc::zeus_plan::TopNNode_SortItem;
-  use rpc::zeus_expr::{Expression, ExpressionType, LiteralExpression, ScalarFunction, ScalarFuncId,
-                       ColumnRef};
-  use rpc::zeus_meta::{ColumnType, ColumnValue};
+  use rpc::zeus_expr::{Expression, ExpressionType, ColumnRef};
+  use rpc::zeus_meta::ColumnType;
   use server::ServerContext;
 
   fn create_memory_block() -> Box<ExecNode> {
