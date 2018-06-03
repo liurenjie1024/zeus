@@ -106,6 +106,14 @@ impl Block {
       idx: 0
     }
   }
+
+  pub fn is_eof(&self) -> bool {
+    self.eof
+  }
+
+  pub fn columns_slice(&self) -> &[Column] {
+    &self.columns
+  }
 }
 
 
@@ -289,6 +297,7 @@ mod tests {
   use futures::sync::oneshot::channel;
   use futures::Future;
   use futures::Async;
+  use protobuf::RepeatedField;
 
   use super::ExecNode;
   use super::Block;
@@ -297,6 +306,14 @@ mod tests {
   use rpc::zeus_data::RowResult;
   use rpc::zeus_meta::ColumnValue;
   use rpc::zeus_meta::ColumnType;
+  use rpc::zeus_expr::Expression;
+  use rpc::zeus_expr::ExpressionType;
+  use rpc::zeus_expr::ColumnRef;
+  use rpc::zeus_expr::ScalarFuncId;
+  use rpc::zeus_expr::AggFuncId;
+  use rpc::zeus_expr::ScalarFunction;
+  use rpc::zeus_expr::AggFunction;
+  use rpc::zeus_expr::LiteralExpression;
   use storage::column::Column;
   use storage::column::vec_column_data::VecColumnData;
   use util::errors::*;
@@ -326,6 +343,127 @@ mod tests {
       Ok(())
     }
   }
+
+  #[derive(Default)]
+  pub struct ExpressionBuilder {
+    expression_type: ExpressionType,
+    alias: String,
+    field_type: ColumnType,
+
+    // column ref
+    name: String,
+
+    // literal
+    value: ColumnValue,
+
+    // Scalar function
+    scalar_func_id: ScalarFuncId,
+
+    // agg function
+    agg_func_id: AggFuncId,
+
+    // children
+    children: Vec<Expression>
+  }
+
+  impl ExpressionBuilder {
+    pub fn new_column_ref<S: ToString>(name: S, field_type: ColumnType) -> ExpressionBuilder {
+      let mut builder = ExpressionBuilder::default();
+      builder.expression_type = ExpressionType::COLUMN_REF;
+      builder.alias = name.to_string();
+      builder.field_type = field_type;
+      builder.name = name.to_string();
+
+      builder
+    }
+
+    pub fn new_literal<S: ToString>(alias: S,
+                                    field_type: ColumnType,
+                                    column_value: ColumnValue) -> ExpressionBuilder {
+      let mut builder = ExpressionBuilder::default();
+      builder.expression_type = ExpressionType::LITERAL;
+      builder.alias = alias.to_string();
+      builder.field_type = field_type;
+      builder.value = column_value;
+
+      builder
+    }
+
+    pub fn new_scalar_func<S: ToString>(alias: S,
+                                        field_type: ColumnType,
+                                        scalar_func_id: ScalarFuncId) -> ExpressionBuilder {
+      let mut builder = ExpressionBuilder::default();
+      builder.expression_type = ExpressionType::SCALAR_FUNCTION;
+      builder.alias = alias.to_string();
+      builder.field_type = field_type;
+      builder.scalar_func_id = scalar_func_id;
+
+      builder
+    }
+
+    pub fn new_agg_func<S: ToString>(alias: S,
+                                     field_type: ColumnType,
+                                     agg_func_id: AggFuncId) -> ExpressionBuilder {
+      let mut builder = ExpressionBuilder::default();
+      builder.expression_type = ExpressionType::AGG_FUNCTION;
+      builder.alias = alias.to_string();
+      builder.field_type = field_type;
+      builder.agg_func_id = agg_func_id;
+
+      builder
+    }
+
+    // column ref
+//    pub fn set_name<S: ToString>(mut self, alias: S) -> ExpressionBuilder {
+//      self.alias = alias.to_string();
+//      self
+//    }
+
+    pub fn add_children(mut self, child: Expression) -> ExpressionBuilder {
+      self.children.push(child);
+      self
+    }
+
+    pub fn build(self) -> Expression {
+      let mut expr = Expression::new();
+      expr.set_expression_type(self.expression_type);
+      expr.set_alias(self.alias);
+      expr.set_field_type(self.field_type);
+
+      match self.expression_type {
+        ExpressionType::COLUMN_REF => {
+          let mut column_ref = ColumnRef::new();
+          column_ref.set_name(self.name);
+
+          expr.set_column(column_ref);
+        }
+        ExpressionType::LITERAL => {
+          let mut literal = LiteralExpression::new();
+          literal.set_value(self.value);
+
+          expr.set_literal(literal);
+        }
+        ExpressionType::SCALAR_FUNCTION => {
+          let mut scalar_func = ScalarFunction::new();
+          scalar_func.set_func_id(self.scalar_func_id);
+          scalar_func.set_children(RepeatedField::from_vec(self.children));
+
+          expr.set_scalar_func(scalar_func);
+        }
+        ExpressionType::AGG_FUNCTION => {
+          let mut agg_func = AggFunction::new();
+          agg_func.set_func_id(self.agg_func_id);
+          agg_func.set_children(RepeatedField::from_vec(self.children));
+
+          expr.set_agg_func(agg_func);
+        }
+      }
+
+      expr
+    }
+  }
+
+
 
   #[test]
   fn test_run() {

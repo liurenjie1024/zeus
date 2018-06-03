@@ -229,3 +229,172 @@ impl AggExecNode {
   }
 }
 
+#[cfg(test)]
+mod tests {
+  use std::default::Default;
+  use std::vec::Vec;
+
+  use storage::column::ColumnBuilder;
+  use storage::column::vec_column_data::Datum;
+  use exec::tests::MemoryBlocks;
+  use exec::tests::ExpressionBuilder;
+  use exec::Block;
+  use exec::ExecNode;
+  use exec::ExecContext;
+  use super::AggExecNode;
+  use rpc::zeus_plan::{PlanNode, PlanNodeType};
+  use rpc::zeus_plan::AggregationNode;
+  use rpc::zeus_expr::AggFunction;
+  use rpc::zeus_expr::AggFuncId;
+  use rpc::zeus_expr::{Expression, ExpressionType, ColumnRef};
+  use rpc::zeus_meta::ColumnType;
+  use server::ServerContext;
+
+  fn create_memory_block() -> Box<ExecNode> {
+    let column1 = ColumnBuilder::new_vec(ColumnType::INT8, Datum::vec_of(vec![1i8, 2i8]))
+      .set_name("a")
+      .build();
+    let column2 = ColumnBuilder::new_vec(ColumnType::INT64, Datum::vec_of(vec![3i64, 4i64]))
+      .set_name("b")
+      .build();
+    let column3 = ColumnBuilder::new_vec(
+      ColumnType::STRING, Datum::vec_of(vec!["love".to_string(), "rust".to_string()]))
+      .set_name("c")
+      .build();
+    let block1 = vec![column1, column2, column3];
+    let block1 = Block::from(block1);
+
+    let column1 = ColumnBuilder::new_vec(ColumnType::INT8, Datum::vec_of(vec![5i8, 6i8]))
+      .set_name("a")
+      .build();
+    let column2 = ColumnBuilder::new_vec(ColumnType::INT64, Datum::vec_of(vec![7i64, 8i64]))
+      .set_name("b")
+      .build();
+    let column3 = ColumnBuilder::new_vec(
+      ColumnType::STRING, Datum::vec_of(vec!["love".to_string(), "java".to_string()]))
+      .set_name("c")
+      .build();
+    let block2 = vec![column1, column2, column3];
+    let block2 = Block::from(block2);
+
+    box MemoryBlocks {
+      blocks: vec![block1, block2],
+    }
+  }
+
+  fn create_agg_plan_node() -> PlanNode {
+    // create expression of c
+    let expr_c = ExpressionBuilder::new_column_ref("c", ColumnType::STRING)
+      .build();
+
+
+
+    // create expression sum(a)
+    let expr_sum_a = {
+      let expr_a = ExpressionBuilder::new_column_ref("a", ColumnType::INT8)
+        .build();
+
+      let expr = ExpressionBuilder::new_agg_func("sum(a)", ColumnType::INT8, AggFuncId::SUM)
+        .add_children(expr_a)
+        .build();
+
+      expr
+    };
+
+
+    // create expression sum(b)
+    let expr_sum_b = {
+      let expr_b = ExpressionBuilder::new_column_ref("b", ColumnType::INT8)
+        .build();
+
+      let expr = ExpressionBuilder::new_agg_func("sum(b)", ColumnType::INT64, AggFuncId::SUM)
+        .add_children(expr_b)
+        .build();
+
+      expr
+    };
+
+
+    let mut agg_node = AggregationNode::new();
+    agg_node.mut_group_by().push(expr_c);
+    agg_node.mut_agg_func().push(expr_sum_a);
+    agg_node.mut_agg_func().push(expr_sum_b);
+
+    let mut plan_node = PlanNode::new();
+    plan_node.set_node_id(1);
+    plan_node.set_plan_node_type(PlanNodeType::AGGREGATE_NODE);
+    plan_node.set_agg_node(agg_node);
+
+    plan_node
+  }
+
+  #[test]
+  fn test_create_agg_exec_node() {
+    let plan_node = create_agg_plan_node();
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    assert!(AggExecNode::new(&plan_node, &server_context, children).is_ok());
+  }
+
+  #[test]
+  fn test_create_agg_exec_node_wrong_type() {
+    let mut plan_node = create_agg_plan_node();
+    plan_node.set_plan_node_type(PlanNodeType::SCAN_NODE);
+
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    assert!(AggExecNode::new(&plan_node, &server_context, children).is_err());
+  }
+
+  #[test]
+  fn test_create_agg_exec_node_wrong_children() {
+    let plan_node = create_agg_plan_node();
+
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block(), create_memory_block()];
+
+    assert!(AggExecNode::new(&plan_node, &server_context, children).is_err());
+  }
+
+  #[test]
+  fn test_execute_agg_exec_node() {
+    let plan_node = create_agg_plan_node();
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    let mut agg_node = AggExecNode::new(&plan_node, &server_context, children).unwrap();
+    let mut exec_context = ExecContext::default();
+
+    assert!(agg_node.open(&mut exec_context).is_ok());
+
+    // First block
+    let ret = agg_node.next();
+    assert!(ret.is_ok());
+
+    let ret = ret.unwrap();
+    assert_eq!(4, ret.len());
+    assert_eq!(3, ret.columns.len());
+    assert_eq!(vec![Datum::Bool(true), Datum::Bool(false), Datum::Bool(true), Datum::Bool(false)],
+               ret.columns[0].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("a"), ret.columns[0].name());
+    assert_eq!(vec![Datum::Int64(10000i64), Datum::Int64(10000i64),
+                    Datum::Int64(16i64), Datum::Int64(12i64)],
+               ret.columns[1].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("b"), ret.columns[1].name());
+    assert_eq!(vec![Datum::UTF8("cpp".to_string()), Datum::UTF8("love".to_string()),
+                    Datum::UTF8("hate".to_string()), Datum::UTF8("rust".to_string())],
+               ret.columns[2].iter().collect::<Vec<Datum>>());
+    assert_eq!(Some("c"), ret.columns[2].name());
+    assert!(ret.eof);
+
+    // Second block
+    let ret = agg_node.next();
+    assert!(ret.is_ok());
+
+    let ret = ret.unwrap();
+    assert_eq!(0, ret.len());
+    assert!(ret.eof);
+  }
+}
