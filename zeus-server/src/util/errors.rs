@@ -1,4 +1,6 @@
 use std::convert::Into;
+
+use rpc::zeus_expr::AggFuncId;
 use rpc::zeus_data::StatusCode;
 
 use storage;
@@ -39,6 +41,10 @@ error_chain! {
     IndexOutOfBound(pos: usize, bound: usize) {
       description("Index out of bound")
       display("Index out of bound, index is {}, bound is {}", pos, bound)
+    }
+    EmptyAggregator(agg_func_id: AggFuncId) {
+      description("Aggregator has no data")
+      display("Aggregator {:?} has no data", agg_func_id)
     }
   }
 }

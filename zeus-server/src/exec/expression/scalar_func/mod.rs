@@ -15,8 +15,8 @@ pub trait ScalarFunc {
 }
 
 impl ScalarFuncExpr {
-  pub fn eval(&mut self, ctx: &EvalContext, input: &Block) -> Result<Column> {
-    let columns = self.args.iter_mut()
+  pub fn eval(&self, ctx: &EvalContext, input: &Block) -> Result<Column> {
+    let columns = self.args.iter()
       .try_fold(Vec::new(), |mut columns, arg| -> Result<Vec<Column>> {
         let column = arg.eval(ctx, input)?;
         columns.push(column);

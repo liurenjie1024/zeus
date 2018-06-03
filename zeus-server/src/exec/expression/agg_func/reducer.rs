@@ -1,9 +1,13 @@
+use std::sync::Arc;
+
 use exec::Block;
 use storage::column::vec_column_data::Datum;
 use super::AggFunc;
+use rpc::zeus_expr::AggFuncId;
 use util::errors::*;
 
 pub(super) struct Reducer {
+  id: AggFuncId,
   result: Option<Datum>,
   _aggregator: fn(&Datum, &Datum) -> Result<Datum>
 }
@@ -13,10 +17,8 @@ impl AggFunc for Reducer {
     unimplemented!()
   }
   fn collect(&mut self) -> Result<Datum> {
-    match &self.result {
-      &Some(ref v) => Ok(v.clone()),
-      &None => bail!("Data is empty, this should not happen.")
-    }
+    self.result.take()
+      .ok_or_else(|| ErrorKind::EmptyAggregator(self.id).into())
   }
 }
 
@@ -33,6 +35,7 @@ impl Reducer {
 
   pub fn sum() -> Reducer {
     Reducer {
+      id: AggFuncId::SUM,
       result: None,
       _aggregator: Datum::add
     }

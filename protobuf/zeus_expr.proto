@@ -81,8 +81,7 @@ enum AggFuncId {
 }
 
 message LiteralExpression {
-    ColumnType type = 1;
-    ColumnValue value = 2;
+    ColumnValue value = 1;
 }
 
 message ColumnRef {
@@ -106,6 +105,9 @@ message Expression {
     ColumnRef column = 3;
     ScalarFunction scalar_func = 4;
     AggFunction agg_func = 5;
+
+    string alias = 6;
+    ColumnType field_type = 7;
 }
 
 

@@ -10,7 +10,7 @@ pub trait AggFunc: Send {
   fn collect(&mut self) -> Result<Datum>;
 }
 
-fn func_of(id: AggFuncId) -> Box<AggFunc> {
+pub fn func_of(id: AggFuncId) -> Box<AggFunc> {
   match id {
     AggFuncId::SUM => box reducer::Reducer::sum()
   }

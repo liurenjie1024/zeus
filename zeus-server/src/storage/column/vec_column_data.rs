@@ -3,6 +3,9 @@ use std::clone::Clone;
 use std::convert::From;
 use std::convert::Into;
 use std::cmp::Ordering;
+use std::hash::Hash;
+use std::hash::Hasher;
+use std::mem::transmute;
 
 use rpc::zeus_meta::ColumnValue;
 use rpc::zeus_meta::ColumnType;
@@ -12,7 +15,7 @@ use super::ColumnIter;
 
 use util::errors::*;
 
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Datum {
   Bool(bool),
   Int8(i8),
@@ -41,10 +44,10 @@ impl<'a> Into<ColumnValue> for &'a Datum {
   }
 }
 
-impl<'a> From<&'a LiteralExpression> for Datum {
-  fn from(rpc_expr: &LiteralExpression) -> Self {
+impl Datum {
+  pub fn new_literal_expr(rpc_expr: &LiteralExpression, field_type: ColumnType) -> Self {
     let column_value = rpc_expr.get_value();
-    match rpc_expr.get_field_type() {
+    match field_type {
       ColumnType::BOOL => Datum::Bool(column_value.get_bool_value()),
       ColumnType::INT8 => Datum::Int8(column_value.get_i32_value() as i8),
       ColumnType::INT16 => Datum::Int16(column_value.get_i32_value() as i16),
@@ -199,6 +202,25 @@ impl Datum {
 }
 
 impl Eq for Datum {}
+
+impl Hash for Datum {
+  fn hash<H: Hasher>(&self, state: &mut H) {
+    match self {
+      Datum::Bool(v) => v.hash(state),
+      Datum::Int8(v) => v.hash(state),
+      Datum::Int16(v) => v.hash(state),
+      Datum::Int32(v) => v.hash(state),
+      Datum::Int64(v) => v.hash(state),
+      Datum::Float4(v) => unsafe {
+        state.write(&transmute::<f32, [u8; 4]>(*v))
+      }
+      Datum::Float8(v) => unsafe {
+        state.write(&transmute::<f64, [u8; 8]>(*v))
+      }
+      Datum::UTF8(v) => v.hash(state)
+    }
+  }
+}
 
 #[derive(Clone, Debug)]
 pub struct VecColumnData {

@@ -28,7 +28,7 @@ impl ExecNode for ProjectExecNode {
 
     let mut columns = self.mappers.iter_mut()
       .try_fold(Vec::new(), |mut columns, expr| -> Result<Vec<Column>> {
-        let mut column = expr.eval(&eval_context, &next_input_block)?;
+        let column = expr.eval(&eval_context, &next_input_block)?;
         columns.push(column);
         Ok(columns)
       })?;
@@ -151,12 +151,12 @@ mod tests {
         value.set_i64_value(18i64);
 
         let mut literal_expr = LiteralExpression::new();
-        literal_expr.set_field_type(ColumnType::INT64);
         literal_expr.set_value(value);
 
         let mut expr = Expression::new();
         expr.set_expression_type(ExpressionType::LITERAL);
         expr.set_literal(literal_expr);
+        expr.set_field_type(ColumnType::INT64);
 
         expr
       };

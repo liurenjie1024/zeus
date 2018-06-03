@@ -21,13 +21,14 @@ use rpc::zeus_plan::PlanNode;
 use rpc::zeus_plan::PlanNodeType;
 use scheduler::Task;
 use storage::column::ColumnValueIter;
+use storage::column::vec_column_data::Datum;
 use server::ServerContext;
 use server::data_service::Rows;
 use self::table_scan_node::TableScanNode;
 use self::limit_node::LimitExecNode;
 use self::filter_node::FilterExecNode;
 use self::project_node::ProjectExecNode;
-use self::agg_node::AggNode;
+use self::agg_node::AggExecNode;
 use self::topn_node::TopNExecNode;
 
 #[derive(Debug)]
@@ -98,7 +99,16 @@ impl Block {
     self.columns.iter().zip(other.columns.iter())
       .all(|t| t.0.field_type() == t.1.field_type())
   }
+
+  pub fn iter(&self) -> BlockIterator {
+    BlockIterator {
+      block: self,
+      idx: 0
+    }
+  }
 }
+
+
 
 impl Default for Block {
   fn default() -> Self {
@@ -108,6 +118,33 @@ impl Default for Block {
     }
   }
 }
+
+pub struct BlockIterator<'a> {
+  block: &'a Block,
+  idx: usize
+}
+
+impl<'a> Iterator for BlockIterator<'a> {
+  type Item = Vec<Datum>;
+
+  fn next(&mut self) -> Option<Vec<Datum>> {
+    let ret = self.block.columns.iter()
+      .map(|c| c.get(self.idx))
+      .fold(Some(Vec::new()), |row, d| {
+        match (row, d) {
+          (Some(mut v), Some(d)) => {
+            v.push(d);
+            Some(v)
+          },
+          _ => None
+        }
+      });
+
+    self.idx += 1;
+    ret
+  }
+}
+
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExecPhase {
@@ -155,7 +192,7 @@ impl PlanNode {
       PlanNodeType::LIMIT_NODE => LimitExecNode::new(&self, server_context, children),
       PlanNodeType::FILTER_NODE => FilterExecNode::new(&self, server_context, children),
       PlanNodeType::PROJECT_NODE => ProjectExecNode::new(&self, server_context, children),
-      PlanNodeType::AGGREGATE_NODE => AggNode::new(&self, server_context, children),
+      PlanNodeType::AGGREGATE_NODE => AggExecNode::new(&self, server_context, children),
       PlanNodeType::TOPN_NODE => TopNExecNode::new(&self, server_context, children)
     }
   }

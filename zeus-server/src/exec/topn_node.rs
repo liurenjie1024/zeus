@@ -158,7 +158,7 @@ impl TopNExecNode {
       })?;
 
     Ok(box TopNExecNode {
-      sort_items: sort_items,
+      sort_items,
       limit: plan_node.get_topn_node().get_limit(),
       input,
       executed: false
