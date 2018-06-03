@@ -21,16 +21,16 @@ use storage::column::ColumnBuilder;
 use util::errors::*;
 
 struct AggExpr {
-  _agg_func_id: AggFuncId,
-  _args: Vec<Expr>,
+  agg_func_id: AggFuncId,
+  args: Vec<Expr>,
   alias: String,
   field_type: ColumnType
 }
 
 pub struct AggExecNode {
-  _group_bys: Vec<Expr>,
-  _aggs: Vec<AggExpr>,
-  _data: HashMap<Vec<Datum>, Vec<Box<AggFunc>>>,
+  group_bys: Vec<Expr>,
+  aggs: Vec<AggExpr>,
+  data: HashMap<Vec<Datum>, Vec<Box<AggFunc>>>,
   input: Box<ExecNode>,
   executed: bool
 }
@@ -52,14 +52,14 @@ impl ExecNode for AggExecNode {
     loop {
       let input = self.next()?;
 
-      let group_by_block = self._group_bys.iter()
+      let group_by_block = self.group_bys.iter()
         .try_fold(Vec::new(), |mut columns, expr| -> Result<Vec<Column>> {
           columns.push(expr.eval(&eval_context, &input)?);
           Ok(columns)
         })?;
 
       let group_by_block = Block::new(group_by_block, false);
-      let agg_blocks = self._aggs.iter()
+      let agg_blocks = self.aggs.iter()
         .try_fold(Vec::new(), |mut blocks, agg| -> Result<Vec<Block>> {
           blocks.push(agg.eval(&eval_context, &input)?);
           Ok(blocks)
@@ -77,18 +77,18 @@ impl ExecNode for AggExecNode {
           let idx = r.0;
           let row = r.1;
 
-          let need_put = self._data.contains_key(&row);
+          let need_put = self.data.contains_key(&row);
 
           if need_put {
-            let mut agg_exprs = self._aggs.iter()
-              .map(|agg| agg_func::func_of(agg._agg_func_id))
+            let mut agg_exprs = self.aggs.iter()
+              .map(|agg| agg_func::func_of(agg.agg_func_id))
               .collect::<Vec<Box<AggFunc>>>();
 
             insert(idx, &mut agg_exprs)?;
 
-            self._data.insert(row, agg_exprs);
+            self.data.insert(row, agg_exprs);
           } else {
-            insert(idx, self._data.get_mut(&row).unwrap())?;
+            insert(idx, self.data.get_mut(&row).unwrap())?;
           }
 
           Ok(())
@@ -102,13 +102,13 @@ impl ExecNode for AggExecNode {
     // Output content
 
     let mut key_columns: Vec<Vec<Datum>> = vec![
-      Vec::with_capacity(self._data.len());
-      self._group_bys.len()];
+      Vec::with_capacity(self.data.len());
+      self.group_bys.len()];
     let mut value_columns: Vec<Vec<Datum>> = vec![
-      Vec::with_capacity(self._data.len());
-      self._aggs.len()];
+      Vec::with_capacity(self.data.len());
+      self.aggs.len()];
 
-    self._data.drain()
+    self.data.drain()
       .try_for_each(|entry| -> Result<()> {
         let (k, v) = entry;
 
@@ -127,7 +127,7 @@ impl ExecNode for AggExecNode {
 
 
     let mut key_columns: Vec<Column> = key_columns.into_iter()
-      .zip(self._group_bys.iter())
+      .zip(self.group_bys.iter())
       .map(|r| {
         let (column, expr) = r;
         ColumnBuilder::new_vec(expr.field_type(), column)
@@ -136,7 +136,7 @@ impl ExecNode for AggExecNode {
       }).collect();
 
     let mut value_columns: Vec<Column> = value_columns.into_iter()
-      .zip(self._aggs.iter())
+      .zip(self.aggs.iter())
       .map(|r| {
         let (column, expr) = r;
         ColumnBuilder::new_vec(expr.get_field_type(), column)
@@ -170,15 +170,15 @@ impl AggExpr {
       })?;
 
     Ok(AggExpr {
-      _agg_func_id: agg_func.get_func_id(),
-      _args: args,
+      agg_func_id: agg_func.get_func_id(),
+      args: args,
       alias: expr.get_alias().to_string(),
       field_type: expr.get_field_type()
     })
   }
 
   fn eval(&self, ctx: &EvalContext, input: &Block) -> Result<Block> {
-    let columns = self._args.iter()
+    let columns = self.args.iter()
       .try_fold(Vec::new(), |mut columns, arg| -> Result<Vec<Column>> {
         columns.push(arg.eval(ctx, input)?);
         Ok(columns)
@@ -220,9 +220,9 @@ impl AggExecNode {
       })?;
 
     Ok(box AggExecNode {
-      _group_bys: group_bys,
-      _aggs: aggs,
-      _data: HashMap::new(),
+      group_bys,
+      aggs,
+      data: HashMap::new(),
       input,
       executed: false
     })

@@ -25,6 +25,7 @@ RUST_GRPC: $(PROTO_DEFS)
 
 RUST_BUILD: RUST_GRPC
 	echo "Building rust"
+	export RUSTFLAGS="-A renamed_and_removed_lints"
 	cd zeus-server && cargo build
 
 JAVA_BUILD:

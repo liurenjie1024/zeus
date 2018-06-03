@@ -12,7 +12,7 @@ pub(super) struct Reducer {
 
 impl AggFunc for Reducer {
   fn aggregate(&mut self, _args: &Block, _pos: usize) -> Result<()> {
-    unimplemented!()
+    bail!("not imple")
   }
   fn collect(&mut self) -> Result<Datum> {
     self.result.take()
