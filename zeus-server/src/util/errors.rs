@@ -46,6 +46,8 @@ error_chain! {
       description("Aggregator has no data")
       display("Aggregator {:?} has no data", agg_func_id)
     }
+    EOF {
+    }
   }
 }
 

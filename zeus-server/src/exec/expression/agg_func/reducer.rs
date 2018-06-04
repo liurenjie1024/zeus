@@ -11,10 +11,10 @@ pub(super) struct Reducer {
 }
 
 impl AggFunc for Reducer {
-  fn aggregate(&mut self, _args: &Block, _pos: usize) -> Result<()> {
-    _args.columns_slice().get(0)
-      .and_then(|c| c.get(0))
-      .ok_or_else(|| ErrorKind::IndexOutOfBound(_pos, _args.len()).into())
+  fn aggregate(&mut self, args: &Block, pos: usize) -> Result<()> {
+    args.columns_slice().get(0)
+      .and_then(|c| c.get(pos))
+      .ok_or_else(|| ErrorKind::IndexOutOfBound(pos, args.len()).into())
       .and_then(|d| self.do_aggregate(&d))
   }
   fn collect(&mut self) -> Result<Datum> {

@@ -42,7 +42,7 @@ impl ExecNode for AggExecNode {
 
   fn next(&mut self) -> Result<Block> {
     if self.executed {
-      return Ok(Block::default())
+      return Err(ErrorKind::EOF.into())
     }
 
     self.executed = true;
@@ -50,7 +50,7 @@ impl ExecNode for AggExecNode {
 
     // Do calculation
     loop {
-      let input = self.next()?;
+      let input = self.input.next()?;
 
       let group_by_block = self.group_bys.iter()
         .try_fold(Vec::new(), |mut columns, expr| -> Result<Vec<Column>> {
@@ -59,6 +59,7 @@ impl ExecNode for AggExecNode {
         })?;
 
       let group_by_block = Block::new(group_by_block, false);
+
       let agg_blocks = self.aggs.iter()
         .try_fold(Vec::new(), |mut blocks, agg| -> Result<Vec<Block>> {
           blocks.push(agg.eval(&eval_context, &input)?);
@@ -77,7 +78,7 @@ impl ExecNode for AggExecNode {
           let idx = r.0;
           let row = r.1;
 
-          let need_put = self.data.contains_key(&row);
+          let need_put = !self.data.contains_key(&row);
 
           if need_put {
             let mut agg_exprs = self.aggs.iter()
@@ -171,7 +172,7 @@ impl AggExpr {
 
     Ok(AggExpr {
       agg_func_id: agg_func.get_func_id(),
-      args: args,
+      args,
       alias: expr.get_alias().to_string(),
       field_type: expr.get_field_type()
     })
@@ -232,6 +233,7 @@ impl AggExecNode {
 #[cfg(test)]
 mod tests {
   use std::default::Default;
+  use std::collections::HashSet;
   use std::vec::Vec;
 
   use storage::column::ColumnBuilder;
@@ -304,7 +306,7 @@ mod tests {
 
     // create expression sum(b)
     let expr_sum_b = {
-      let expr_b = ExpressionBuilder::new_column_ref("b", ColumnType::INT8)
+      let expr_b = ExpressionBuilder::new_column_ref("b", ColumnType::INT64)
         .build();
 
       let expr = ExpressionBuilder::new_agg_func("sum(b)", ColumnType::INT64, AggFuncId::SUM)
@@ -374,27 +376,33 @@ mod tests {
     assert!(ret.is_ok());
 
     let ret = ret.unwrap();
-    assert_eq!(4, ret.len());
+    assert_eq!(3, ret.len());
     assert_eq!(3, ret.columns.len());
-    assert_eq!(vec![Datum::Bool(true), Datum::Bool(false), Datum::Bool(true), Datum::Bool(false)],
-               ret.columns[0].iter().collect::<Vec<Datum>>());
-    assert_eq!(Some("a"), ret.columns[0].name());
-    assert_eq!(vec![Datum::Int64(10000i64), Datum::Int64(10000i64),
-                    Datum::Int64(16i64), Datum::Int64(12i64)],
-               ret.columns[1].iter().collect::<Vec<Datum>>());
-    assert_eq!(Some("b"), ret.columns[1].name());
-    assert_eq!(vec![Datum::UTF8("cpp".to_string()), Datum::UTF8("love".to_string()),
-                    Datum::UTF8("hate".to_string()), Datum::UTF8("rust".to_string())],
-               ret.columns[2].iter().collect::<Vec<Datum>>());
-    assert_eq!(Some("c"), ret.columns[2].name());
+    assert_eq!(Some("c"), ret.columns[0].name());
+    assert_eq!(Some("sum(a)"), ret.columns[1].name());
+    assert_eq!(Some("sum(b)"), ret.columns[2].name());
+
+    let mut expected_result = HashSet::new();
+    vec![
+      vec![Datum::UTF8("love".to_string()), Datum::Int8(6i8), Datum::Int64(10i64)],
+      vec![Datum::UTF8("rust".to_string()), Datum::Int8(2i8), Datum::Int64(4i64)],
+      vec![Datum::UTF8("java".to_string()), Datum::Int8(6i8), Datum::Int64(8i64)],
+    ].into_iter().for_each(|r| {
+      expected_result.insert(r);
+    });
+
+    let mut result = HashSet::new();
+    ret.iter()
+      .for_each(|r| {
+        result.insert(r.clone());
+      });
+
+    assert_eq!(expected_result, result);
     assert!(ret.eof);
+
 
     // Second block
     let ret = agg_node.next();
-    assert!(ret.is_ok());
-
-    let ret = ret.unwrap();
-    assert_eq!(0, ret.len());
-    assert!(ret.eof);
+    assert!(ret.is_err());
   }
 }

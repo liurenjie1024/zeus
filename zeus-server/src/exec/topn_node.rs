@@ -38,7 +38,7 @@ impl ExecNode for TopNExecNode {
 
   fn next(&mut self) -> Result<Block> {
     if self.executed {
-      return Ok(Block::default())
+      return Err(ErrorKind::EOF.into())
     }
 
     let eval_context = EvalContext::default();
@@ -503,10 +503,6 @@ mod tests {
 
     // Second block
     let ret = topn_node.next();
-    assert!(ret.is_ok());
-
-    let ret = ret.unwrap();
-    assert_eq!(0, ret.len());
-    assert!(ret.eof);
+    assert!(ret.is_err());
   }
 }

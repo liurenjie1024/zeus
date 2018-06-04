@@ -22,7 +22,7 @@ impl ExecNode for LimitExecNode {
 
   fn next(&mut self) -> Result<Block> {
     if self.cur >= self.limit {
-      Ok(Block::default())
+      Err(ErrorKind::EOF.into())
     } else {
       let mut ret = self.input.next()?;
       let ret_len = ret.len();
@@ -161,11 +161,6 @@ mod tests {
 
 
     let block = exec_node.next();
-    assert!(block.is_ok());
-    let block = block.unwrap();
-
-    assert!(block.eof);
-    assert_eq!(0, block.len());
-    assert_eq!(0, block.columns.len());
+    assert!(block.is_err());
   }
 }

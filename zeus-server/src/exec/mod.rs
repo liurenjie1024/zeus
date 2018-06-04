@@ -377,6 +377,7 @@ mod tests {
       builder
     }
 
+    #[allow(dead_code)]
     pub fn new_literal<S: ToString>(alias: S,
                                     field_type: ColumnType,
                                     column_value: ColumnValue) -> ExpressionBuilder {
@@ -389,6 +390,7 @@ mod tests {
       builder
     }
 
+    #[allow(dead_code)]
     pub fn new_scalar_func<S: ToString>(alias: S,
                                         field_type: ColumnType,
                                         scalar_func_id: ScalarFuncId) -> ExpressionBuilder {
@@ -414,10 +416,11 @@ mod tests {
     }
 
     // column ref
-//    pub fn set_name<S: ToString>(mut self, alias: S) -> ExpressionBuilder {
-//      self.alias = alias.to_string();
-//      self
-//    }
+    #[allow(dead_code)]
+    pub fn set_name<S: ToString>(mut self, alias: S) -> ExpressionBuilder {
+      self.alias = alias.to_string();
+      self
+    }
 
     pub fn add_children(mut self, child: Expression) -> ExpressionBuilder {
       self.children.push(child);
