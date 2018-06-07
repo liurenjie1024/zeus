@@ -40,9 +40,7 @@ public class ZeusScanBatchCreator implements BatchCreator<ZeusSubScan> {
                                        List<RecordBatch> children) throws ExecutionSetupException {
     ZeusRecordReader recordReader = new ZeusRecordReader(
       subScan.getPlugin().getClient(),
-      subScan,
-      subScan.getPlugin().getSchema(),
-      subScan.getColumns());
+      subScan.getScanSpec());
     return new ScanBatch(subScan, context, Collections.singletonList(recordReader));
   }
 }

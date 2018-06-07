@@ -20,11 +20,9 @@ package io.github.zeus;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.zeus.client.ZeusClient;
+import io.github.zeus.client.meta.ColumnMeta;
 import io.github.zeus.rpc.*;
-import io.github.zeus.schema.ZeusDB;
-import io.github.zeus.schema.ZeusTable;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
-import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.types.TypeProtos.MajorType;
 import org.apache.drill.common.types.TypeProtos.MinorType;
 import org.apache.drill.common.types.Types;
@@ -70,24 +68,22 @@ public class ZeusRecordReader extends AbstractRecordReader {
   }
 
   private final ZeusClient zeusClient;
-  private final ZeusSubScan zeusSubScan;
-  private ZeusDB schema;
+  private final ZeusQueryPlan queryPlan;
 
 
   private OperatorContext context;
   private OutputMutator output;
   private List<ProjectColumnInfo> columnInfos;
-  private QueryPlan plan;
   private Iterator<RowResult> queryResult;
 
 
   private static class ProjectColumnInfo {
     ValueVector vv;
-    ZeusColumnSchema zeusSchema;
+    ColumnMeta columnMeta;
 
-    ProjectColumnInfo(ValueVector vv, ZeusColumnSchema zeusSchema) {
+    ProjectColumnInfo(ValueVector vv, ColumnMeta columnMeta) {
       this.vv = vv;
-      this.zeusSchema = zeusSchema;
+      this.columnMeta = columnMeta;
     }
   }
 
@@ -104,50 +100,27 @@ public class ZeusRecordReader extends AbstractRecordReader {
     .build();
 
   public ZeusRecordReader(ZeusClient zeusClient,
-                          ZeusSubScan zeusSubScan,
-                          ZeusDB schema,
-                          List<SchemaPath> projectedColumns) {
+                          ZeusQueryPlan queryPlan) {
     this.zeusClient = zeusClient;
-    this.zeusSubScan = zeusSubScan;
-    this.schema = schema;
-    setColumns(projectedColumns);
+    this.queryPlan  = queryPlan;
   }
 
-  @Override
-  protected Collection<SchemaPath> transformColumns(Collection<SchemaPath> projected) {
-    if (isStarQuery()) {
-      return schema.getTable(zeusSubScan.getTableName())
-        .getAllColumnNames()
-        .stream()
-        .map(SchemaPath::getSimplePath)
-        .collect(Collectors.toList());
-    } else {
-      return projected;
-    }
-  }
 
   @Override
   public void setup(OperatorContext context, OutputMutator output) throws ExecutionSetupException {
     this.context = context;
     this.output = output;
 
-    Set<String> columnNames = this.getColumns()
-      .stream()
-      .map(SchemaPath::getRootSegmentPath)
-      .collect(Collectors.toSet());
-
     context.getStats().startWait();
 
     try {
-      columnInfos = schema.getTable(zeusSubScan.getTableName())
-        .getAllColumnSchemas()
-        .stream()
-        .filter(f -> columnNames.contains(f.getName()))
-        .map(f -> new ProjectColumnInfo(createValueVector(f), f))
-        .collect(Collectors.toList());
+      columnInfos = zeusClient.getResultMeta(queryPlan.getPlan())
+          .getColumnMetaList()
+          .stream()
+          .map(c -> new ProjectColumnInfo(createValueVector(c), c))
+          .collect(Collectors.toList());
 
-      plan = buildQueryPlan();
-      logger.info("Query plan is: {}", plan);
+      logger.info("Query plan is: {}", queryPlan.getJsonPlan());
     } finally {
       context.getStats().stopWait();
     }
@@ -158,7 +131,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
     if (queryResult == null) {
       context.getStats().startWait();
       try {
-        queryResult = zeusClient.query(plan)
+        queryResult = zeusClient.query(queryPlan.getPlan())
           .getRowsList()
           .iterator();
       } finally {
@@ -177,12 +150,12 @@ public class ZeusRecordReader extends AbstractRecordReader {
   public void close() throws Exception {
   }
 
-  private ValueVector createValueVector(ZeusColumnSchema zeusColumnSchema) {
-    MinorType minorType = TYPES.get(zeusColumnSchema.getColumnType());
+  private ValueVector createValueVector(ColumnMeta columnMeta) {
+    MinorType minorType = TYPES.get(columnMeta.getColumnType());
     MajorType majorType = Types.required(minorType);
 
     MaterializedField materializedField = MaterializedField.create(
-      zeusColumnSchema.getName(), majorType);
+      columnMeta.getColumnName(), majorType);
 
     final Class<? extends ValueVector> clazz = TypeHelper.getValueVectorClass(
       minorType, majorType.getMode());
@@ -197,41 +170,11 @@ public class ZeusRecordReader extends AbstractRecordReader {
     return vector;
   }
 
-  private QueryPlan buildQueryPlan() {
-    ZeusTable table = schema.getTable(zeusSubScan.getTableName());
-
-    List<Integer> columnIds = getColumns()
-      .stream()
-      .map(SchemaPath::rootName)
-      .map(table::getColumnId)
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .collect(Collectors.toList());
-
-    ScanNode scanNode = ScanNode.newBuilder()
-      .setDbId(schema.getId())
-      .setTableId(table.getId())
-      .addAllColumns(columnIds)
-      .build();
-
-    PlanNode planNode = PlanNode.newBuilder()
-      .setScanNode(scanNode)
-      .setPlanNodeType(PlanNodeType.SCAN_NODE)
-      .build();
-
-    QueryPlan plan = QueryPlan.newBuilder()
-      .setPlanId(generatePlanId())
-      .setRoot(planNode)
-      .build();
-
-    return plan;
-  }
-
   private void addResult(RowResult row, int rowIndex) {
     for (int i = 0; i < columnInfos.size(); i++) {
       ProjectColumnInfo columnInfo = columnInfos.get(i);
 
-      switch (columnInfo.zeusSchema.getColumnType()) {
+      switch (columnInfo.columnMeta.getColumnType()) {
         case STRING: {
           ByteBuffer value = ByteBuffer.wrap(row.getColumns(i).getStringValue().getBytes());
           ((VarCharVector.Mutator) columnInfo.vv.getMutator())
@@ -272,9 +215,5 @@ public class ZeusRecordReader extends AbstractRecordReader {
         break;
       }
     }
-  }
-
-  private String generatePlanId() {
-    return String.format("%s-%s", hostname, UUID.randomUUID().toString());
   }
 }

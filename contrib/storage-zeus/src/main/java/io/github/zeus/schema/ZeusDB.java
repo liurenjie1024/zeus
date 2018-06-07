@@ -20,27 +20,28 @@ package io.github.zeus.schema;
 
 
 import com.google.common.collect.ImmutableList;
-import io.github.zeus.ZeusGroupScanSpec;
 import io.github.zeus.ZeusStoragePlugin;
-import io.github.zeus.rpc.ZeusDBSchema;
-import io.github.zeus.rpc.ZeusTableSchema;
-import org.apache.calcite.schema.Table;
+import static io.github.zeus.client.exception.CatalogNotFoundException.columnNotFound;
+
+import io.github.zeus.client.exception.CatalogNotFoundException;
+import io.github.zeus.rpc.*;
+import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.exec.store.AbstractSchema;
 
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 public class ZeusDB extends AbstractSchema {
   private final ZeusStoragePlugin plugin;
   private final String storageEngineName;
-  private final ZeusDBSchema zeusDBSchema;
+  private final ZeusDBSchema dbSchema;
 
-  public ZeusDB(ZeusStoragePlugin plugin, String storageEngineName, ZeusDBSchema zeusDBSchema) {
-    super(ImmutableList.of(), zeusDBSchema.getName());
+  public ZeusDB(ZeusStoragePlugin plugin, String storageEngineName, ZeusDBSchema dbSchema) {
+    super(ImmutableList.of(), dbSchema.getName());
     this.plugin = plugin;
     this.storageEngineName = storageEngineName;
-    this.zeusDBSchema = zeusDBSchema;
+    this.dbSchema = dbSchema;
   }
 
   @Override
@@ -50,7 +51,7 @@ public class ZeusDB extends AbstractSchema {
 
   @Override
   public Set<String> getTableNames() {
-    return zeusDBSchema.getTablesMap().values()
+    return dbSchema.getTablesMap().values()
       .stream()
       .map(ZeusTableSchema::getName)
       .collect(Collectors.toSet());
@@ -58,15 +59,72 @@ public class ZeusDB extends AbstractSchema {
 
   @Override
   public ZeusTable getTable(String name) {
-    return zeusDBSchema.getTablesMap().values()
-      .stream()
-      .filter(t -> t.getName().equals(name))
-      .findFirst()
-      .map(t -> new ZeusTable(plugin, storageEngineName, new ZeusGroupScanSpec(name), t))
-      .orElse(null);
+    return getTableSchema(name)
+        .map(schema -> new ZeusTable(plugin, storageEngineName, name, schema))
+        .orElse(null);
+//    BiFunction<ZeusQueryPlan, ZeusTableSchema, ZeusTable> tableOf = (plan, schema) ->
+//        new ZeusTable(plugin, storageEngineName, plan, schema);
+//
+//    return buildTableScanPlan(name)
+//        .map(plan -> new ZeusQueryPlan(name))
+//        .flatMap(plan -> getTableSchema(name).map(tableSchema -> tableOf.apply(plan, tableSchema)))
+//        .orElse(null);
   }
 
   public int getId() {
-    return zeusDBSchema.getId();
+    return dbSchema.getId();
+  }
+
+  public QueryPlan getTableScanQueryPlan(String tableName, List<SchemaPath> columns) {
+    List<String> columnNames = columns.stream()
+        .map(path -> path.getRootSegmentPath())
+        .collect(Collectors.toList());
+    return buildTableScanPlan(tableName, columnNames);
+  }
+
+  private Optional<ZeusTableSchema> getTableSchema(String tableName) {
+    return dbSchema.getTablesMap().values()
+        .stream()
+        .filter(t -> t.getName().equals(tableName))
+        .findFirst();
+  }
+
+  private QueryPlan buildTableScanPlan(String tableName, List<String> columnNames) {
+    return dbSchema.getTablesMap().values()
+        .stream()
+        .filter(t -> t.getName().equals(tableName))
+        .findFirst()
+        .map(t -> buildTableScanNode(t, columnNames))
+        .orElseThrow(() -> CatalogNotFoundException.tableNotFound(dbSchema.getName(), tableName));
+  }
+
+  private QueryPlan buildTableScanNode(ZeusTableSchema tableSchema, List<String> columnNames) {
+    Map<String, Integer> columnNameToId = new HashMap<>(tableSchema.getColumnsCount());
+    tableSchema.getColumnsMap().values()
+        .forEach(c -> columnNameToId.put(c.getName(), c.getId()));
+
+    List<Integer> columnIds = columnNames
+        .stream()
+        .map(columnName ->
+            Optional.ofNullable(columnNameToId.get(columnName))
+                .orElseThrow(() -> columnNotFound(dbSchema.getName(), tableSchema.getName(), name)))
+        .collect(Collectors.toList());
+
+
+    ScanNode scanNode = ScanNode.newBuilder()
+        .setDbId(dbSchema.getId())
+        .setTableId(tableSchema.getId())
+        .addAllColumns(columnIds)
+        .build();
+
+    PlanNode planNode = PlanNode.newBuilder()
+        .setPlanNodeType(PlanNodeType.SCAN_NODE)
+        .setScanNode(scanNode)
+        .build();
+
+    return QueryPlan.newBuilder()
+        .setPlanId(UUID.randomUUID().toString())
+        .setRoot(planNode)
+        .build();
   }
 }

@@ -21,7 +21,6 @@ package io.github.zeus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zeus.client.ZeusClient;
-import io.github.zeus.client.ZeusClientBuilder;
 import io.github.zeus.schema.ZeusDB;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.drill.common.JSONOptions;
@@ -43,7 +42,7 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   private final DrillbitContext context;
   private final String name;
   private ZeusClient client;
-  private ZeusDB schema;
+  private ZeusDB dbSchema;
 
   public ZeusStoragePlugin(ZeusStoragePluginConfig config, DrillbitContext context, String name) {
     this.config = config;
@@ -56,7 +55,7 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
 
   @Override
   public void registerSchemas(SchemaConfig schemaConfig, SchemaPlus parent) throws IOException {
-    parent.add(name, schema);
+    parent.add(name, dbSchema);
   }
 
   @Override
@@ -69,7 +68,7 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
     logger.info("Starting zeus storage plugin");
     try {
       client = config.getClient();
-      schema = new ZeusDB(this, name, client.getDBSchema(name).get());
+      dbSchema = new ZeusDB(this, name, client.getDBSchema(name).get());
     } catch (Throwable t) {
       logger.error("Failed to start zeus plugin.", t);
       throw t;
@@ -79,10 +78,6 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
 
   public ZeusClient getClient() {
     return client;
-  }
-
-  public ZeusDB getSchema() {
-    return schema;
   }
 
   @Override
@@ -99,9 +94,11 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   public ZeusGroupScan getPhysicalScan(String userName,
                                        JSONOptions selection,
                                        List<SchemaPath> paths) throws IOException {
-    ZeusGroupScanSpec scanSpec = selection.getListWith(new ObjectMapper(),
-      new TypeReference<ZeusGroupScanSpec>(){});
-    return new ZeusGroupScan(name, scanSpec.getTableName(), paths, config, this);
+    String tableName = selection.getListWith(new ObjectMapper(),
+      new TypeReference<String>(){});
+
+    ZeusQueryPlan queryPlan = ZeusQueryPlan.from(dbSchema.getTableScanQueryPlan(tableName, paths));
+    return new ZeusGroupScan(queryPlan, config, this);
   }
 
   @Override

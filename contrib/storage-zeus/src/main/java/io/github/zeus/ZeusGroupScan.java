@@ -41,28 +41,22 @@ import java.util.List;
 public class ZeusGroupScan extends AbstractGroupScan {
   private static final Logger logger = LoggerFactory.getLogger(ZeusGroupScan.class);
 
-  private final String dbName;
-  private final String tableName;
-  private final List<SchemaPath> columns;
+  private final ZeusQueryPlan groupScanSpec;
   private final ZeusStoragePluginConfig config;
   private final ZeusStoragePlugin plugin;
 
   @JsonCreator
-  public ZeusGroupScan(@JsonProperty("dbName") String dbName,
-                     @JsonProperty("tableName") String tableName,
-                     @JsonProperty("columns") List<SchemaPath> columns,
+  public ZeusGroupScan(@JsonProperty("groupScanSpec") ZeusQueryPlan groupScanSpec,
                      @JsonProperty("config")StoragePluginConfig config,
                      @JacksonInject StoragePluginRegistry registry) throws ExecutionSetupException {
-    this(dbName, tableName, columns, (ZeusStoragePluginConfig)config,
+    this(groupScanSpec, (ZeusStoragePluginConfig)config,
       (ZeusStoragePlugin) registry.getPlugin(config));
   }
 
-  ZeusGroupScan(String dbName, String tableName, List<SchemaPath> columns,
+  ZeusGroupScan(ZeusQueryPlan groupScanSpec,
               ZeusStoragePluginConfig config, ZeusStoragePlugin plugin) {
     super("");
-    this.dbName = dbName;
-    this.tableName = tableName;
-    this.columns = columns;
+    this.groupScanSpec = groupScanSpec;
     this.config = config;
     this.plugin = plugin;
   }
@@ -70,12 +64,11 @@ public class ZeusGroupScan extends AbstractGroupScan {
 
   @Override
   public void applyAssignments(List<DrillbitEndpoint> endpoints) throws PhysicalOperatorSetupException {
-
   }
 
   @Override
   public SubScan getSpecificScan(int minorFragmentId) throws ExecutionSetupException {
-    return new ZeusSubScan(dbName, tableName, columns, config, plugin);
+    return new ZeusSubScan(groupScanSpec, config, plugin);
   }
 
   @Override
@@ -89,33 +82,18 @@ public class ZeusGroupScan extends AbstractGroupScan {
   }
 
   @JsonProperty
-  public String getDbName() {
-    return dbName;
-  }
-
-  @JsonProperty
-  public String getTableName() {
-    return tableName;
-  }
-
-  @JsonProperty
-  public List<SchemaPath> getColumns() {
-    return columns;
-  }
-
-  @JsonProperty
   public ZeusStoragePluginConfig getConfig() {
     return config;
   }
 
   @Override
   public ZeusGroupScan clone(List<SchemaPath> columns) {
-    return new ZeusGroupScan(dbName, tableName, columns, config, plugin);
+    return new ZeusGroupScan(groupScanSpec, config, plugin);
   }
 
   @Override
   public String getDigest() {
-    return String.format("ZeusGroupScan[db=%s,table=%s,columns=%s]", dbName, tableName, columns);
+    return String.format("ZeusGroupScan[plan=%s]", groupScanSpec);
   }
 
   @Override
