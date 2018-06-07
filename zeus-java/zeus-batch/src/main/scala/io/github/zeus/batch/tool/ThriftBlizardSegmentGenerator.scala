@@ -74,7 +74,7 @@ object ThriftBlizardSegmentGenerator {
       deserializer.deserialize(log, line, "utf-8")
       log
     }
-    Source.fromFile(s"${prefix}logs10")
+    Source.fromFile(s"${prefix}logs1000")
       .getLines()
       .map(deserialize)
       .map(thriftConverter.createRow)
