@@ -62,13 +62,6 @@ public class ZeusDB extends AbstractSchema {
     return getTableSchema(name)
         .map(schema -> new ZeusTable(plugin, storageEngineName, name, schema))
         .orElse(null);
-//    BiFunction<ZeusQueryPlan, ZeusTableSchema, ZeusTable> tableOf = (plan, schema) ->
-//        new ZeusTable(plugin, storageEngineName, plan, schema);
-//
-//    return buildTableScanPlan(name)
-//        .map(plan -> new ZeusQueryPlan(name))
-//        .flatMap(plan -> getTableSchema(name).map(tableSchema -> tableOf.apply(plan, tableSchema)))
-//        .orElse(null);
   }
 
   public int getId() {
@@ -76,10 +69,17 @@ public class ZeusDB extends AbstractSchema {
   }
 
   public QueryPlan getTableScanQueryPlan(String tableName, List<SchemaPath> columns) {
-    List<String> columnNames = columns.stream()
-        .map(path -> path.getRootSegmentPath())
-        .collect(Collectors.toList());
-    return buildTableScanPlan(tableName, columnNames);
+    boolean isStarQuery = columns.stream().anyMatch(path -> path.equals(SchemaPath.STAR_COLUMN));
+
+    if (isStarQuery) {
+      return buildTableScanPlan(tableName, null, true);
+    } else {
+      List<String> columnNames = columns.stream()
+          .map(p -> p.getLastSegment().getNameSegment().getPath())
+          .collect(Collectors.toList());
+
+      return buildTableScanPlan(tableName, columnNames, false);
+    }
   }
 
   private Optional<ZeusTableSchema> getTableSchema(String tableName) {
@@ -89,26 +89,33 @@ public class ZeusDB extends AbstractSchema {
         .findFirst();
   }
 
-  private QueryPlan buildTableScanPlan(String tableName, List<String> columnNames) {
+  private QueryPlan buildTableScanPlan(String tableName, List<String> columnNames, boolean isStarQuery) {
     return dbSchema.getTablesMap().values()
         .stream()
         .filter(t -> t.getName().equals(tableName))
         .findFirst()
-        .map(t -> buildTableScanNode(t, columnNames))
+        .map(t -> buildTableScanNode(t, columnNames, isStarQuery))
         .orElseThrow(() -> CatalogNotFoundException.tableNotFound(dbSchema.getName(), tableName));
   }
 
-  private QueryPlan buildTableScanNode(ZeusTableSchema tableSchema, List<String> columnNames) {
-    Map<String, Integer> columnNameToId = new HashMap<>(tableSchema.getColumnsCount());
-    tableSchema.getColumnsMap().values()
-        .forEach(c -> columnNameToId.put(c.getName(), c.getId()));
+  private QueryPlan buildTableScanNode(ZeusTableSchema tableSchema, List<String> columnNames, boolean isStarQuery) {
+    Collection<Integer> columnIds;
 
-    List<Integer> columnIds = columnNames
-        .stream()
-        .map(columnName ->
-            Optional.ofNullable(columnNameToId.get(columnName))
-                .orElseThrow(() -> columnNotFound(dbSchema.getName(), tableSchema.getName(), name)))
-        .collect(Collectors.toList());
+    if (isStarQuery) {
+      columnIds = tableSchema.getColumnsMap().keySet();
+    } else {
+      Map<String, Integer> columnNameToId = new HashMap<>(tableSchema.getColumnsCount());
+      tableSchema.getColumnsMap().values()
+          .forEach(c -> columnNameToId.put(c.getName(), c.getId()));
+
+      columnIds = columnNames
+          .stream()
+          .map(columnName ->
+              Optional.ofNullable(columnNameToId.get(columnName))
+                  .orElseThrow(() -> columnNotFound(dbSchema.getName(), tableSchema.getName(), name)))
+          .collect(Collectors.toList());
+    }
+
 
 
     ScanNode scanNode = ScanNode.newBuilder()
