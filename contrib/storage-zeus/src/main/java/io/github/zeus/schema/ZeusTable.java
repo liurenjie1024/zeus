@@ -24,6 +24,7 @@ import io.github.zeus.rpc.ZeusTableSchema;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.exec.planner.logical.DynamicDrillTable;
 import org.apache.drill.exec.store.StoragePlugin;
 
@@ -66,6 +67,16 @@ public class ZeusTable extends DynamicDrillTable {
       .filter(c -> c.getName().equals(columnName))
       .findFirst()
       .map(ZeusColumnSchema::getId);
+  }
+
+  public List<Integer> getColumnIds(List<SchemaPath> columns) {
+    //TODO: Optimize this
+    return columns.stream()
+        .map(p -> p.getLastSegment().getNameSegment().getPath())
+        .map(this::getColumnId)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   public Set<String> getAllColumnNames() {

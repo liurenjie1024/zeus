@@ -41,22 +41,25 @@ import java.util.List;
 public class ZeusGroupScan extends AbstractGroupScan {
   private static final Logger logger = LoggerFactory.getLogger(ZeusGroupScan.class);
 
-  private final ZeusQueryPlan groupScanSpec;
+  private final ZeusQueryPlan queryPlan;
   private final ZeusStoragePluginConfig config;
   private final ZeusStoragePlugin plugin;
 
   @JsonCreator
-  public ZeusGroupScan(@JsonProperty("groupScanSpec") ZeusQueryPlan groupScanSpec,
-                     @JsonProperty("config")StoragePluginConfig config,
-                     @JacksonInject StoragePluginRegistry registry) throws ExecutionSetupException {
-    this(groupScanSpec, (ZeusStoragePluginConfig)config,
+  public ZeusGroupScan(
+      @JsonProperty("queryPlan") ZeusQueryPlan queryPlan,
+      @JsonProperty("config")StoragePluginConfig config,
+      @JacksonInject StoragePluginRegistry registry) throws ExecutionSetupException {
+    this(queryPlan, (ZeusStoragePluginConfig)config,
       (ZeusStoragePlugin) registry.getPlugin(config));
   }
 
-  ZeusGroupScan(ZeusQueryPlan groupScanSpec,
-              ZeusStoragePluginConfig config, ZeusStoragePlugin plugin) {
+  ZeusGroupScan(
+      ZeusQueryPlan queryPlan,
+      ZeusStoragePluginConfig config,
+      ZeusStoragePlugin plugin) {
     super("");
-    this.groupScanSpec = groupScanSpec;
+    this.queryPlan = queryPlan;
     this.config = config;
     this.plugin = plugin;
   }
@@ -68,7 +71,7 @@ public class ZeusGroupScan extends AbstractGroupScan {
 
   @Override
   public SubScan getSpecificScan(int minorFragmentId) throws ExecutionSetupException {
-    return new ZeusSubScan(groupScanSpec, config, plugin);
+    return new ZeusSubScan(queryPlan, config, plugin);
   }
 
   @Override
@@ -88,12 +91,12 @@ public class ZeusGroupScan extends AbstractGroupScan {
 
   @Override
   public ZeusGroupScan clone(List<SchemaPath> columns) {
-    return new ZeusGroupScan(groupScanSpec, config, plugin);
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public String getDigest() {
-    return String.format("ZeusGroupScan[plan=%s]", groupScanSpec);
+    return String.format("ZeusGroupScan[plan=%s]", queryPlan);
   }
 
   @Override

@@ -18,5 +18,12 @@
 
 package io.github.zeus.rule;
 
+import com.google.common.collect.Sets;
+import org.apache.calcite.plan.RelOptRule;
+
+import java.util.Set;
+
 public class Rules {
+  public static Set<RelOptRule> PHYSICAL_RULES = Sets.newHashSet(
+      new ScanTransformRule());
 }

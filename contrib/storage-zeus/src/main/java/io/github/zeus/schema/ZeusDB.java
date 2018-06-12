@@ -60,12 +60,17 @@ public class ZeusDB extends AbstractSchema {
   @Override
   public ZeusTable getTable(String name) {
     return getTableSchema(name)
-        .map(schema -> new ZeusTable(plugin, storageEngineName, name, schema))
+        .map(schema -> new ZeusTable(plugin, storageEngineName, schema.getId(), schema))
         .orElse(null);
   }
 
   public int getId() {
     return dbSchema.getId();
+  }
+
+  public Optional<ZeusTable> getTable(int tableId) {
+    return Optional.ofNullable(dbSchema.getTablesMap().get(tableId))
+        .map(schema -> new ZeusTable(plugin, storageEngineName, schema.getName(), schema));
   }
 
   public QueryPlan getTableScanQueryPlan(String tableName, List<SchemaPath> columns) {
@@ -133,5 +138,15 @@ public class ZeusDB extends AbstractSchema {
         .setPlanId(UUID.randomUUID().toString())
         .setRoot(planNode)
         .build();
+  }
+
+  public static List<String> toColumnNames(List<SchemaPath> paths) {
+    return paths.stream()
+        .map(p -> p.getLastSegment().getNameSegment().getPath())
+        .collect(Collectors.toList());
+  }
+
+  public static boolean isStarSchema(List<SchemaPath> columns) {
+    return columns.stream().anyMatch(path -> path.equals(SchemaPath.STAR_COLUMN));
   }
 }

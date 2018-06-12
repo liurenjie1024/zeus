@@ -21,11 +21,15 @@ package io.github.zeus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.zeus.client.ZeusClient;
+import io.github.zeus.rule.Rules;
 import io.github.zeus.schema.ZeusDB;
+import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.drill.common.JSONOptions;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.logical.StoragePluginConfig;
+import org.apache.drill.exec.ops.OptimizerRulesContext;
+import org.apache.drill.exec.planner.PlannerPhase;
 import org.apache.drill.exec.server.DrillbitContext;
 import org.apache.drill.exec.store.AbstractStoragePlugin;
 import org.apache.drill.exec.store.SchemaConfig;
@@ -33,7 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class ZeusStoragePlugin extends AbstractStoragePlugin {
   private static final Logger logger = LoggerFactory.getLogger(ZeusStoragePlugin.class);
@@ -64,6 +70,16 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   }
 
   @Override
+  public Set<? extends RelOptRule> getOptimizerRules(OptimizerRulesContext optimizerContext, PlannerPhase phase) {
+    switch (phase) {
+      case PHYSICAL:
+        return Rules.PHYSICAL_RULES;
+      default:
+        return Collections.emptySet();
+    }
+  }
+
+  @Override
   public void start() throws IOException {
     logger.info("Starting zeus storage plugin");
     try {
@@ -91,14 +107,16 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   }
 
   @Override
-  public ZeusGroupScan getPhysicalScan(String userName,
+  public ZeusTableScan getPhysicalScan(String userName,
                                        JSONOptions selection,
                                        List<SchemaPath> paths) throws IOException {
-    String tableName = selection.getListWith(new ObjectMapper(),
-      new TypeReference<String>(){});
+    Integer tableId = selection.getListWith(new ObjectMapper(),
+        new TypeReference<Integer>() {});
+    return ZeusTableScan.from(this, dbSchema.getId(), tableId, paths);
+  }
 
-    ZeusQueryPlan queryPlan = ZeusQueryPlan.from(dbSchema.getTableScanQueryPlan(tableName, paths));
-    return new ZeusGroupScan(queryPlan, config, this);
+  ZeusDB getDbSchema() {
+    return dbSchema;
   }
 
   @Override

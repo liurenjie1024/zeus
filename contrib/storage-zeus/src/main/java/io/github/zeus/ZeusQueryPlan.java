@@ -23,9 +23,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.zeus.com.google.protobuf.InvalidProtocolBufferException;
 import io.github.zeus.com.google.protobuf.util.JsonFormat;
+import io.github.zeus.rpc.PlanNode;
+import io.github.zeus.rpc.PlanNodeType;
 import io.github.zeus.rpc.QueryPlan;
+import io.github.zeus.rpc.ScanNode;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A query plan wrapper.
@@ -62,6 +67,31 @@ public class ZeusQueryPlan {
     return jsonPlan;
   }
 
+  /**
+   * Do column pruning.
+   * @param columnIds
+   * @return
+   */
+  public ZeusQueryPlan withColumnIds(List<Integer> columnIds) {
+    ScanNode scanNode = plan.getRoot().getScanNode();
+    ScanNode newScanNode = ScanNode.newBuilder(scanNode)
+        .clearColumns()
+        .addAllColumns(columnIds)
+        .build();
+
+    PlanNode newPlanNode = PlanNode.newBuilder()
+        .setPlanNodeType(PlanNodeType.SCAN_NODE)
+        .setScanNode(newScanNode)
+        .build();
+
+    QueryPlan newQueryPlan = QueryPlan.newBuilder()
+        .setPlanId(UUID.randomUUID().toString())
+        .setRoot(newPlanNode)
+        .build();
+
+    return ZeusQueryPlan.from(newQueryPlan);
+  }
+
   private static QueryPlan parseJsonPlan(String jsonPlan) {
     QueryPlan.Builder builder =  QueryPlan.newBuilder();
     try {
@@ -82,6 +112,8 @@ public class ZeusQueryPlan {
       throw new RuntimeException(e);
     }
   }
+
+
 
   public static ZeusQueryPlan from(QueryPlan plan) {
     return new ZeusQueryPlan(plan, toJsonPlan(plan));
