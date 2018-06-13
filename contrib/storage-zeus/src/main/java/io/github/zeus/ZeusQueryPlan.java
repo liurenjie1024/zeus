@@ -73,6 +73,7 @@ public class ZeusQueryPlan {
    * @return
    */
   public ZeusQueryPlan withColumnIds(List<Integer> columnIds) {
+    //TODO: Check that only scan node is in the plan
     ScanNode scanNode = plan.getRoot().getScanNode();
     ScanNode newScanNode = ScanNode.newBuilder(scanNode)
         .clearColumns()
@@ -90,6 +91,19 @@ public class ZeusQueryPlan {
         .build();
 
     return ZeusQueryPlan.from(newQueryPlan);
+  }
+
+  public ZeusQueryPlan withNewRoot(PlanNode newRoot) {
+    PlanNode newRootFull = PlanNode.newBuilder(newRoot)
+        .clearChildren()
+        .addChildren(plan.getRoot())
+        .build();
+
+    QueryPlan newPlan = QueryPlan.newBuilder(plan)
+        .setRoot(newRootFull)
+        .build();
+
+    return ZeusQueryPlan.from(newPlan);
   }
 
   private static QueryPlan parseJsonPlan(String jsonPlan) {

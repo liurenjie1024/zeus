@@ -25,5 +25,5 @@ import java.util.Set;
 
 public class Rules {
   public static Set<RelOptRule> PHYSICAL_RULES = Sets.newHashSet(
-      new ScanTransformRule());
+      PushLimitToScanRule.SINGLETON);
 }

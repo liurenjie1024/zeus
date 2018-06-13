@@ -73,17 +73,17 @@ public class ZeusDB extends AbstractSchema {
         .map(schema -> new ZeusTable(plugin, storageEngineName, schema.getName(), schema));
   }
 
-  public QueryPlan getTableScanQueryPlan(String tableName, List<SchemaPath> columns) {
+  public QueryPlan getTableScanQueryPlan(int tableId, List<SchemaPath> columns) {
     boolean isStarQuery = columns.stream().anyMatch(path -> path.equals(SchemaPath.STAR_COLUMN));
 
     if (isStarQuery) {
-      return buildTableScanPlan(tableName, null, true);
+      return buildTableScanPlan(tableId, null, true);
     } else {
       List<String> columnNames = columns.stream()
           .map(p -> p.getLastSegment().getNameSegment().getPath())
           .collect(Collectors.toList());
 
-      return buildTableScanPlan(tableName, columnNames, false);
+      return buildTableScanPlan(tableId, columnNames, false);
     }
   }
 
@@ -94,13 +94,10 @@ public class ZeusDB extends AbstractSchema {
         .findFirst();
   }
 
-  private QueryPlan buildTableScanPlan(String tableName, List<String> columnNames, boolean isStarQuery) {
-    return dbSchema.getTablesMap().values()
-        .stream()
-        .filter(t -> t.getName().equals(tableName))
-        .findFirst()
+  private QueryPlan buildTableScanPlan(int tableId, List<String> columnNames, boolean isStarQuery) {
+    return Optional.ofNullable(dbSchema.getTablesMap().get(tableId))
         .map(t -> buildTableScanNode(t, columnNames, isStarQuery))
-        .orElseThrow(() -> CatalogNotFoundException.tableNotFound(dbSchema.getName(), tableName));
+        .orElseThrow(() -> CatalogNotFoundException.tableIdNotFound(dbSchema.getId(), tableId));
   }
 
   private QueryPlan buildTableScanNode(ZeusTableSchema tableSchema, List<String> columnNames, boolean isStarQuery) {

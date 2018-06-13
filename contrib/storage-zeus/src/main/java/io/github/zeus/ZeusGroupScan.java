@@ -22,6 +22,9 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.github.zeus.client.exception.CatalogNotFoundException;
+import io.github.zeus.rpc.PlanNode;
+import io.github.zeus.schema.ZeusTable;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.logical.StoragePluginConfig;
@@ -41,24 +44,28 @@ import java.util.List;
 public class ZeusGroupScan extends AbstractGroupScan {
   private static final Logger logger = LoggerFactory.getLogger(ZeusGroupScan.class);
 
+  private final int tableId;
   private final ZeusQueryPlan queryPlan;
   private final ZeusStoragePluginConfig config;
   private final ZeusStoragePlugin plugin;
 
   @JsonCreator
   public ZeusGroupScan(
+      @JsonProperty("tableId") int tableId,
       @JsonProperty("queryPlan") ZeusQueryPlan queryPlan,
-      @JsonProperty("config")StoragePluginConfig config,
+      @JsonProperty("config") StoragePluginConfig config,
       @JacksonInject StoragePluginRegistry registry) throws ExecutionSetupException {
-    this(queryPlan, (ZeusStoragePluginConfig)config,
+    this(tableId, queryPlan, (ZeusStoragePluginConfig)config,
       (ZeusStoragePlugin) registry.getPlugin(config));
   }
 
   ZeusGroupScan(
+      int tableId,
       ZeusQueryPlan queryPlan,
       ZeusStoragePluginConfig config,
       ZeusStoragePlugin plugin) {
     super("");
+    this.tableId = tableId;
     this.queryPlan = queryPlan;
     this.config = config;
     this.plugin = plugin;
@@ -89,9 +96,27 @@ public class ZeusGroupScan extends AbstractGroupScan {
     return config;
   }
 
+
+
   @Override
   public ZeusGroupScan clone(List<SchemaPath> columns) {
-    throw new UnsupportedOperationException();
+    List<Integer> columnIds = plugin.getDbSchema()
+        .getTable(tableId)
+        .map(t -> t.getColumnIds(columns))
+        .orElseThrow(() -> CatalogNotFoundException.tableIdNotFound(plugin.getDbSchema().getId(), tableId));
+
+    ZeusQueryPlan newPlan = queryPlan.withColumnIds(columnIds);
+
+    return new ZeusGroupScan(tableId, newPlan, config, plugin);
+  }
+
+  @Override
+  public boolean canPushdownProjects(List<SchemaPath> columns) {
+    return true;
+  }
+
+  public ZeusGroupScan cloneWithNewRootPlanNode(PlanNode newRoot) {
+    return new ZeusGroupScan(tableId, queryPlan.withNewRoot(newRoot), config, plugin);
   }
 
   @Override

@@ -107,15 +107,19 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
   }
 
   @Override
-  public ZeusTableScan getPhysicalScan(String userName,
+  public ZeusGroupScan getPhysicalScan(String userName,
                                        JSONOptions selection,
                                        List<SchemaPath> paths) throws IOException {
     Integer tableId = selection.getListWith(new ObjectMapper(),
         new TypeReference<Integer>() {});
-    return ZeusTableScan.from(this, dbSchema.getId(), tableId, paths);
+    return new ZeusGroupScan(
+        tableId,
+        ZeusQueryPlan.from(dbSchema.getTableScanQueryPlan(tableId, paths)),
+        config,
+        this);
   }
 
-  ZeusDB getDbSchema() {
+  public ZeusDB getDbSchema() {
     return dbSchema;
   }
 
