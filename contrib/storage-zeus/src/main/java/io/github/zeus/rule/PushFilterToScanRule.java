@@ -73,6 +73,8 @@ public class PushFilterToScanRule extends RelOptRule {
 
       ScanPrel newScan = ScanPrel.create(scanPrel, filterPrel.getTraitSet(), newGroupScan, filterPrel.getRowType());
       call.transformTo(newScan);
+    } else {
+
     }
   }
 

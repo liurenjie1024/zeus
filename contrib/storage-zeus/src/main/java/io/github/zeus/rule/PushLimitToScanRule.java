@@ -51,10 +51,12 @@ public class PushLimitToScanRule extends RelOptRule {
 
     ZeusGroupScan groupScan = (ZeusGroupScan) scanPrel.getGroupScan();
 
-    call.transformTo(new ScanPrel(scanPrel.getCluster(),
-        scanPrel.getTraitSet(),
+    ScanPrel newScan = ScanPrel.create(scanPrel,
+        limitPrel.getTraitSet(),
         groupScan.cloneWithNewRootPlanNode(planNode),
-        scanPrel.getRowType()));
+        limitPrel.getRowType());
+
+    call.transformTo(newScan);
   }
 
   @Override
