@@ -22,10 +22,14 @@ import io.github.zeus.rpc.Expression;
 import org.apache.drill.common.expression.FunctionCall;
 import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.common.expression.visitors.AbstractExprVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, Void, RuntimeException> {
+  private static final Logger LOG = LoggerFactory.getLogger(ZeusExprBuilder.class);
+
   @Override
   public Optional<Expression> visitUnknown(LogicalExpression e, Void value) throws RuntimeException {
     return super.visitUnknown(e, value);
@@ -35,7 +39,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   public Optional<Expression> visitFunctionCall(FunctionCall call, Void value) throws RuntimeException {
     String funcName = call.getName();
 
-    System.out.println("Function name is: " + funcName);
+    LOG.info("Function name is:{}", funcName);
 
     return Optional.empty();
   }
