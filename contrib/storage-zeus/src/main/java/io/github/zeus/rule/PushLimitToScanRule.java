@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -62,6 +62,11 @@ public class PushLimitToScanRule extends RelOptRule {
     ScanPrel scanPrel = call.rel(1);
 
     if (!(scanPrel.getGroupScan() instanceof ZeusGroupScan)) {
+      return false;
+    }
+
+    LimitPrel limitPrel = call.rel(0);
+    if (limitPrel.getOffset() != null) {
       return false;
     }
 

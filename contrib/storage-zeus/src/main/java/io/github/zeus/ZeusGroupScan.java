@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.github.zeus.client.exception.CatalogNotFoundException;
 import io.github.zeus.rpc.PlanNode;
-import io.github.zeus.schema.ZeusTable;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.logical.StoragePluginConfig;
@@ -48,27 +47,31 @@ public class ZeusGroupScan extends AbstractGroupScan {
   private final ZeusQueryPlan queryPlan;
   private final ZeusStoragePluginConfig config;
   private final ZeusStoragePlugin plugin;
+  private boolean isFilterPushedDown;
 
   @JsonCreator
   public ZeusGroupScan(
       @JsonProperty("tableId") int tableId,
       @JsonProperty("queryPlan") ZeusQueryPlan queryPlan,
       @JsonProperty("config") StoragePluginConfig config,
+      @JsonProperty("isFilterPushedDown") boolean isFilterPushedDown,
       @JacksonInject StoragePluginRegistry registry) throws ExecutionSetupException {
     this(tableId, queryPlan, (ZeusStoragePluginConfig)config,
-      (ZeusStoragePlugin) registry.getPlugin(config));
+      (ZeusStoragePlugin) registry.getPlugin(config), isFilterPushedDown);
   }
 
   ZeusGroupScan(
       int tableId,
       ZeusQueryPlan queryPlan,
       ZeusStoragePluginConfig config,
-      ZeusStoragePlugin plugin) {
+      ZeusStoragePlugin plugin,
+      boolean isFilterPushedDown) {
     super("");
     this.tableId = tableId;
     this.queryPlan = queryPlan;
     this.config = config;
     this.plugin = plugin;
+    this.isFilterPushedDown = isFilterPushedDown;
   }
 
 
@@ -96,7 +99,10 @@ public class ZeusGroupScan extends AbstractGroupScan {
     return config;
   }
 
-
+  @JsonProperty
+  public boolean isFilterPushedDown() {
+    return isFilterPushedDown;
+  }
 
   @Override
   public ZeusGroupScan clone(List<SchemaPath> columns) {
@@ -107,7 +113,7 @@ public class ZeusGroupScan extends AbstractGroupScan {
 
     ZeusQueryPlan newPlan = queryPlan.withColumnIds(columnIds);
 
-    return new ZeusGroupScan(tableId, newPlan, config, plugin);
+    return new ZeusGroupScan(tableId, newPlan, config, plugin, isFilterPushedDown);
   }
 
   @Override
@@ -116,7 +122,11 @@ public class ZeusGroupScan extends AbstractGroupScan {
   }
 
   public ZeusGroupScan cloneWithNewRootPlanNode(PlanNode newRoot) {
-    return new ZeusGroupScan(tableId, queryPlan.withNewRoot(newRoot), config, plugin);
+    return new ZeusGroupScan(tableId, queryPlan.withNewRoot(newRoot), config, plugin, isFilterPushedDown);
+  }
+
+  public void setFilterPushedDown(boolean isFilterPushedDown) {
+    this.isFilterPushedDown= isFilterPushedDown;
   }
 
   @Override
