@@ -110,11 +110,16 @@ public class ZeusDB extends AbstractSchema {
       tableSchema.getColumnsMap().values()
           .forEach(c -> columnNameToId.put(c.getName(), c.getId()));
 
+      columnNames.stream()
+          .filter(name -> !columnNameToId.containsKey(name))
+          .findFirst()
+          .ifPresent(name -> {
+            throw columnNotFound(dbSchema.getName(), tableSchema.getName(), name)
+          });
+
       columnIds = columnNames
           .stream()
-          .map(columnName ->
-              Optional.ofNullable(columnNameToId.get(columnName))
-                  .orElseThrow(() -> columnNotFound(dbSchema.getName(), tableSchema.getName(), name)))
+          .map(columnNameToId::get)
           .collect(Collectors.toList());
     }
 
