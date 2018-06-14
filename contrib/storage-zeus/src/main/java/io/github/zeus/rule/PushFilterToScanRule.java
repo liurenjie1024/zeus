@@ -18,12 +18,14 @@
 
 package io.github.zeus.rule;
 
+import com.google.common.collect.ImmutableList;
 import io.github.zeus.ZeusGroupScan;
 import io.github.zeus.expr.ZeusExprBuilder;
 import io.github.zeus.rpc.Expression;
 import io.github.zeus.rpc.FilterNode;
 import io.github.zeus.rpc.PlanNode;
 import io.github.zeus.rpc.PlanNodeType;
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rex.RexNode;
@@ -74,7 +76,13 @@ public class PushFilterToScanRule extends RelOptRule {
       ScanPrel newScan = ScanPrel.create(scanPrel, filterPrel.getTraitSet(), newGroupScan, filterPrel.getRowType());
       call.transformTo(newScan);
     } else {
+      ZeusGroupScan groupScan = (ZeusGroupScan) scanPrel.getGroupScan();
+      ZeusGroupScan newGroupScan = groupScan.copy();
+      newGroupScan.setFilterPushedDown(true);
 
+      ScanPrel newScan = ScanPrel.create(scanPrel, scanPrel.getTraitSet(), newGroupScan, scanPrel.getRowType());
+
+      call.transformTo(filterPrel.copy(filterPrel.getTraitSet(), ImmutableList.of(newScan)));
     }
   }
 

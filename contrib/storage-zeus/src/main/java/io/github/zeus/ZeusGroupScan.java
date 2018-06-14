@@ -125,6 +125,10 @@ public class ZeusGroupScan extends AbstractGroupScan {
     return new ZeusGroupScan(tableId, queryPlan.withNewRoot(newRoot), config, plugin, isFilterPushedDown);
   }
 
+  public ZeusGroupScan copy() {
+    return new ZeusGroupScan(tableId, queryPlan, config, plugin, isFilterPushedDown);
+  }
+
   public void setFilterPushedDown(boolean isFilterPushedDown) {
     this.isFilterPushedDown= isFilterPushedDown;
   }
