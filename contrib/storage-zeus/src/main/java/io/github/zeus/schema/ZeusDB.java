@@ -114,7 +114,7 @@ public class ZeusDB extends AbstractSchema {
           .filter(name -> !columnNameToId.containsKey(name))
           .findFirst()
           .ifPresent(name -> {
-            throw columnNotFound(dbSchema.getName(), tableSchema.getName(), name)
+            throw columnNotFound(dbSchema.getName(), tableSchema.getName(), name);
           });
 
       columnIds = columnNames
