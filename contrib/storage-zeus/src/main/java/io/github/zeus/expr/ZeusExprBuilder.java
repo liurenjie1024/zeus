@@ -32,6 +32,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
 
   @Override
   public Optional<Expression> visitUnknown(LogicalExpression e, Void value) throws RuntimeException {
+    LOG.info("Visiting unknown");
     return super.visitUnknown(e, value);
   }
 
