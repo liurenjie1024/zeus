@@ -74,7 +74,7 @@ public class ZeusDB extends AbstractSchema {
   }
 
   public QueryPlan getTableScanQueryPlan(int tableId, List<SchemaPath> columns) {
-    boolean isStarQuery = columns.stream().anyMatch(path -> path.equals(SchemaPath.STAR_COLUMN));
+    boolean isStarQuery = isStarSchema(columns);
 
     if (isStarQuery) {
       return buildTableScanPlan(tableId, null, true);

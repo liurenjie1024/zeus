@@ -71,6 +71,11 @@ public class ZeusTable extends DynamicDrillTable {
 
   public List<Integer> getColumnIds(List<SchemaPath> columns) {
     //TODO: Optimize this
+
+    if (ZeusDB.isStarSchema(columns)) {
+      return new ArrayList<>(tableSchema.getColumnsMap().keySet());
+    }
+
     return columns.stream()
         .map(p -> p.getLastSegment().getNameSegment().getPath())
         .map(this::getColumnId)
