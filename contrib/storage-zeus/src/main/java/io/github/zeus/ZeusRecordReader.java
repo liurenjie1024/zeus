@@ -107,7 +107,7 @@ public class ZeusRecordReader extends AbstractRecordReader {
 
 
   @Override
-  public void setup(OperatorContext context, OutputMutator output) throws ExecutionSetupException {
+  public void setup(OperatorContext context, OutputMutator output) {
     this.context = context;
     this.output = output;
 
@@ -143,6 +143,8 @@ public class ZeusRecordReader extends AbstractRecordReader {
     for (; rowCount < MAX_BATCH_COUNT && queryResult.hasNext(); rowCount++) {
       addResult(queryResult.next(), rowCount);
     }
+
+    logger.info("Row count from server is:{}", rowCount);
     return rowCount;
   }
 
