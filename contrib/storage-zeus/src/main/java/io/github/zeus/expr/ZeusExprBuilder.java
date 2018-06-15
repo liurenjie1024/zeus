@@ -19,6 +19,8 @@
 package io.github.zeus.expr;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import io.github.zeus.client.exception.CatalogNotFoundException;
 import io.github.zeus.rpc.ColumnRef;
 import io.github.zeus.rpc.ColumnType;
@@ -67,9 +69,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   public Optional<Expression> visitFunctionCall(FunctionCall call, Void value) throws RuntimeException {
       ScalarFunction.Builder builder = ScalarFunction.newBuilder();
 
-//      ColumnType[] columnTypes = new ColumnType[call.args.size()];
-      ColumnType[] columnTypes = new ColumnType[]{ ColumnType.INT32, ColumnType.INT32 };
-      int idx = 0;
+    ImmutableList.Builder<ColumnType> argTypesBuilder = ImmutableList.builder();
 
       for (LogicalExpression arg: call.args) {
         Optional<Expression> argExpr = arg.accept(this, null);
@@ -77,14 +77,12 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
           return Optional.empty();
         }
 
-//        columnTypes[idx] = argExpr.get().getFieldType();
-//        columnTypes[idx] = ColumnType.INT32;
-        idx += 1;
+        argTypesBuilder.add(argExpr.get().getFieldType());
         builder.addChildren(argExpr.get());
       }
 
       Optional<ScalarFuncId> scalarFuncIdOpt = DrillFunctions.zeusScalarFuncOf(
-          new DrillFunctionSignature(call.getName(), columnTypes));
+          new DrillFunctionSignature(call.getName(), argTypesBuilder.build()));
 
       if (!scalarFuncIdOpt.isPresent()) {
         LOG.info("Unable to transform expression: {}", serializeLogicalExpression(call));

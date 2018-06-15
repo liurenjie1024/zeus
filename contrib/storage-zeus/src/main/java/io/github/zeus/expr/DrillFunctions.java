@@ -19,7 +19,9 @@
 
 package io.github.zeus.expr;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import io.github.zeus.rpc.ColumnType;
 import io.github.zeus.rpc.ScalarFuncId;
 
@@ -110,17 +112,10 @@ public class DrillFunctions {
           .build();
 
   private static DrillFunctionSignature signatureOf(String name, ColumnType... args) {
-    return new DrillFunctionSignature(name, args);
+    return new DrillFunctionSignature(name, ImmutableList.copyOf(args));
   }
 
   public static Optional<ScalarFuncId> zeusScalarFuncOf(DrillFunctionSignature signature) {
     return Optional.ofNullable(DRILL_FUNCTIONS.get(signature));
-  }
-
-  public static void main(String[] args) {
-    DrillFunctionSignature sig = new DrillFunctionSignature("less_than", new ColumnType[] {ColumnType.INT32, ColumnType.INT32});
-
-    System.out.println(zeusScalarFuncOf(sig));
-
   }
 }

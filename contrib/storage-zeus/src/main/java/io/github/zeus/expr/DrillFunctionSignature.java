@@ -19,16 +19,16 @@
 package io.github.zeus.expr;
 
 
+import com.google.common.collect.ImmutableList;
 import io.github.zeus.rpc.ColumnType;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 public class DrillFunctionSignature {
   private final String name;
-  private final ColumnType[] args;
+  private final ImmutableList<ColumnType> args;
 
-  public DrillFunctionSignature(String name, ColumnType[] args) {
+  public DrillFunctionSignature(String name, ImmutableList<ColumnType> args) {
     this.name = name;
     this.args = args;
   }
@@ -51,7 +51,7 @@ public class DrillFunctionSignature {
   public String toString() {
     return "DrillFunctionSignature{" +
         "name='" + name + '\'' +
-        ", args=" + Arrays.toString(args) +
+        ", args=" + args +
         '}';
   }
 }
