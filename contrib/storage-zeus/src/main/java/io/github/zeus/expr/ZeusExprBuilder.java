@@ -50,6 +50,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
 
   @Override
   public Optional<Expression> visitUnknown(LogicalExpression e, Void value) throws RuntimeException {
+    LOG.info("Unable to transform expression: {}", serializeLogicalExpression(e));
     return Optional.empty();
   }
 
@@ -69,7 +70,6 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
       for (LogicalExpression arg: call.args) {
         Optional<Expression> argExpr = arg.accept(this, null);
         if (!argExpr.isPresent()) {
-          LOG.info("Unable to transform expression: {}", serializeLogicalExpression(arg));
           return Optional.empty();
         }
 
