@@ -20,7 +20,6 @@ package io.github.zeus.expr;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import io.github.zeus.client.exception.CatalogNotFoundException;
 import io.github.zeus.rpc.ColumnRef;
 import io.github.zeus.rpc.ColumnType;
@@ -89,6 +88,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
         return Optional.empty();
       }
 
+      builder.setFuncId(scalarFuncIdOpt.get());
 
       return Optional.of(Expression.newBuilder()
           .setExpressionType(ExpressionType.SCALAR_FUNCTION)
