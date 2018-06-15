@@ -67,7 +67,8 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   public Optional<Expression> visitFunctionCall(FunctionCall call, Void value) throws RuntimeException {
       ScalarFunction.Builder builder = ScalarFunction.newBuilder();
 
-      ColumnType[] columnTypes = new ColumnType[call.args.size()];
+//      ColumnType[] columnTypes = new ColumnType[call.args.size()];
+      ColumnType[] columnTypes = new ColumnType[]{ ColumnType.INT32, ColumnType.INT32 };
       int idx = 0;
 
       for (LogicalExpression arg: call.args) {
@@ -77,7 +78,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
         }
 
 //        columnTypes[idx] = argExpr.get().getFieldType();
-        columnTypes[idx] = ColumnType.INT32;
+//        columnTypes[idx] = ColumnType.INT32;
         idx += 1;
         builder.addChildren(argExpr.get());
       }
