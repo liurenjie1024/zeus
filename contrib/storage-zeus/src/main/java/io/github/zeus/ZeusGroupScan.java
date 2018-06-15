@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.github.zeus.client.exception.CatalogNotFoundException;
 import io.github.zeus.rpc.PlanNode;
+import io.github.zeus.schema.ZeusTable;
 import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.logical.StoragePluginConfig;
@@ -141,5 +142,9 @@ public class ZeusGroupScan extends AbstractGroupScan {
   @Override
   public PhysicalOperator getNewWithChildren(List<PhysicalOperator> children) throws ExecutionSetupException {
     return this;
+  }
+
+  public ZeusTable getTable() {
+    return plugin.getDbSchema().getTable(tableId).get();
   }
 }

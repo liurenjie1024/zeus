@@ -35,11 +35,21 @@ import java.util.stream.Collectors;
  * Created by liurenjie on 24/01/2018.
  */
 public class ZeusTable extends DynamicDrillTable {
+  private final ZeusDB parent;
   private final ZeusTableSchema tableSchema;
 
-  public ZeusTable(StoragePlugin plugin, String storageEngineName, Object selection, ZeusTableSchema tableSchema) {
+  public ZeusTable(StoragePlugin plugin, String storageEngineName, Object selection, ZeusDB parent, ZeusTableSchema tableSchema) {
     super(plugin, storageEngineName, selection);
+    this.parent = parent;
     this.tableSchema = tableSchema;
+  }
+
+  public String getDBName() {
+    return parent.getName();
+  }
+
+  public String getTableName() {
+    return tableSchema.getName();
   }
 
   @Override
@@ -82,6 +92,12 @@ public class ZeusTable extends DynamicDrillTable {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toList());
+  }
+
+  public Optional<ColumnType> getColumnType(String column) {
+    return getColumnId(column)
+        .flatMap(columnId -> Optional.ofNullable(tableSchema.getColumnsMap().get(columnId)))
+        .map(ZeusColumnSchema::getColumnType);
   }
 
   public Set<String> getAllColumnNames() {

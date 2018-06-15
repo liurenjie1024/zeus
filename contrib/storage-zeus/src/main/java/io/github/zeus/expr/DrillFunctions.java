@@ -20,14 +20,17 @@
 package io.github.zeus.expr;
 
 import com.google.common.collect.ImmutableMap;
+import io.github.zeus.rpc.ColumnType;
 import io.github.zeus.rpc.ScalarFuncId;
-import org.apache.drill.common.types.TypeProtos.MajorType;
-import org.apache.drill.common.types.TypeProtos.MinorType;
-import org.apache.drill.common.types.Types;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
+import static io.github.zeus.rpc.ColumnType.BOOL;
+import static io.github.zeus.rpc.ColumnType.FLOAT4;
+import static io.github.zeus.rpc.ColumnType.FLOAT8;
+import static io.github.zeus.rpc.ColumnType.INT32;
+import static io.github.zeus.rpc.ColumnType.INT64;
+import static io.github.zeus.rpc.ColumnType.STRING;
 import static io.github.zeus.rpc.ScalarFuncId.EQ_BOOL;
 import static io.github.zeus.rpc.ScalarFuncId.EQ_F4;
 import static io.github.zeus.rpc.ScalarFuncId.EQ_F8;
@@ -68,49 +71,46 @@ import static io.github.zeus.rpc.ScalarFuncId.NE_STR;
 public class DrillFunctions {
   private static final ImmutableMap<DrillFunctionSignature, ScalarFuncId> DRILL_FUNCTIONS =
       ImmutableMap.<DrillFunctionSignature, ScalarFuncId>builder()
-          .put(signatureOf("greater_than", MinorType.BIT, MinorType.BIT), GT_BOOL)
-          .put(signatureOf("greater_than", MinorType.INT, MinorType.INT), GT_I32)
-          .put(signatureOf("greater_than", MinorType.BIGINT, MinorType.BIGINT), GT_I64)
-          .put(signatureOf("greater_than", MinorType.FLOAT4, MinorType.FLOAT4), GT_F4)
-          .put(signatureOf("greater_than", MinorType.FLOAT8, MinorType.FLOAT8), GT_F8)
-          .put(signatureOf("greater_than", MinorType.VARCHAR, MinorType.VARCHAR), GT_STR)
-          .put(signatureOf("greater_than_or_equal_to", MinorType.BIT, MinorType.BIT), GE_BOOL)
-          .put(signatureOf("greater_than_or_equal_to", MinorType.INT, MinorType.INT), GE_I32)
-          .put(signatureOf("greater_than_or_equal_to", MinorType.BIGINT, MinorType.BIGINT), GE_I64)
-          .put(signatureOf("greater_than_or_equal_to", MinorType.FLOAT4, MinorType.FLOAT4), GE_F4)
-          .put(signatureOf("greater_than_or_equal_to", MinorType.FLOAT8, MinorType.FLOAT8), GE_F8)
-          .put(signatureOf("greater_than_or_equal_to", MinorType.VARCHAR, MinorType.VARCHAR), GE_STR)
-          .put(signatureOf("less_than", MinorType.BIT, MinorType.BIT), LT_BOOL)
-          .put(signatureOf("less_than", MinorType.INT, MinorType.INT), LT_I32)
-          .put(signatureOf("less_than", MinorType.BIGINT, MinorType.BIGINT), LT_I64)
-          .put(signatureOf("less_than", MinorType.FLOAT4, MinorType.FLOAT4), LT_F4)
-          .put(signatureOf("less_than", MinorType.FLOAT8, MinorType.FLOAT8), LT_F8)
-          .put(signatureOf("less_than", MinorType.VARCHAR, MinorType.VARCHAR), LT_STR)
-          .put(signatureOf("less_than_or_equal_to", MinorType.BIT, MinorType.BIT), LE_BOOL)
-          .put(signatureOf("less_than_or_equal_to", MinorType.INT, MinorType.INT), LE_I32)
-          .put(signatureOf("less_than_or_equal_to", MinorType.BIGINT, MinorType.BIGINT), LE_I64)
-          .put(signatureOf("less_than_or_equal_to", MinorType.FLOAT4, MinorType.FLOAT4), LE_F4)
-          .put(signatureOf("less_than_or_equal_to", MinorType.FLOAT8, MinorType.FLOAT8), LE_F8)
-          .put(signatureOf("less_than_or_equal_to", MinorType.VARCHAR, MinorType.VARCHAR), LE_STR)
-          .put(signatureOf("equal", MinorType.BIT, MinorType.BIT), EQ_BOOL)
-          .put(signatureOf("equal", MinorType.INT, MinorType.INT), EQ_I32)
-          .put(signatureOf("equal", MinorType.BIGINT, MinorType.BIGINT), EQ_I64)
-          .put(signatureOf("equal", MinorType.FLOAT4, MinorType.FLOAT4), EQ_F4)
-          .put(signatureOf("equal", MinorType.FLOAT8, MinorType.FLOAT8), EQ_F8)
-          .put(signatureOf("equal", MinorType.VARCHAR, MinorType.VARCHAR), EQ_STR)
-          .put(signatureOf("not_equal", MinorType.BIT, MinorType.BIT), NE_BOOL)
-          .put(signatureOf("not_equal", MinorType.INT, MinorType.INT), NE_I32)
-          .put(signatureOf("not_equal", MinorType.BIGINT, MinorType.BIGINT), NE_I64)
-          .put(signatureOf("not_equal", MinorType.FLOAT4, MinorType.FLOAT4), NE_F4)
-          .put(signatureOf("not_equal", MinorType.FLOAT8, MinorType.FLOAT8), NE_F8)
-          .put(signatureOf("not_equal", MinorType.VARCHAR, MinorType.VARCHAR), NE_STR)
+          .put(signatureOf("greater_than", BOOL, BOOL), GT_BOOL)
+          .put(signatureOf("greater_than", INT32, INT32), GT_I32)
+          .put(signatureOf("greater_than", INT64, INT64), GT_I64)
+          .put(signatureOf("greater_than", FLOAT4, FLOAT4), GT_F4)
+          .put(signatureOf("greater_than", FLOAT8, FLOAT8), GT_F8)
+          .put(signatureOf("greater_than", STRING, STRING), GT_STR)
+          .put(signatureOf("greater_than_or_equal_to", BOOL, BOOL), GE_BOOL)
+          .put(signatureOf("greater_than_or_equal_to", INT32, INT32), GE_I32)
+          .put(signatureOf("greater_than_or_equal_to", INT64, INT64), GE_I64)
+          .put(signatureOf("greater_than_or_equal_to", FLOAT4, FLOAT4), GE_F4)
+          .put(signatureOf("greater_than_or_equal_to", FLOAT8, FLOAT8), GE_F8)
+          .put(signatureOf("greater_than_or_equal_to", STRING, STRING), GE_STR)
+          .put(signatureOf("less_than", BOOL, BOOL), LT_BOOL)
+          .put(signatureOf("less_than", INT32, INT32), LT_I32)
+          .put(signatureOf("less_than", INT64, INT64), LT_I64)
+          .put(signatureOf("less_than", FLOAT4, FLOAT4), LT_F4)
+          .put(signatureOf("less_than", FLOAT8, FLOAT8), LT_F8)
+          .put(signatureOf("less_than", STRING, STRING), LT_STR)
+          .put(signatureOf("less_than_or_equal_to", BOOL, BOOL), LE_BOOL)
+          .put(signatureOf("less_than_or_equal_to", INT32, INT32), LE_I32)
+          .put(signatureOf("less_than_or_equal_to", INT64, INT64), LE_I64)
+          .put(signatureOf("less_than_or_equal_to", FLOAT4, FLOAT4), LE_F4)
+          .put(signatureOf("less_than_or_equal_to", FLOAT8, FLOAT8), LE_F8)
+          .put(signatureOf("less_than_or_equal_to", STRING, STRING), LE_STR)
+          .put(signatureOf("equal", BOOL, BOOL), EQ_BOOL)
+          .put(signatureOf("equal", INT32, INT32), EQ_I32)
+          .put(signatureOf("equal", INT64, INT64), EQ_I64)
+          .put(signatureOf("equal", FLOAT4, FLOAT4), EQ_F4)
+          .put(signatureOf("equal", FLOAT8, FLOAT8), EQ_F8)
+          .put(signatureOf("equal", STRING, STRING), EQ_STR)
+          .put(signatureOf("not_equal", BOOL, BOOL), NE_BOOL)
+          .put(signatureOf("not_equal", INT32, INT32), NE_I32)
+          .put(signatureOf("not_equal", INT64, INT64), NE_I64)
+          .put(signatureOf("not_equal", FLOAT4, FLOAT4), NE_F4)
+          .put(signatureOf("not_equal", FLOAT8, FLOAT8), NE_F8)
+          .put(signatureOf("not_equal", STRING, STRING), NE_STR)
           .build();
 
-  private static DrillFunctionSignature signatureOf(String name, MinorType... args) {
-    MajorType[] argTypes = Stream.of(args)
-        .map(Types::required)
-        .toArray(MajorType[]::new);
-    return new DrillFunctionSignature(name, argTypes);
+  private static DrillFunctionSignature signatureOf(String name, ColumnType... args) {
+    return new DrillFunctionSignature(name, args);
   }
 
   public static Optional<ScalarFuncId> zeusScalarFuncOf(DrillFunctionSignature signature) {

@@ -19,15 +19,15 @@
 package io.github.zeus.expr;
 
 
-import org.apache.drill.common.types.TypeProtos.MajorType;
+import io.github.zeus.rpc.ColumnType;
 
 import java.util.Objects;
 
 public class DrillFunctionSignature {
   private final String name;
-  private final MajorType[] args;
+  private final ColumnType[] args;
 
-  public DrillFunctionSignature(String name, MajorType[] args) {
+  public DrillFunctionSignature(String name, ColumnType[] args) {
     this.name = name;
     this.args = args;
   }

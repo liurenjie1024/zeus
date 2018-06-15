@@ -56,7 +56,8 @@ public class PushFilterToScanRule extends RelOptRule {
         new DrillParseContext(PrelUtil.getPlannerSettings(call.getPlanner())),
         scanPrel, condition);
 
-    ZeusExprBuilder builder = new ZeusExprBuilder();
+    ZeusGroupScan groupScan = (ZeusGroupScan) scanPrel.getGroupScan();
+    ZeusExprBuilder builder = new ZeusExprBuilder(groupScan.getTable());
     Optional<Expression> zeusExpr = conditionExp.accept(builder, null);
 
     if (zeusExpr.isPresent()) {
@@ -69,14 +70,12 @@ public class PushFilterToScanRule extends RelOptRule {
           .setFilterNode(filterNode)
           .build();
 
-      ZeusGroupScan groupScan = (ZeusGroupScan) scanPrel.getGroupScan();
       ZeusGroupScan newGroupScan = groupScan.cloneWithNewRootPlanNode(filterPlanNode);
       newGroupScan.setFilterPushedDown(true);
 
       ScanPrel newScan = ScanPrel.create(scanPrel, filterPrel.getTraitSet(), newGroupScan, filterPrel.getRowType());
       call.transformTo(newScan);
     } else {
-      ZeusGroupScan groupScan = (ZeusGroupScan) scanPrel.getGroupScan();
       ZeusGroupScan newGroupScan = groupScan.copy();
       newGroupScan.setFilterPushedDown(true);
 

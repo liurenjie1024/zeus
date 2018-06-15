@@ -60,7 +60,7 @@ public class ZeusDB extends AbstractSchema {
   @Override
   public ZeusTable getTable(String name) {
     return getTableSchema(name)
-        .map(schema -> new ZeusTable(plugin, storageEngineName, schema.getId(), schema))
+        .map(schema -> new ZeusTable(plugin, storageEngineName, schema.getId(), this, schema))
         .orElse(null);
   }
 
@@ -70,7 +70,7 @@ public class ZeusDB extends AbstractSchema {
 
   public Optional<ZeusTable> getTable(int tableId) {
     return Optional.ofNullable(dbSchema.getTablesMap().get(tableId))
-        .map(schema -> new ZeusTable(plugin, storageEngineName, schema.getName(), schema));
+        .map(schema -> new ZeusTable(plugin, storageEngineName, schema.getName(), this, schema));
   }
 
   public QueryPlan getTableScanQueryPlan(int tableId, List<SchemaPath> columns) {
