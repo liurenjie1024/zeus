@@ -76,7 +76,8 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
           return Optional.empty();
         }
 
-        columnTypes[idx] = argExpr.get().getFieldType();
+//        columnTypes[idx] = argExpr.get().getFieldType();
+        columnTypes[idx] = ColumnType.INT32;
         idx += 1;
         builder.addChildren(argExpr.get());
       }

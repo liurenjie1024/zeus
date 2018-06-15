@@ -116,4 +116,11 @@ public class DrillFunctions {
   public static Optional<ScalarFuncId> zeusScalarFuncOf(DrillFunctionSignature signature) {
     return Optional.ofNullable(DRILL_FUNCTIONS.get(signature));
   }
+
+  public static void main(String[] args) {
+    DrillFunctionSignature sig = new DrillFunctionSignature("less_than", new ColumnType[] {ColumnType.INT32, ColumnType.INT32});
+
+    System.out.println(zeusScalarFuncOf(sig));
+
+  }
 }

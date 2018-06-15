@@ -21,6 +21,7 @@ package io.github.zeus.expr;
 
 import io.github.zeus.rpc.ColumnType;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class DrillFunctionSignature {
@@ -44,5 +45,13 @@ public class DrillFunctionSignature {
   @Override
   public int hashCode() {
     return Objects.hash(name, args);
+  }
+
+  @Override
+  public String toString() {
+    return "DrillFunctionSignature{" +
+        "name='" + name + '\'' +
+        ", args=" + Arrays.toString(args) +
+        '}';
   }
 }
