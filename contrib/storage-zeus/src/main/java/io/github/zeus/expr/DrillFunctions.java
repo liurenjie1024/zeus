@@ -39,15 +39,13 @@ public class DrillFunctions {
       ImmutableSet.<Class<?>>builder()
         .add(ComparatorFunctionSignatures.class)
        .build();
-    
+
     ImmutableMap.Builder<ZeusFunctionSignature, ScalarFuncId> builder = ImmutableMap.builder();
 
     DRILL_FUNCTIONS_CLASSES.stream()
       .map(DrillFunctions::listEntries)
       .flatMap(List::stream)
-      .forEach(entry -> {
-        builder.put(entry.getSignature(), entry.getFuncId());
-      });
+      .forEach(entry -> builder.put(entry.getSignature(), entry.getFuncId()));
 
 
     DRILL_FUNCTIONS = builder.build();
@@ -58,7 +56,7 @@ public class DrillFunctions {
   private static List<ZeusFunctionEntry> listEntries(Class<?> klass) {
     return Arrays.stream(klass.getDeclaredFields())
       .filter(f -> Modifier.isStatic(f.getModifiers()))
-      .filter(f -> ZeusFunctionEntry.class == f.getDeclaringClass())
+//      .filter(f -> ZeusFunctionEntry.class == f.getDeclaringClass())
       .map(f -> {
         try {
           return (ZeusFunctionEntry)f.get(null);
