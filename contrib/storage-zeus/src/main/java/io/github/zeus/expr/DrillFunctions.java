@@ -32,14 +32,14 @@ import java.util.stream.Collectors;
 import static io.github.zeus.rpc.ColumnType.INT8;
 
 public class DrillFunctions {
-  private static final ImmutableSet<Class<?>> DRILL_FUNCTIONS_CLASSES =
-      ImmutableSet.<Class<?>>builder()
-        .add(ComparatorFunctionSignatures.class)
-       .build();
-
   private static final ImmutableMap<ZeusFunctionSignature, ScalarFuncId> DRILL_FUNCTIONS;
 
   static {
+    ImmutableSet<Class<?>> DRILL_FUNCTIONS_CLASSES =
+      ImmutableSet.<Class<?>>builder()
+        .add(ComparatorFunctionSignatures.class)
+       .build();
+    
     ImmutableMap.Builder<ZeusFunctionSignature, ScalarFuncId> builder = ImmutableMap.builder();
 
     DRILL_FUNCTIONS_CLASSES.stream()
