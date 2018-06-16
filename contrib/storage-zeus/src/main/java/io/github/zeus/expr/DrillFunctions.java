@@ -49,7 +49,10 @@ public class DrillFunctions {
         builder.put(entry.getSignature(), entry.getFuncId());
       });
 
+
     DRILL_FUNCTIONS = builder.build();
+
+    System.out.println("functions: " + DRILL_FUNCTIONS);
   }
 
   private static List<ZeusFunctionEntry> listEntries(Class<?> klass) {
