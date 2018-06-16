@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -47,7 +46,7 @@ public class DrillFunctions {
       .map(DrillFunctions::listEntries)
       .flatMap(List::stream)
       .forEach(entry -> {
-        builder.put(entry.getSignature(), entry.getFuncId())
+        builder.put(entry.getSignature(), entry.getFuncId());
       });
 
     DRILL_FUNCTIONS = builder.build();
