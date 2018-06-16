@@ -81,7 +81,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
       }
 
       Optional<ScalarFuncId> scalarFuncIdOpt = DrillFunctions.zeusScalarFuncOf(
-          new DrillFunctionSignature(call.getName(), argTypesBuilder.build()));
+          new ZeusFunctionSignature(call.getName(), argTypesBuilder.build()));
 
       if (!scalarFuncIdOpt.isPresent()) {
         LOG.info("Unable to transform expression: {}", serializeLogicalExpression(call));
