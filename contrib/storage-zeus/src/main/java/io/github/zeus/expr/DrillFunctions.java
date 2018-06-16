@@ -49,14 +49,12 @@ public class DrillFunctions {
 
 
     DRILL_FUNCTIONS = builder.build();
-
-    System.out.println("functions: " + DRILL_FUNCTIONS);
   }
 
   private static List<ZeusFunctionEntry> listEntries(Class<?> klass) {
     return Arrays.stream(klass.getDeclaredFields())
       .filter(f -> Modifier.isStatic(f.getModifiers()))
-//      .filter(f -> ZeusFunctionEntry.class == f.getDeclaringClass())
+      .filter(f -> ZeusFunctionEntry.class == f.getType())
       .map(f -> {
         try {
           return (ZeusFunctionEntry)f.get(null);
