@@ -25,8 +25,9 @@ import java.util.Set;
 
 public class Rules {
   public static Set<RelOptRule> PHYSICAL_RULES = Sets.newHashSet(
-      PushLimitToScanRule.SINGLETON,
-      PushFilterToScanRule.SINGLETON,
-      PushProjectToScanRule.SINGLETON
+    PushLimitToScanRule.SINGLETON,
+    PushFilterToScanRule.SINGLETON,
+    PushProjectToScanRule.SINGLETON,
+    PushTopNToScanRule.SINGLETON
   );
 }
