@@ -40,6 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static org.apache.drill.exec.physical.base.ScanStats.GroupScanProperty.EXACT_ROW_COUNT;
+
 @JsonTypeName("zeus-scan")
 public class ZeusGroupScan extends AbstractGroupScan {
   private static final Logger logger = LoggerFactory.getLogger(ZeusGroupScan.class);
@@ -104,7 +106,11 @@ public class ZeusGroupScan extends AbstractGroupScan {
 
   @Override
   public ScanStats getScanStats() {
-    return ScanStats.TRIVIAL_TABLE;
+    if (isTopNPushedDown()) {
+      return new ScanStats(EXACT_ROW_COUNT, 1, 1.0f, 1.0f);
+    } else {
+      return ScanStats.TRIVIAL_TABLE;
+    }
   }
 
   @Override
