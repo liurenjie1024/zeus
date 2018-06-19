@@ -74,6 +74,8 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
     switch (phase) {
       case PHYSICAL:
         return Rules.PHYSICAL_RULES;
+      case LOGICAL:
+        return Rules.LOGICAL_RULES;
       default:
         return Collections.emptySet();
     }
