@@ -53,6 +53,7 @@ public class ZeusGroupScan extends AbstractGroupScan {
   private boolean isFilterPushedDown;
   private boolean isProjectPushedDown;
   private boolean isTopNPushedDown;
+  private long rowCount = -1;
 
   @JsonCreator
   public ZeusGroupScan(
@@ -108,6 +109,8 @@ public class ZeusGroupScan extends AbstractGroupScan {
   public ScanStats getScanStats() {
     if (isTopNPushedDown()) {
       return new ScanStats(EXACT_ROW_COUNT, 1, 1.0f, 1.0f);
+    } else if (rowCount != -1) {
+      return new ScanStats(EXACT_ROW_COUNT, rowCount, 1.0f, 1.0f);
     } else {
       return ScanStats.TRIVIAL_TABLE;
     }
@@ -164,6 +167,10 @@ public class ZeusGroupScan extends AbstractGroupScan {
   public ZeusGroupScan cloneWithNewRootPlanNode(PlanNode newRoot) {
     return new ZeusGroupScan(tableId, queryPlan.withNewRoot(newRoot), config, plugin,
       isFilterPushedDown, isProjectPushedDown, isTopNPushedDown);
+  }
+
+  public void setRowCount(long rowCount) {
+    this.rowCount = rowCount;
   }
 
   public ZeusGroupScan copy() {

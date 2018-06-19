@@ -18,6 +18,7 @@
 
 package io.github.zeus.rule;
 
+import com.google.common.collect.ImmutableList;
 import io.github.zeus.ZeusGroupScan;
 import io.github.zeus.expr.ZeusExprBuilder;
 import io.github.zeus.rpc.AggregationNode;
@@ -27,9 +28,11 @@ import io.github.zeus.rpc.PlanNodeType;
 import io.github.zeus.schema.ZeusTable;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
+import org.apache.calcite.rel.RelNode;
 import org.apache.drill.common.logical.data.NamedExpression;
 import org.apache.drill.exec.physical.base.GroupScan;
 import org.apache.drill.exec.planner.physical.HashAggPrel;
+import org.apache.drill.exec.planner.physical.HashToRandomExchangePrel;
 import org.apache.drill.exec.planner.physical.ScanPrel;
 
 import java.util.ArrayList;
@@ -40,13 +43,15 @@ public class PushAggregateToScanRule extends RelOptRule {
   public static final PushAggregateToScanRule  SINGLETON = new PushAggregateToScanRule();
 
   private PushAggregateToScanRule() {
-    super(RelOptRule.operand(HashAggPrel.class, RelOptRule.operand(ScanPrel.class, RelOptRule.none())));
+    super(RelOptRule.operand(HashAggPrel.class, RelOptRule.operand(HashToRandomExchangePrel.class,
+        RelOptRule.operand(ScanPrel.class, RelOptRule.none()))));
   }
 
   @Override
   public void onMatch(RelOptRuleCall call) {
     HashAggPrel hashAggPrel = call.rel(0);
-    ScanPrel scanPrel = call.rel(1);
+    HashToRandomExchangePrel hashPrel = call.rel(1);
+    ScanPrel scanPrel = call.rel(2);
 
     ZeusGroupScan zeusGroupScan = (ZeusGroupScan) scanPrel.getGroupScan();
     ZeusTable table = zeusGroupScan.getTable();
@@ -96,15 +101,19 @@ public class PushAggregateToScanRule extends RelOptRule {
         .build();
 
     ZeusGroupScan newGroupScan = zeusGroupScan.cloneWithNewRootPlanNode(newRoot);
+    newGroupScan.setRowCount(5);
+
     ScanPrel newScan = ScanPrel.create(scanPrel,
         hashAggPrel.getTraitSet(), newGroupScan, hashAggPrel.getRowType());
+    RelNode newHash = hashPrel.copy(hashPrel.getTraitSet(), ImmutableList.of(newScan));
+    RelNode newHashAgg = newHash.copy(hashAggPrel.getTraitSet(), ImmutableList.of(newHash));
 
-    call.transformTo(newScan);
+    call.transformTo(newHashAgg);
   }
 
   @Override
   public boolean matches(RelOptRuleCall call) {
-    ScanPrel scanPrel = call.rel(1);
+    ScanPrel scanPrel = call.rel(2);
 
     GroupScan groupScan = scanPrel.getGroupScan();
     if (!(groupScan instanceof ZeusGroupScan)) {
