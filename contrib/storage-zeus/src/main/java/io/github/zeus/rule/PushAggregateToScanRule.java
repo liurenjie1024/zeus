@@ -106,7 +106,7 @@ public class PushAggregateToScanRule extends RelOptRule {
     ScanPrel newScan = ScanPrel.create(scanPrel,
         hashAggPrel.getTraitSet(), newGroupScan, hashAggPrel.getRowType());
     RelNode newHash = hashPrel.copy(hashPrel.getTraitSet(), ImmutableList.of(newScan));
-    RelNode newHashAgg = newHash.copy(hashAggPrel.getTraitSet(), ImmutableList.of(newHash));
+    RelNode newHashAgg = hashAggPrel.copy(hashAggPrel.getTraitSet(), ImmutableList.of(newHash));
 
     call.transformTo(newHashAgg);
   }
