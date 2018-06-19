@@ -77,8 +77,8 @@ def gen_cmp_operators():
                                 f'{fn_name}',
                                 [f'{z_type1}', f'{z_type2}']))
 
-    template = env.get_template('ComparatorFunctionSignatures.java')
-    with open('../src/main/java/io/github/zeus/expr/drill/ComparatorFunctionSignatures.java',
+    template = env.get_template('ComparatorFunctions.java')
+    with open('../src/main/java/io/github/zeus/expr/drill/ComparatorFunctions.java',
               'w') as f:
         f.write(template.render(items=items,
                                 imported_column_types=imported_column_types,

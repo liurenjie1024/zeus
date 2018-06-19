@@ -80,7 +80,7 @@ import static io.github.zeus.rpc.ColumnType.INT64;
 /**
  * This class is generated.
  */
-public class ComparatorFunctionSignatures {
+public class ComparatorFunctions {
   
     public static final ZeusFunctionEntry GREATER_THAN_BOOL_BOOL = ZeusFunctionEntry.from(GT_BOOL, "greater_than", BOOL, BOOL);
     public static final ZeusFunctionEntry GREATER_THAN_INT8_INT8 = ZeusFunctionEntry.from(GT_I8, "greater_than", INT8, INT8);

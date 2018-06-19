@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +21,8 @@ package io.github.zeus.expr;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.github.zeus.client.exception.CatalogNotFoundException;
+import io.github.zeus.rpc.AggFuncId;
+import io.github.zeus.rpc.AggFunction;
 import io.github.zeus.rpc.ColumnRef;
 import io.github.zeus.rpc.ColumnType;
 import io.github.zeus.rpc.ColumnValue;
@@ -46,6 +48,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, Void, RuntimeException> {
@@ -66,37 +70,55 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
 
   @Override
   public Optional<Expression> visitFunctionCall(FunctionCall call, Void value) throws RuntimeException {
-      ScalarFunction.Builder builder = ScalarFunction.newBuilder();
 
     ImmutableList.Builder<ColumnType> argTypesBuilder = ImmutableList.builder();
+    List<Expression> argExprs = new ArrayList<>(call.args.size());
 
-      for (LogicalExpression arg: call.args) {
-        Optional<Expression> argExpr = arg.accept(this, null);
-        if (!argExpr.isPresent()) {
-          return Optional.empty();
-        }
-
-        argTypesBuilder.add(argExpr.get().getFieldType());
-        builder.addChildren(argExpr.get());
-      }
-
-      Optional<ScalarFuncId> scalarFuncIdOpt = DrillFunctions.zeusScalarFuncOf(
-          new ZeusFunctionSignature(call.getName(), argTypesBuilder.build()));
-
-      if (!scalarFuncIdOpt.isPresent()) {
-        LOG.info("Unable to transform expression: {}", serializeLogicalExpression(call));
+    for (LogicalExpression arg : call.args) {
+      Optional<Expression> argExpr = arg.accept(this, null);
+      if (!argExpr.isPresent()) {
         return Optional.empty();
       }
 
-      builder.setFuncId(scalarFuncIdOpt.get());
+      argTypesBuilder.add(argExpr.get().getFieldType());
+      argExprs.add(argExpr.get());
+    }
+
+    ZeusFunctionSignature sig = new ZeusFunctionSignature(call.getName(), argTypesBuilder.build());
+
+    Optional<ScalarFuncId> scalarFuncIdOpt = DrillFunctions.zeusScalarFuncOf(sig);
+    Optional<AggFuncId> aggFuncIdOpt = DrillFunctions.zeusAggFuncOf(sig);
+
+    if (scalarFuncIdOpt.isPresent()) {
+      ScalarFunction scalarFunction = ScalarFunction.newBuilder()
+          .setFuncId(scalarFuncIdOpt.get())
+          .addAllChildren(argExprs)
+          .build();
 
       return Optional.of(Expression.newBuilder()
           .setExpressionType(ExpressionType.SCALAR_FUNCTION)
-          .setScalarFunc(builder.build())
+          .setScalarFunc(scalarFunction)
           .setFieldType(ColumnType.BOOL)
           .setAlias(nextAnonymousName())
           .build()
       );
+    } else if (aggFuncIdOpt.isPresent()) {
+      AggFunction aggFunction = AggFunction.newBuilder()
+          .setFuncId(aggFuncIdOpt.get())
+          .addAllChildren(argExprs)
+          .build();
+
+      return Optional.of(Expression.newBuilder()
+          .setExpressionType(ExpressionType.AGG_FUNCTION)
+          .setAggFunc(aggFunction)
+          .setFieldType(ColumnType.INT64)
+          .setAlias(nextAnonymousName())
+          .build()
+      );
+    } else {
+      LOG.info("Unable to transform expression: {}", serializeLogicalExpression(call));
+      return Optional.empty();
+    }
   }
 
   @Override
@@ -111,7 +133,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
         .setName(columnName)
         .build();
 
-    
+
     return Optional.of(Expression.newBuilder()
         .setExpressionType(ExpressionType.COLUMN_REF)
         .setColumn(columnRef)
@@ -126,7 +148,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
     ColumnValue columnValue = ColumnValue.newBuilder()
         .setFloatValue(fExpr.getFloat())
         .build();
-    
+
     return Optional.of(create(columnValue, ColumnType.FLOAT4));
   }
 
@@ -140,7 +162,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   }
 
   @Override
-  public Optional<Expression> visitLongConstant(LongExpression intExpr, Void value)  {
+  public Optional<Expression> visitLongConstant(LongExpression intExpr, Void value) {
     ColumnValue columnValue = ColumnValue.newBuilder()
         .setI64Value(intExpr.getLong())
         .build();
@@ -149,7 +171,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   }
 
   @Override
-  public Optional<Expression> visitTimeStampConstant(TimeStampExpression intExpr, Void value)  {
+  public Optional<Expression> visitTimeStampConstant(TimeStampExpression intExpr, Void value) {
     ColumnValue columnValue = ColumnValue.newBuilder()
         .setI64Value(intExpr.getTimeStamp())
         .build();
@@ -158,7 +180,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   }
 
   @Override
-  public Optional<Expression> visitDoubleConstant(DoubleExpression dExpr, Void value)  {
+  public Optional<Expression> visitDoubleConstant(DoubleExpression dExpr, Void value) {
     ColumnValue columnValue = ColumnValue.newBuilder()
         .setDoubleValue(dExpr.getDouble())
         .build();
@@ -167,7 +189,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   }
 
   @Override
-  public Optional<Expression> visitBooleanConstant(BooleanExpression e, Void value)  {
+  public Optional<Expression> visitBooleanConstant(BooleanExpression e, Void value) {
     ColumnValue columnValue = ColumnValue.newBuilder()
         .setBoolValue(e.getBoolean())
         .build();
@@ -176,7 +198,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
   }
 
   @Override
-  public Optional<Expression> visitQuotedStringConstant(QuotedString e, Void value)  {
+  public Optional<Expression> visitQuotedStringConstant(QuotedString e, Void value) {
     ColumnValue columnValue = ColumnValue.newBuilder()
         .setStringValue(e.getString())
         .build();
@@ -186,7 +208,7 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
 
   private String nextAnonymousName() {
     nextID += 1;
-    return "$_"+nextID;
+    return "$_" + nextID;
   }
 
   private static String serializeLogicalExpression(LogicalExpression e) {
@@ -199,12 +221,12 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
     }
     return sw.toString();
   }
-  
+
   private static Expression create(ColumnValue columnValue, ColumnType columnType) {
     LiteralExpression literalExpr = LiteralExpression.newBuilder()
         .setValue(columnValue)
         .build();
-    
+
     return Expression.newBuilder()
         .setExpressionType(ExpressionType.LITERAL)
         .setFieldType(columnType)

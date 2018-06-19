@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,22 +16,12 @@
  * limitations under the License.
  */
 
-package io.github.zeus.rule;
+package io.github.zeus.expr.drill;
 
-import com.google.common.collect.Sets;
-import org.apache.calcite.plan.RelOptRule;
+import io.github.zeus.expr.ZeusFunctionEntry;
+import io.github.zeus.rpc.AggFuncId;
+import io.github.zeus.rpc.ColumnType;
 
-import java.util.Set;
-
-public class Rules {
-  public static Set<RelOptRule> PHYSICAL_RULES = Sets.newHashSet(
-      PushLimitToScanRule.SINGLETON,
-      PushFilterToScanRule.SINGLETON,
-      PushProjectToScanRule.SINGLETON,
-      PushAggregateToScanRule.SINGLETON
-  );
-
-  public static Set<RelOptRule> LOGICAL_RULES = Sets.newHashSet(
-      PushTopNToScanRule.SINGLETON
-  );
+public class AggFunctions {
+  public static final ZeusFunctionEntry SUM = ZeusFunctionEntry.from(AggFuncId.SUM, "sum", ColumnType.INT64);
 }

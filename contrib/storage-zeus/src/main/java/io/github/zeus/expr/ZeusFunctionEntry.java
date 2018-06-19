@@ -18,27 +18,50 @@
 
 package io.github.zeus.expr;
 
+import io.github.zeus.rpc.AggFuncId;
 import io.github.zeus.rpc.ColumnType;
 import io.github.zeus.rpc.ScalarFuncId;
 
+import java.util.Optional;
+
 public class ZeusFunctionEntry {
   private final ZeusFunctionSignature signature;
-  private final ScalarFuncId funcId;
+  private final Optional<ScalarFuncId > scalarFuncId;
+  private final Optional<AggFuncId> aggFuncId;
 
-  public ZeusFunctionEntry(ZeusFunctionSignature signature, ScalarFuncId funcId) {
-    this.signature = signature;
-    this.funcId = funcId;
+  public ZeusFunctionEntry(ZeusFunctionSignature signature, ScalarFuncId scalarFuncId) {
+    this(signature, Optional.of(scalarFuncId), Optional.empty());
   }
+
+  public ZeusFunctionEntry(ZeusFunctionSignature signature, AggFuncId aggFuncId) {
+    this(signature, Optional.empty(), Optional.of(aggFuncId));
+  }
+
+  private ZeusFunctionEntry(ZeusFunctionSignature signature, Optional<ScalarFuncId> scalarFuncId,
+                            Optional<AggFuncId> aggFuncId) {
+    this.signature = signature;
+    this.scalarFuncId = scalarFuncId;
+    this.aggFuncId = aggFuncId;
+  }
+
 
   public ZeusFunctionSignature getSignature() {
     return signature;
   }
 
-  public ScalarFuncId getFuncId() {
-    return funcId;
+  public Optional<ScalarFuncId> getScalarFuncId() {
+    return scalarFuncId;
   }
 
-  public static ZeusFunctionEntry from(ScalarFuncId funcId, String name, ColumnType... argTypes) {
-    return new ZeusFunctionEntry(ZeusFunctionSignature.from(name, argTypes), funcId);
+  public Optional<AggFuncId> getAggFuncId() {
+    return aggFuncId;
+  }
+
+  public static ZeusFunctionEntry from(ScalarFuncId scalarFuncId, String name, ColumnType... argTypes) {
+    return new ZeusFunctionEntry(ZeusFunctionSignature.from(name, argTypes), scalarFuncId);
+  }
+
+  public static ZeusFunctionEntry from(AggFuncId aggFuncId, String name, ColumnType... argTypes) {
+    return new ZeusFunctionEntry(ZeusFunctionSignature.from(name, argTypes), aggFuncId);
   }
 }

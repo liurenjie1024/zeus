@@ -1,0 +1,98 @@
+package io.github.zeus.rule;
+
+import io.github.zeus.ZeusGroupScan;
+import io.github.zeus.expr.ZeusExprBuilder;
+import io.github.zeus.rpc.AggregationNode;
+import io.github.zeus.rpc.Expression;
+import io.github.zeus.rpc.PlanNode;
+import io.github.zeus.rpc.PlanNodeType;
+import io.github.zeus.schema.ZeusTable;
+import org.apache.calcite.plan.RelOptRule;
+import org.apache.calcite.plan.RelOptRuleCall;
+import org.apache.drill.common.logical.data.NamedExpression;
+import org.apache.drill.exec.physical.base.GroupScan;
+import org.apache.drill.exec.planner.physical.HashAggPrel;
+import org.apache.drill.exec.planner.physical.ScanPrel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class PushAggregateToScanRule extends RelOptRule {
+  public static final PushAggregateToScanRule  SINGLETON = new PushAggregateToScanRule();
+
+  private PushAggregateToScanRule() {
+    super(RelOptRule.operand(HashAggPrel.class, RelOptRule.operand(ScanPrel.class, RelOptRule.none())));
+  }
+
+  @Override
+  public void onMatch(RelOptRuleCall call) {
+    HashAggPrel hashAggPrel = call.rel(0);
+    ScanPrel scanPrel = call.rel(1);
+
+    ZeusGroupScan zeusGroupScan = (ZeusGroupScan) scanPrel.getGroupScan();
+    ZeusTable table = zeusGroupScan.getTable();
+
+    boolean allConverted = true;
+    List<Expression> groupBys = new ArrayList<>(hashAggPrel.getKeys().size());
+    for (NamedExpression key: hashAggPrel.getKeys()) {
+      Optional<Expression> groupBy = key.getExpr().accept(new ZeusExprBuilder(table), null);
+      if (!groupBy.isPresent()) {
+        allConverted = false;
+        break;
+      }
+
+      groupBys.add(groupBy.get());
+    }
+
+    if (!allConverted) {
+      return;
+    }
+
+    List<Expression> aggs = new ArrayList<>(hashAggPrel.getAggExprs().size());
+    for (NamedExpression agg: hashAggPrel.getAggExprs()) {
+      Optional<Expression> aggExpr = agg.getExpr().accept(new ZeusExprBuilder(table), null);
+      if (!aggExpr.isPresent()) {
+        allConverted = false;
+        break;
+      }
+
+      Expression expr = Expression.newBuilder(aggExpr.get())
+          .setAlias(agg.getRef().getLastSegment().getNameSegment().getPath())
+          .build();
+      aggs.add(expr);
+    }
+
+    if (!allConverted) {
+      return;
+    }
+
+    AggregationNode aggNode = AggregationNode.newBuilder()
+        .addAllGroupBy(groupBys)
+        .addAllAggFunc(aggs)
+        .build();
+
+    PlanNode newRoot = PlanNode.newBuilder()
+        .setAggNode(aggNode)
+        .setPlanNodeType(PlanNodeType.AGGREGATE_NODE)
+        .build();
+
+    ZeusGroupScan newGroupScan = zeusGroupScan.cloneWithNewRootPlanNode(newRoot);
+    ScanPrel newScan = ScanPrel.create(scanPrel,
+        hashAggPrel.getTraitSet(), newGroupScan, hashAggPrel.getRowType());
+
+    call.transformTo(newScan);
+  }
+
+  @Override
+  public boolean matches(RelOptRuleCall call) {
+    ScanPrel scanPrel = call.rel(1);
+
+    GroupScan groupScan = scanPrel.getGroupScan();
+    if (!(groupScan instanceof ZeusGroupScan)) {
+      return false;
+    }
+
+    return super.matches(call);
+  }
+}
