@@ -32,13 +32,17 @@ import io.github.zeus.schema.ZeusTable;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.util.Pair;
 import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.common.logical.data.Order.Ordering;
 import org.apache.drill.exec.physical.base.GroupScan;
+import org.apache.drill.exec.planner.logical.DrillLimitRel;
 import org.apache.drill.exec.planner.logical.DrillOptiq;
 import org.apache.drill.exec.planner.logical.DrillParseContext;
+import org.apache.drill.exec.planner.logical.DrillScanRel;
+import org.apache.drill.exec.planner.logical.DrillSortRel;
 import org.apache.drill.exec.planner.physical.PrelUtil;
 import org.apache.drill.exec.planner.physical.ProjectPrel;
 import org.apache.drill.exec.planner.physical.ScanPrel;
@@ -52,46 +56,49 @@ public class PushTopNToScanRule extends RelOptRule {
   public static final PushTopNToScanRule SINGLETON = new PushTopNToScanRule();
 
   private PushTopNToScanRule() {
-    super(RelOptRule.operand(TopNPrel.class,
-        RelOptRule.operand(ProjectPrel.class, RelOptRule.operand(ScanPrel.class, RelOptRule.none()))));
+    super(RelOptRule.operand(DrillLimitRel.class,
+        RelOptRule.operand(DrillSortRel.class, RelOptRule.operand(DrillScanRel.class, RelOptRule.none()))));
   }
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    TopNPrel topNPrel = call.rel(0);
-    ProjectPrel projectPrel = call.rel(1);
-    ScanPrel scanPrel = call.rel(2);
+    DrillLimitRel limitDrel = call.rel(0);
+    DrillSortRel sortDrel = call.rel(1);
+    DrillScanRel scanDrel = call.rel(2);
 
-    ZeusGroupScan zeusGroupScan = (ZeusGroupScan) scanPrel.getGroupScan();
+    ZeusGroupScan zeusGroupScan = (ZeusGroupScan) scanDrel.getGroupScan();
 
-    Optional<PlanNode> projectNode = projectPrelToPlanNode(projectPrel, call, zeusGroupScan.getTable(), scanPrel);
-    Optional<PlanNode> topNNode = topnNodeToPlanNode(topNPrel, call, zeusGroupScan.getTable(), projectPrel);
+    Optional<PlanNode> topNNode = topnNodeToPlanNode(limitDrel, sortDrel, call, zeusGroupScan.getTable(), scanDrel);
 
-    if (projectNode.isPresent() && topNNode.isPresent()) {
-      ZeusGroupScan newGroupScan = zeusGroupScan.cloneWithNewRootPlanNode(projectNode.get())
+    if (topNNode.isPresent()) {
+      ZeusGroupScan newGroupScan = zeusGroupScan.cloneWithNewRootPlanNode(topNNode.get())
           .cloneWithNewRootPlanNode(topNNode.get());
       newGroupScan.setTopNPushedDown(true);
 
-      ScanPrel newScanPrel = ScanPrel.create(scanPrel, topNPrel.getTraitSet(), newGroupScan,
-          topNPrel.getRowType());
+      DrillScanRel newScanDrel = new DrillScanRel(scanDrel.getCluster(),
+          scanDrel.getTraitSet(), scanDrel.getTable(), newGroupScan, scanDrel.getRowType(),
+          scanDrel.getColumns());
 
-      call.transformTo(newScanPrel);
+      RelNode newSortDrel = sortDrel.copy(sortDrel.getTraitSet(), ImmutableList.of(newScanDrel));
+      call.transformTo(limitDrel.copy(limitDrel.getTraitSet(), ImmutableList.of(newSortDrel)));
     } else {
       ZeusGroupScan newGroupScan = zeusGroupScan.copy();
       newGroupScan.setTopNPushedDown(true);
 
-      ScanPrel newScan = ScanPrel.create(scanPrel, scanPrel.getTraitSet(), newGroupScan, scanPrel.getRowType());
-      RelNode newProject = projectPrel.copy(projectPrel.getTraitSet(), ImmutableList.of(newScan));
+      DrillScanRel newScanDrel = new DrillScanRel(scanDrel.getCluster(),
+          scanDrel.getTraitSet(), scanDrel.getTable(), newGroupScan, scanDrel.getRowType(),
+          scanDrel.getColumns());
 
-      call.transformTo(topNPrel.copy(topNPrel.getTraitSet(), ImmutableList.of(newProject)));
+      RelNode newSortDrel = sortDrel.copy(sortDrel.getTraitSet(), ImmutableList.of(newScanDrel));
+      call.transformTo(limitDrel.copy(limitDrel.getTraitSet(), ImmutableList.of(newSortDrel)));
     }
   }
 
   @Override
   public boolean matches(RelOptRuleCall call) {
-    ScanPrel scanPrel = call.rel(2);
+    DrillScanRel scanDrel = call.rel(2);
 
-    GroupScan groupScan = scanPrel.getGroupScan();
+    GroupScan groupScan = scanDrel.getGroupScan();
     if (!(groupScan instanceof ZeusGroupScan)) {
       return false;
     }
@@ -101,57 +108,16 @@ public class PushTopNToScanRule extends RelOptRule {
       return false;
     }
 
+    DrillLimitRel limitRel = call.rel(0);
+    if (limitRel.getOffset() != null) {
+      return false;
+    }
+
     return super.matches(call);
   }
 
-  private static Optional<PlanNode> projectPrelToPlanNode(ProjectPrel projectPrel, RelOptRuleCall call, ZeusTable table, RelNode input) {
-    List<ProjectItem> projects = new ArrayList<>(projectPrel.getProjects().size());
-    boolean allConverted = true;
-
-    for (Pair<RexNode, String> namedProject : projectPrel.getNamedProjects()) {
-      LogicalExpression logicalExpr = DrillOptiq.toDrill(
-          new DrillParseContext(PrelUtil.getPlannerSettings(call.getPlanner())),
-          input, namedProject.left);
-
-      Optional<Expression> zeusExprOpt = logicalExpr.accept(
-          new ZeusExprBuilder(table),
-          null);
-
-      if (!zeusExprOpt.isPresent()) {
-        allConverted = false;
-        break;
-      }
-
-      Expression zeusExpr = Expression.newBuilder(zeusExprOpt.get())
-          .setAlias(namedProject.right)
-          .build();
-
-      ProjectItem projectItem = ProjectItem.newBuilder()
-          .setAlias(namedProject.right)
-          .setExpression(zeusExpr)
-          .build();
-
-      projects.add(projectItem);
-    }
-
-    if (allConverted) {
-      ProjectNode projectNode = ProjectNode.newBuilder()
-          .addAllItems(projects)
-          .build();
-
-      PlanNode newRoot = PlanNode.newBuilder()
-          .setPlanNodeType(PlanNodeType.PROJECT_NODE)
-          .setProjectNode(projectNode)
-          .build();
-
-      return Optional.of(newRoot);
-    } else {
-      return Optional.empty();
-    }
-  }
-
-  private static Optional<PlanNode> topnNodeToPlanNode(TopNPrel topNPrel, RelOptRuleCall call, ZeusTable table, RelNode input) {
-    List<Ordering> orderBys = PrelUtil.getOrdering(topNPrel.getCollation(), input.getRowType());
+  private static Optional<PlanNode> topnNodeToPlanNode(DrillLimitRel limitRel, DrillSortRel sortRel, RelOptRuleCall call, ZeusTable table, RelNode input) {
+    List<Ordering> orderBys = PrelUtil.getOrdering(sortRel.getCollation(), input.getRowType());
 
     List<SortItem> sortItems = new ArrayList<>(orderBys.size());
     boolean allConverted = true;
@@ -174,7 +140,7 @@ public class PushTopNToScanRule extends RelOptRule {
 
     if (allConverted) {
       TopNNode topNNode = TopNNode.newBuilder()
-          .setLimit(topNPrel.getLimit())
+          .setLimit(RexLiteral.intValue(limitRel.getFetch()))
           .addAllSortItem(sortItems)
           .build();
 
