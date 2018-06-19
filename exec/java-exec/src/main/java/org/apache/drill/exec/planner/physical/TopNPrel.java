@@ -60,6 +60,14 @@ public class TopNPrel extends SinglePrel {
     return creator.addMetadata(this, topN);
   }
 
+  public RelCollation getCollation() {
+    return this.collation;
+  }
+
+  public int getLimit() {
+    return this.limit;
+  }
+
   /**
    * Cost of doing Top-N is proportional to M log N where M is the total number of
    * input rows and N is the limit for Top-N.  This makes Top-N preferable to Sort

@@ -49,6 +49,8 @@ public class ZeusGroupScan extends AbstractGroupScan {
   private final ZeusStoragePluginConfig config;
   private final ZeusStoragePlugin plugin;
   private boolean isFilterPushedDown;
+  private boolean isProjectPushedDown;
+  private boolean isTopNPushedDown;
 
   @JsonCreator
   public ZeusGroupScan(
@@ -56,23 +58,38 @@ public class ZeusGroupScan extends AbstractGroupScan {
       @JsonProperty("queryPlan") ZeusQueryPlan queryPlan,
       @JsonProperty("config") StoragePluginConfig config,
       @JsonProperty("isFilterPushedDown") boolean isFilterPushedDown,
+      @JsonProperty("isProjectPushedDown") boolean isProjectPushedDown,
+      @JsonProperty("isTopNPushedDown") boolean isTopNPushedDown,
       @JacksonInject StoragePluginRegistry registry) throws ExecutionSetupException {
     this(tableId, queryPlan, (ZeusStoragePluginConfig)config,
-      (ZeusStoragePlugin) registry.getPlugin(config), isFilterPushedDown);
+      (ZeusStoragePlugin) registry.getPlugin(config),
+      isFilterPushedDown, isProjectPushedDown, isTopNPushedDown);
   }
 
-  ZeusGroupScan(
+  public ZeusGroupScan(
+    int tableId,
+    ZeusQueryPlan queryPlan,
+    ZeusStoragePluginConfig config,
+    ZeusStoragePlugin plugin) {
+    this(tableId, queryPlan, config, plugin, false, false, false);
+  }
+
+  private ZeusGroupScan(
       int tableId,
       ZeusQueryPlan queryPlan,
       ZeusStoragePluginConfig config,
       ZeusStoragePlugin plugin,
-      boolean isFilterPushedDown) {
+      boolean isFilterPushedDown,
+      boolean isProjectPushedDown,
+      boolean isTopNPushedDown) {
     super("");
     this.tableId = tableId;
     this.queryPlan = queryPlan;
     this.config = config;
     this.plugin = plugin;
     this.isFilterPushedDown = isFilterPushedDown;
+    this.isProjectPushedDown = isProjectPushedDown;
+    this.isTopNPushedDown = isTopNPushedDown;
   }
 
 
@@ -105,6 +122,21 @@ public class ZeusGroupScan extends AbstractGroupScan {
     return isFilterPushedDown;
   }
 
+  @JsonProperty
+  public boolean isProjectPushedDown() {
+    return isProjectPushedDown;
+  }
+
+  @JsonProperty
+  public boolean isTopNPushedDown() {
+    return isTopNPushedDown;
+  }
+
+  public ZeusGroupScan setTopNPushedDown(boolean topNPushedDown) {
+    isTopNPushedDown = topNPushedDown;
+    return this;
+  }
+
   @Override
   public ZeusGroupScan clone(List<SchemaPath> columns) {
     List<Integer> columnIds = plugin.getDbSchema()
@@ -114,7 +146,8 @@ public class ZeusGroupScan extends AbstractGroupScan {
 
     ZeusQueryPlan newPlan = queryPlan.withColumnIds(columnIds);
 
-    return new ZeusGroupScan(tableId, newPlan, config, plugin, isFilterPushedDown);
+    return new ZeusGroupScan(tableId, newPlan, config, plugin,
+      isFilterPushedDown, isProjectPushedDown, isTopNPushedDown);
   }
 
   @Override
@@ -123,15 +156,22 @@ public class ZeusGroupScan extends AbstractGroupScan {
   }
 
   public ZeusGroupScan cloneWithNewRootPlanNode(PlanNode newRoot) {
-    return new ZeusGroupScan(tableId, queryPlan.withNewRoot(newRoot), config, plugin, isFilterPushedDown);
+    return new ZeusGroupScan(tableId, queryPlan.withNewRoot(newRoot), config, plugin,
+      isFilterPushedDown, isProjectPushedDown, isTopNPushedDown);
   }
 
   public ZeusGroupScan copy() {
-    return new ZeusGroupScan(tableId, queryPlan, config, plugin, isFilterPushedDown);
+    return new ZeusGroupScan(tableId, queryPlan, config, plugin,
+      isFilterPushedDown, isProjectPushedDown, isTopNPushedDown);
   }
 
   public void setFilterPushedDown(boolean isFilterPushedDown) {
     this.isFilterPushedDown= isFilterPushedDown;
+  }
+
+  public ZeusGroupScan setProjectPushedDown(boolean projectPushedDown) {
+    isProjectPushedDown = projectPushedDown;
+    return this;
   }
 
   @Override

@@ -116,8 +116,7 @@ public class ZeusStoragePlugin extends AbstractStoragePlugin {
         tableId,
         ZeusQueryPlan.from(dbSchema.getTableScanQueryPlan(tableId, paths)),
         config,
-        this,
-        false);
+        this);
   }
 
   public ZeusDB getDbSchema() {

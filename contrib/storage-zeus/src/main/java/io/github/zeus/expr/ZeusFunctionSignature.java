@@ -24,11 +24,11 @@ import io.github.zeus.rpc.ColumnType;
 
 import java.util.Objects;
 
-public class DrillFunctionSignature {
+public class ZeusFunctionSignature {
   private final String name;
   private final ImmutableList<ColumnType> args;
 
-  public DrillFunctionSignature(String name, ImmutableList<ColumnType> args) {
+  public ZeusFunctionSignature(String name, ImmutableList<ColumnType> args) {
     this.name = name;
     this.args = args;
   }
@@ -37,7 +37,7 @@ public class DrillFunctionSignature {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    DrillFunctionSignature that = (DrillFunctionSignature) o;
+    ZeusFunctionSignature that = (ZeusFunctionSignature) o;
     return Objects.equals(name, that.name) &&
         Objects.equals(args, that.args);
   }
@@ -49,9 +49,13 @@ public class DrillFunctionSignature {
 
   @Override
   public String toString() {
-    return "DrillFunctionSignature{" +
+    return "ZeusFunctionSignature{" +
         "name='" + name + '\'' +
         ", args=" + args +
         '}';
+  }
+
+  public static ZeusFunctionSignature from(String name, ColumnType... argTypes) {
+    return new ZeusFunctionSignature(name, ImmutableList.copyOf(argTypes));
   }
 }

@@ -66,37 +66,37 @@ public class ZeusExprBuilder extends AbstractExprVisitor<Optional<Expression>, V
 
   @Override
   public Optional<Expression> visitFunctionCall(FunctionCall call, Void value) throws RuntimeException {
-    ScalarFunction.Builder builder = ScalarFunction.newBuilder();
+      ScalarFunction.Builder builder = ScalarFunction.newBuilder();
 
     ImmutableList.Builder<ColumnType> argTypesBuilder = ImmutableList.builder();
 
-    for (LogicalExpression arg: call.args) {
-      Optional<Expression> argExpr = arg.accept(this, null);
-      if (!argExpr.isPresent()) {
+      for (LogicalExpression arg: call.args) {
+        Optional<Expression> argExpr = arg.accept(this, null);
+        if (!argExpr.isPresent()) {
+          return Optional.empty();
+        }
+
+        argTypesBuilder.add(argExpr.get().getFieldType());
+        builder.addChildren(argExpr.get());
+      }
+
+      Optional<ScalarFuncId> scalarFuncIdOpt = DrillFunctions.zeusScalarFuncOf(
+          new ZeusFunctionSignature(call.getName(), argTypesBuilder.build()));
+
+      if (!scalarFuncIdOpt.isPresent()) {
+        LOG.info("Unable to transform expression: {}", serializeLogicalExpression(call));
         return Optional.empty();
       }
 
-      argTypesBuilder.add(argExpr.get().getFieldType());
-      builder.addChildren(argExpr.get());
-    }
+      builder.setFuncId(scalarFuncIdOpt.get());
 
-    Optional<ScalarFuncId> scalarFuncIdOpt = DrillFunctions.zeusScalarFuncOf(
-        new DrillFunctionSignature(call.getName(), argTypesBuilder.build()));
-
-    if (!scalarFuncIdOpt.isPresent()) {
-      LOG.info("Unable to transform expression: {}", serializeLogicalExpression(call));
-      return Optional.empty();
-    }
-
-    builder.setFuncId(scalarFuncIdOpt.get());
-
-    return Optional.of(Expression.newBuilder()
-        .setExpressionType(ExpressionType.SCALAR_FUNCTION)
-        .setScalarFunc(builder.build())
-        .setFieldType(ColumnType.BOOL)
-        .setAlias(nextAnonymousName())
-        .build()
-    );
+      return Optional.of(Expression.newBuilder()
+          .setExpressionType(ExpressionType.SCALAR_FUNCTION)
+          .setScalarFunc(builder.build())
+          .setFieldType(ColumnType.BOOL)
+          .setAlias(nextAnonymousName())
+          .build()
+      );
   }
 
   @Override

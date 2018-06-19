@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,103 +18,58 @@
 
 package io.github.zeus.expr;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import io.github.zeus.rpc.ColumnType;
+import com.google.common.collect.ImmutableSet;
+import io.github.zeus.expr.drill.ComparatorFunctionSignatures;
 import io.github.zeus.rpc.ScalarFuncId;
 
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static io.github.zeus.rpc.ColumnType.BOOL;
-import static io.github.zeus.rpc.ColumnType.FLOAT4;
-import static io.github.zeus.rpc.ColumnType.FLOAT8;
-import static io.github.zeus.rpc.ColumnType.INT32;
-import static io.github.zeus.rpc.ColumnType.INT64;
-import static io.github.zeus.rpc.ColumnType.STRING;
-import static io.github.zeus.rpc.ScalarFuncId.EQ_BOOL;
-import static io.github.zeus.rpc.ScalarFuncId.EQ_F4;
-import static io.github.zeus.rpc.ScalarFuncId.EQ_F8;
-import static io.github.zeus.rpc.ScalarFuncId.EQ_I32;
-import static io.github.zeus.rpc.ScalarFuncId.EQ_I64;
-import static io.github.zeus.rpc.ScalarFuncId.EQ_STR;
-import static io.github.zeus.rpc.ScalarFuncId.GE_BOOL;
-import static io.github.zeus.rpc.ScalarFuncId.GE_F4;
-import static io.github.zeus.rpc.ScalarFuncId.GE_F8;
-import static io.github.zeus.rpc.ScalarFuncId.GE_I32;
-import static io.github.zeus.rpc.ScalarFuncId.GE_I64;
-import static io.github.zeus.rpc.ScalarFuncId.GE_STR;
-import static io.github.zeus.rpc.ScalarFuncId.GT_BOOL;
-import static io.github.zeus.rpc.ScalarFuncId.GT_F4;
-import static io.github.zeus.rpc.ScalarFuncId.GT_F8;
-import static io.github.zeus.rpc.ScalarFuncId.GT_I32;
-import static io.github.zeus.rpc.ScalarFuncId.GT_I64;
-import static io.github.zeus.rpc.ScalarFuncId.GT_STR;
-import static io.github.zeus.rpc.ScalarFuncId.LE_BOOL;
-import static io.github.zeus.rpc.ScalarFuncId.LE_F4;
-import static io.github.zeus.rpc.ScalarFuncId.LE_F8;
-import static io.github.zeus.rpc.ScalarFuncId.LE_I32;
-import static io.github.zeus.rpc.ScalarFuncId.LE_I64;
-import static io.github.zeus.rpc.ScalarFuncId.LE_STR;
-import static io.github.zeus.rpc.ScalarFuncId.LT_BOOL;
-import static io.github.zeus.rpc.ScalarFuncId.LT_F4;
-import static io.github.zeus.rpc.ScalarFuncId.LT_F8;
-import static io.github.zeus.rpc.ScalarFuncId.LT_I32;
-import static io.github.zeus.rpc.ScalarFuncId.LT_I64;
-import static io.github.zeus.rpc.ScalarFuncId.LT_STR;
-import static io.github.zeus.rpc.ScalarFuncId.NE_BOOL;
-import static io.github.zeus.rpc.ScalarFuncId.NE_F4;
-import static io.github.zeus.rpc.ScalarFuncId.NE_F8;
-import static io.github.zeus.rpc.ScalarFuncId.NE_I32;
-import static io.github.zeus.rpc.ScalarFuncId.NE_I64;
-import static io.github.zeus.rpc.ScalarFuncId.NE_STR;
+import static io.github.zeus.rpc.ColumnType.INT8;
 
 public class DrillFunctions {
-  private static final ImmutableMap<DrillFunctionSignature, ScalarFuncId> DRILL_FUNCTIONS =
-      ImmutableMap.<DrillFunctionSignature, ScalarFuncId>builder()
-          .put(signatureOf("greater_than", BOOL, BOOL), GT_BOOL)
-          .put(signatureOf("greater_than", INT32, INT32), GT_I32)
-          .put(signatureOf("greater_than", INT64, INT64), GT_I64)
-          .put(signatureOf("greater_than", FLOAT4, FLOAT4), GT_F4)
-          .put(signatureOf("greater_than", FLOAT8, FLOAT8), GT_F8)
-          .put(signatureOf("greater_than", STRING, STRING), GT_STR)
-          .put(signatureOf("greater_than_or_equal_to", BOOL, BOOL), GE_BOOL)
-          .put(signatureOf("greater_than_or_equal_to", INT32, INT32), GE_I32)
-          .put(signatureOf("greater_than_or_equal_to", INT64, INT64), GE_I64)
-          .put(signatureOf("greater_than_or_equal_to", FLOAT4, FLOAT4), GE_F4)
-          .put(signatureOf("greater_than_or_equal_to", FLOAT8, FLOAT8), GE_F8)
-          .put(signatureOf("greater_than_or_equal_to", STRING, STRING), GE_STR)
-          .put(signatureOf("less_than", BOOL, BOOL), LT_BOOL)
-          .put(signatureOf("less_than", INT32, INT32), LT_I32)
-          .put(signatureOf("less_than", INT64, INT64), LT_I64)
-          .put(signatureOf("less_than", FLOAT4, FLOAT4), LT_F4)
-          .put(signatureOf("less_than", FLOAT8, FLOAT8), LT_F8)
-          .put(signatureOf("less_than", STRING, STRING), LT_STR)
-          .put(signatureOf("less_than_or_equal_to", BOOL, BOOL), LE_BOOL)
-          .put(signatureOf("less_than_or_equal_to", INT32, INT32), LE_I32)
-          .put(signatureOf("less_than_or_equal_to", INT64, INT64), LE_I64)
-          .put(signatureOf("less_than_or_equal_to", FLOAT4, FLOAT4), LE_F4)
-          .put(signatureOf("less_than_or_equal_to", FLOAT8, FLOAT8), LE_F8)
-          .put(signatureOf("less_than_or_equal_to", STRING, STRING), LE_STR)
-          .put(signatureOf("equal", BOOL, BOOL), EQ_BOOL)
-          .put(signatureOf("equal", INT32, INT32), EQ_I32)
-          .put(signatureOf("equal", INT64, INT64), EQ_I64)
-          .put(signatureOf("equal", FLOAT4, FLOAT4), EQ_F4)
-          .put(signatureOf("equal", FLOAT8, FLOAT8), EQ_F8)
-          .put(signatureOf("equal", STRING, STRING), EQ_STR)
-          .put(signatureOf("not_equal", BOOL, BOOL), NE_BOOL)
-          .put(signatureOf("not_equal", INT32, INT32), NE_I32)
-          .put(signatureOf("not_equal", INT64, INT64), NE_I64)
-          .put(signatureOf("not_equal", FLOAT4, FLOAT4), NE_F4)
-          .put(signatureOf("not_equal", FLOAT8, FLOAT8), NE_F8)
-          .put(signatureOf("not_equal", STRING, STRING), NE_STR)
-          .build();
+  private static final ImmutableMap<ZeusFunctionSignature, ScalarFuncId> DRILL_FUNCTIONS;
 
-  private static DrillFunctionSignature signatureOf(String name, ColumnType... args) {
-    return new DrillFunctionSignature(name, ImmutableList.copyOf(args));
+  static {
+    ImmutableSet<Class<?>> DRILL_FUNCTIONS_CLASSES =
+      ImmutableSet.<Class<?>>builder()
+        .add(ComparatorFunctionSignatures.class)
+       .build();
+
+    ImmutableMap.Builder<ZeusFunctionSignature, ScalarFuncId> builder = ImmutableMap.builder();
+
+    DRILL_FUNCTIONS_CLASSES.stream()
+      .map(DrillFunctions::listEntries)
+      .flatMap(List::stream)
+      .forEach(entry -> builder.put(entry.getSignature(), entry.getFuncId()));
+
+
+    DRILL_FUNCTIONS = builder.build();
   }
 
-  public static Optional<ScalarFuncId> zeusScalarFuncOf(DrillFunctionSignature signature) {
+  private static List<ZeusFunctionEntry> listEntries(Class<?> klass) {
+    return Arrays.stream(klass.getDeclaredFields())
+      .filter(f -> Modifier.isStatic(f.getModifiers()))
+      .filter(f -> ZeusFunctionEntry.class == f.getType())
+      .map(f -> {
+        try {
+          return (ZeusFunctionEntry)f.get(null);
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+        }
+      })
+      .collect(Collectors.toList());
+  }
+
+  static Optional<ScalarFuncId> zeusScalarFuncOf(ZeusFunctionSignature signature) {
     return Optional.ofNullable(DRILL_FUNCTIONS.get(signature));
+  }
+
+  public static void main(String[] args) {
+    System.out.println(zeusScalarFuncOf(ZeusFunctionSignature.from("less_than", INT8, INT8)));
   }
 }

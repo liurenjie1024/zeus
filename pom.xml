@@ -249,6 +249,8 @@
             <exclude>**/*.autotools</exclude>
             <exclude>**/*.cproject</exclude>
             <exclude>**/*.drill</exclude>
+            <exclude>**/*.py</exclude>
+            <exclude>**/Pipfile*</exclude>
             <!-- TODO DRILL-4336: try to avoid the need to add this -->
             <exclude>dependency-reduced-pom.xml</exclude>
           </excludes>

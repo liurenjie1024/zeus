@@ -15,19 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.github.zeus.expr.drill;
 
-package io.github.zeus.rule;
+import io.github.zeus.expr.ZeusFunctionEntry;
+{% for item in imported_scalar_func_ids %}
+import static io.github.zeus.rpc.ScalarFuncId.{{item}};
+{%- endfor %}
+{% for item in imported_column_types %}
+import static io.github.zeus.rpc.ColumnType.{{item}};
+{%- endfor %}
 
-import com.google.common.collect.Sets;
-import org.apache.calcite.plan.RelOptRule;
-
-import java.util.Set;
-
-public class Rules {
-  public static Set<RelOptRule> PHYSICAL_RULES = Sets.newHashSet(
-    PushLimitToScanRule.SINGLETON,
-    PushFilterToScanRule.SINGLETON,
-    PushProjectToScanRule.SINGLETON,
-    PushTopNToScanRule.SINGLETON
-  );
+/**
+ * This class is generated.
+ */
+public class ComparatorFunctionSignatures {
+  {% for item in items %}
+    public static final ZeusFunctionEntry {{item.name}} = ZeusFunctionEntry.from({{item
+    .scalar_func_id}}, "{{item.drill_func_name}}", {{item.args|join(', ')}});
+  {%- endfor %}
 }
