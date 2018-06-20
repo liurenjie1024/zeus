@@ -24,4 +24,5 @@ import io.github.zeus.rpc.ColumnType;
 
 public class AggFunctions {
   public static final ZeusFunctionEntry SUM = ZeusFunctionEntry.from(AggFuncId.SUM, "$sum0", ColumnType.INT64);
+  public static final ZeusFunctionEntry COUNT = ZeusFunctionEntry.from(AggFuncId.SUM, "count", ColumnType.INT64);
 }
