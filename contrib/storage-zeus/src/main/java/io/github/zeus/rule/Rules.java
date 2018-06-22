@@ -32,6 +32,7 @@ public class Rules {
   );
 
   public static Set<RelOptRule> LOGICAL_RULES = Sets.newHashSet(
-      PushTopNToScanRule.SINGLETON
+      PushTopNToScanRule.SINGLETON,
+      PushAggregateToScanRule.SINGLETON
   );
 }
