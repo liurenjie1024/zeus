@@ -35,11 +35,13 @@ import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.drill.common.logical.data.NamedExpression;
 import org.apache.drill.exec.physical.base.GroupScan;
 import org.apache.drill.exec.planner.logical.DrillAggregateRel;
+import org.apache.drill.exec.planner.logical.DrillScanRel;
 import org.apache.drill.exec.planner.logical.RelOptHelper;
 import org.apache.drill.exec.planner.physical.AggPrelBase.OperatorPhase;
 import org.apache.drill.exec.planner.physical.AggPruleBase;
 import org.apache.drill.exec.planner.physical.DrillDistributionTrait;
 import org.apache.drill.exec.planner.physical.DrillDistributionTraitDef;
+import org.apache.drill.exec.planner.physical.DrillScanPrel;
 import org.apache.drill.exec.planner.physical.HashAggPrel;
 import org.apache.drill.exec.planner.physical.HashToRandomExchangePrel;
 import org.apache.drill.exec.planner.physical.Prel;
@@ -58,7 +60,8 @@ public class PushAggregateToScanRule extends AggPruleBase {
   private static final Logger LOG = LoggerFactory.getLogger(PushAggregateToScanRule.class);
 
   private PushAggregateToScanRule() {
-    super(RelOptHelper.some(DrillAggregateRel.class, RelOptHelper.any(ScanPrel.class)), "PushAggregateToScanRule");
+    super(RelOptHelper.some(DrillAggregateRel.class, RelOptHelper.any(DrillScanRel.class)),
+      "PushAggregateToScanRule");
   }
 
   @Override
@@ -68,7 +71,7 @@ public class PushAggregateToScanRule extends AggPruleBase {
     }
 
     final DrillAggregateRel aggregate = call.rel(0);
-    final ScanPrel scan = call.rel(1);
+    final DrillScanRel scan = call.rel(1);
 
     if (aggregate.containsDistinctCall() || aggregate.getGroupCount() == 0) {
       // currently, don't use HashAggregate if any of the logical aggrs contains DISTINCT or
@@ -127,7 +130,7 @@ public class PushAggregateToScanRule extends AggPruleBase {
     }
   }
 
-  private static ScanPrel pushAggToScan(HashAggPrel hashAggPrel, ScanPrel scanPrel) {
+  private static ScanPrel pushAggToScan(HashAggPrel hashAggPrel, DrillScanRel scanPrel) {
     ZeusGroupScan zeusGroupScan = (ZeusGroupScan) scanPrel.getGroupScan();
     ZeusTable table = zeusGroupScan.getTable();
 
@@ -188,17 +191,17 @@ public class PushAggregateToScanRule extends AggPruleBase {
 
   @Override
   public boolean matches(RelOptRuleCall call) {
-    ScanPrel scanRel = call.rel(1);
+     DrillScanRel scanRel = call.rel(1);
 
     GroupScan groupScan = scanRel.getGroupScan();
     if (!(groupScan instanceof ZeusGroupScan)) {
       return false;
     }
 
-    ZeusGroupScan zeusGroupScan = (ZeusGroupScan) groupScan;
-    if (zeusGroupScan.isAggPushedDown()) {
-      return false;
-    }
+//    ZeusGroupScan zeusGroupScan = (ZeusGroupScan) groupScan;
+//    if (zeusGroupScan.isAggPushedDown()) {
+//      return false;
+//    }
 
     return super.matches(call);
   }
