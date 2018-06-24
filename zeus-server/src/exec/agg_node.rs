@@ -234,7 +234,6 @@ impl AggExecNode {
 mod tests {
   use std::default::Default;
   use std::collections::HashSet;
-  use std::vec::Vec;
 
   use storage::column::ColumnBuilder;
   use storage::column::vec_column_data::Datum;
@@ -246,9 +245,7 @@ mod tests {
   use super::AggExecNode;
   use rpc::zeus_plan::{PlanNode, PlanNodeType};
   use rpc::zeus_plan::AggregationNode;
-  use rpc::zeus_expr::AggFunction;
   use rpc::zeus_expr::AggFuncId;
-  use rpc::zeus_expr::{Expression, ExpressionType, ColumnRef};
   use rpc::zeus_meta::ColumnType;
   use server::ServerContext;
 
