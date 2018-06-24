@@ -25,6 +25,8 @@ import io.github.zeus.rpc.PlanNodeType;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rex.RexLiteral;
+import org.apache.drill.exec.planner.logical.DrillLimitRel;
+import org.apache.drill.exec.planner.logical.DrillScanRel;
 import org.apache.drill.exec.planner.physical.LimitPrel;
 import org.apache.drill.exec.planner.physical.ScanPrel;
 
@@ -32,14 +34,15 @@ public class PushLimitToScanRule extends RelOptRule {
   static final PushLimitToScanRule SINGLETON = new PushLimitToScanRule();
 
   private PushLimitToScanRule() {
-    super(RelOptRule.operand(LimitPrel.class, RelOptRule.operand(ScanPrel.class, RelOptRule.none())));
+    super(RelOptRule.operand(DrillLimitRel.class,
+      RelOptRule.operand(DrillScanRel.class, RelOptRule.none())));
   }
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    LimitPrel limitPrel = call.rel(0);
-    ScanPrel scanPrel = call.rel(1);
-    int limit = RexLiteral.intValue(limitPrel.getFetch());
+    DrillLimitRel limitRel = call.rel(0);
+    DrillScanRel scanRel = call.rel(1);
+    int limit = RexLiteral.intValue(limitRel.getFetch());
 
     LimitNode limitNode = LimitNode.newBuilder()
         .setLimit(limit)
@@ -49,26 +52,32 @@ public class PushLimitToScanRule extends RelOptRule {
         .setLimitNode(limitNode)
         .build();
 
-    ZeusGroupScan groupScan = (ZeusGroupScan) scanPrel.getGroupScan();
+    ZeusGroupScan groupScan = (ZeusGroupScan) scanRel.getGroupScan();
 
-    ScanPrel newScan = ScanPrel.create(scanPrel,
-        limitPrel.getTraitSet(),
-        groupScan.cloneWithNewRootPlanNode(planNode),
-        limitPrel.getRowType());
+    ZeusGroupScan newGroupScan = groupScan.cloneWithNewRootPlanNode(planNode);
+
+    DrillScanRel newScan = new DrillScanRel(
+      scanRel.getCluster(),
+      limitRel.getTraitSet(),
+      scanRel.getTable(),
+      newGroupScan,
+      limitRel.getRowType(),
+      scanRel.getColumns(),
+      false);
 
     call.transformTo(newScan);
   }
 
   @Override
   public boolean matches(RelOptRuleCall call) {
-    ScanPrel scanPrel = call.rel(1);
+    DrillScanRel scanRel = call.rel(1);
 
-    if (!(scanPrel.getGroupScan() instanceof ZeusGroupScan)) {
+    if (!(scanRel.getGroupScan() instanceof ZeusGroupScan)) {
       return false;
     }
 
-    LimitPrel limitPrel = call.rel(0);
-    if (limitPrel.getOffset() != null) {
+    DrillLimitRel limitRel = call.rel(0);
+    if (limitRel.getOffset() != null) {
       return false;
     }
 

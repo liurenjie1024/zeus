@@ -33,6 +33,8 @@ import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.exec.physical.base.GroupScan;
 import org.apache.drill.exec.planner.logical.DrillOptiq;
 import org.apache.drill.exec.planner.logical.DrillParseContext;
+import org.apache.drill.exec.planner.logical.DrillProjectRel;
+import org.apache.drill.exec.planner.logical.DrillScanRel;
 import org.apache.drill.exec.planner.physical.PrelUtil;
 import org.apache.drill.exec.planner.physical.ProjectPrel;
 import org.apache.drill.exec.planner.physical.ScanPrel;
@@ -45,24 +47,24 @@ public class PushProjectToScanRule extends RelOptRule {
   public static final PushProjectToScanRule SINGLETON = new PushProjectToScanRule();
 
   private PushProjectToScanRule() {
-    super(RelOptRule.operand(ProjectPrel.class,
-      RelOptRule.operand(ScanPrel.class, RelOptRule.none())));
+    super(RelOptRule.operand(DrillProjectRel.class,
+      RelOptRule.operand(DrillScanRel.class, RelOptRule.none())));
   }
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    ProjectPrel projectPrel = call.rel(0);
-    ScanPrel scanPrel = call.rel(1);
+    DrillProjectRel projectRel = call.rel(0);
+    DrillScanRel scanRel = call.rel(1);
 
-    ZeusGroupScan groupScan = (ZeusGroupScan)scanPrel.getGroupScan();
+    ZeusGroupScan groupScan = (ZeusGroupScan)scanRel.getGroupScan();
 
-    List<ProjectItem> projects = new ArrayList<>(projectPrel.getProjects().size());
+    List<ProjectItem> projects = new ArrayList<>(projectRel.getProjects().size());
     boolean allConverted = true;
 
-    for (Pair<RexNode, String> namedProject: projectPrel.getNamedProjects()) {
+    for (Pair<RexNode, String> namedProject: projectRel.getNamedProjects()) {
       LogicalExpression logicalExpr = DrillOptiq.toDrill(
         new DrillParseContext(PrelUtil.getPlannerSettings(call.getPlanner())),
-        scanPrel, namedProject.left);
+        scanRel, namedProject.left);
 
       Optional<Expression> zeusExprOpt = logicalExpr.accept(
         new ZeusExprBuilder(groupScan.getTable()),
@@ -98,20 +100,30 @@ public class PushProjectToScanRule extends RelOptRule {
       ZeusGroupScan newGroupScan = groupScan.cloneWithNewRootPlanNode(newRoot);
       newGroupScan.setProjectPushedDown(true);
 
-      ScanPrel newScan = ScanPrel.create(
-        scanPrel,
-        projectPrel.getTraitSet(),
+      DrillScanRel newScan = new DrillScanRel(
+        scanRel.getCluster(),
+        projectRel.getTraitSet(),
+        scanRel.getTable(),
         newGroupScan,
-        projectPrel.getRowType());
+        projectRel.getRowType(),
+        scanRel.getColumns(),
+        false);
 
       call.transformTo(newScan);
     } else {
       ZeusGroupScan newGroupScan = groupScan.copy();
       newGroupScan.setFilterPushedDown(true);
 
-      ScanPrel newScan = ScanPrel.create(scanPrel, scanPrel.getTraitSet(), newGroupScan, scanPrel.getRowType());
+      DrillScanRel newScan = new DrillScanRel(
+        scanRel.getCluster(),
+        projectRel.getTraitSet(),
+        scanRel.getTable(),
+        newGroupScan,
+        projectRel.getRowType(),
+        scanRel.getColumns(),
+        false);
 
-      call.transformTo(projectPrel.copy(projectPrel.getTraitSet(), ImmutableList.of(newScan)));
+      call.transformTo(projectRel.copy(projectRel.getTraitSet(), ImmutableList.of(newScan)));
     }
 
 
@@ -119,8 +131,8 @@ public class PushProjectToScanRule extends RelOptRule {
 
   @Override
   public boolean matches(RelOptRuleCall call) {
-    ScanPrel scanPrel = call.rel(1);
-    GroupScan groupScan = scanPrel.getGroupScan();
+    DrillScanRel scanRel = call.rel(1);
+    GroupScan groupScan = scanRel.getGroupScan();
 
     if (!(groupScan instanceof ZeusGroupScan)) {
       return false;
