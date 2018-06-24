@@ -7,6 +7,8 @@ use storage::column::Column;
 use exec::Block;
 use rpc::zeus_expr::ScalarFuncId;
 use self::logical_op::ReducedLogicalOperator;
+use self::logical_op::NotOperator;
+use self::logical_op::LikeOperator;
 use self::cmp_op::{CmpOperator, CmpOp};
 use util::errors::*;
 
@@ -47,8 +49,10 @@ macro_rules! dispatch {
 }
 
 dispatch! {
-  ADD_INT4_INT4 => ReducedLogicalOperator::and(),
   AND => ReducedLogicalOperator::and(),
+  OR => ReducedLogicalOperator::or(),
+  NOT => NotOperator {},
+  LIKE => LikeOperator {},
 
   GT_BOOL => CmpOperator::bool_cmp_operator(CmpOp::Greater),
   GT_I8 => CmpOperator::i8_cmp_operator(CmpOp::Greater),

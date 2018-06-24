@@ -103,7 +103,21 @@ impl Datum {
   pub fn and(left: &Datum, right: &Datum) -> Result<Datum> {
     match (left, right) {
       (&Datum::Bool(v1), &Datum::Bool(v2)) => Ok(Datum::Bool(v1 & v2)),
-      (_, _) => bail!("Logical operator and can only be applied to booleans")
+      (_, _) => bail!("And operator and can only be applied to booleans")
+    }
+  }
+
+  pub fn or(left: &Datum, right: &Datum) -> Result<Datum> {
+    match (left, right) {
+      (&Datum::Bool(v1), &Datum::Bool(v2)) => Ok(Datum::Bool(v1 | v2)),
+      (_, _) => bail!("Or operator and can only be applied to booleans")
+    }
+  }
+
+  pub fn not(data: &Datum) -> Result<Datum> {
+    match data {
+      &Datum::Bool(v) => Ok(Datum::Bool(!v)),
+      _ => bail!("Not operator and can only be applied to booleans")
     }
   }
 }

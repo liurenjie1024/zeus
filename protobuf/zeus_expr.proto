@@ -14,11 +14,11 @@ enum ExpressionType {
 }
 
 enum ScalarFuncId {
-    ADD_INT4_INT4 = 0;
-
     // Logical operators
-    AND = 1;
-
+    AND = 0;
+    OR  = 1;
+    NOT = 2;
+    LIKE = 3;
 
     // Compare operator
     GT_BOOL = 21;
@@ -74,10 +74,61 @@ enum ScalarFuncId {
     NE_F4 = 66;
     NE_F8 = 67;
     NE_STR = 68;
+
+    BETWEEN_I32=69;
+    BETWEEN_I64=70;
+    BETWEEN_F4=71;
+    BETWEEN_F8=72;
+    BETWEEN_STR=73;
+
+    IN_I32=74;
+    IN_I64=75;
+    IN_F4=76;
+    IN_F8=77;
+    IN_STR=78;
+
+    // math operators
+    ADD_I32=79;
+    ADD_I64=80;
+    ADD_F4=81;
+    ADD_F8=82;
+
+    MINUS_I32=83;
+    MINUS_I64=84;
+    MINUS_F4=85;
+    MINUS_F8=86;
+
+    MUL_I32=87;
+    MUL_I64=88;
+    MUL_F4=89;
+    MUL_F8=90;
+
+    DIV_I32=91;
+    DIV_I64=92;
+    DIV_F4=93;
+    DIV_F8=94;
 }
 
 enum AggFuncId {
-    SUM = 0;
+    COUNT = 0;
+
+    MAX_I32=1;
+    MAX_I64=2;
+    MAX_F4=3;
+    MAX_F8=4;
+    MAX_STR=5;
+
+    MIN_I32=6;
+    MIN_I64=7;
+    MIN_F4=8;
+    MIN_F8=9;
+    MIN_STR=10;
+
+    SUM_I32=11;
+    SUM_I64=12;
+    SUM_F4=13;
+    SUM_F8=14;
+    SUM_STR=15;
 }
 
 message LiteralExpression {
