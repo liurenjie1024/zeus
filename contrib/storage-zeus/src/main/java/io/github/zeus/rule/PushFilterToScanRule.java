@@ -25,13 +25,14 @@ import io.github.zeus.rpc.Expression;
 import io.github.zeus.rpc.FilterNode;
 import io.github.zeus.rpc.PlanNode;
 import io.github.zeus.rpc.PlanNodeType;
-import jersey.repackaged.com.google.common.collect.Lists;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rex.RexNode;
 import org.apache.drill.common.expression.LogicalExpression;
+import org.apache.drill.exec.planner.logical.DrillFilterRel;
 import org.apache.drill.exec.planner.logical.DrillOptiq;
 import org.apache.drill.exec.planner.logical.DrillParseContext;
+import org.apache.drill.exec.planner.logical.DrillScanRel;
 import org.apache.drill.exec.planner.physical.FilterPrel;
 import org.apache.drill.exec.planner.physical.PrelUtil;
 import org.apache.drill.exec.planner.physical.ScanPrel;
@@ -42,21 +43,22 @@ public class PushFilterToScanRule extends RelOptRule {
   public static final PushFilterToScanRule SINGLETON = new PushFilterToScanRule();
 
   private PushFilterToScanRule() {
-    super(RelOptRule.operand(FilterPrel.class, RelOptRule.operand(ScanPrel.class, RelOptRule.none())));
+    super(RelOptRule.operand(DrillFilterRel.class, RelOptRule.operand(DrillScanRel.class, RelOptRule
+      .none())));
   }
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    FilterPrel filterPrel = call.rel(0);
-    ScanPrel scanPrel = call.rel(1);
+    DrillFilterRel filterRel = call.rel(0);
+    DrillScanRel scanRel = call.rel(1);
 
-    RexNode condition = filterPrel.getCondition();
+    RexNode condition = filterRel.getCondition();
 
     final LogicalExpression conditionExp = DrillOptiq.toDrill(
         new DrillParseContext(PrelUtil.getPlannerSettings(call.getPlanner())),
-        scanPrel, condition);
+        scanRel, condition);
 
-    ZeusGroupScan groupScan = (ZeusGroupScan) scanPrel.getGroupScan();
+    ZeusGroupScan groupScan = (ZeusGroupScan) scanRel.getGroupScan();
     ZeusExprBuilder builder = new ZeusExprBuilder(groupScan.getTable());
     Optional<Expression> zeusExpr = conditionExp.accept(builder, null);
 
@@ -73,22 +75,38 @@ public class PushFilterToScanRule extends RelOptRule {
       ZeusGroupScan newGroupScan = groupScan.cloneWithNewRootPlanNode(filterPlanNode);
       newGroupScan.setFilterPushedDown(true);
 
-      ScanPrel newScan = ScanPrel.create(scanPrel, filterPrel.getTraitSet(), newGroupScan, filterPrel.getRowType());
+      DrillScanRel newScan = new DrillScanRel(
+        scanRel.getCluster(),
+        filterRel.getTraitSet(),
+        scanRel.getTable(),
+        newGroupScan,
+        filterRel.getRowType(),
+        scanRel.getColumns(),
+        false);
       call.transformTo(newScan);
+
     } else {
       ZeusGroupScan newGroupScan = groupScan.copy();
       newGroupScan.setFilterPushedDown(true);
 
-      ScanPrel newScan = ScanPrel.create(scanPrel, scanPrel.getTraitSet(), newGroupScan, scanPrel.getRowType());
 
-      call.transformTo(filterPrel.copy(filterPrel.getTraitSet(), ImmutableList.of(newScan)));
+      DrillScanRel newScan = new DrillScanRel(
+        scanRel.getCluster(),
+        filterRel.getTraitSet(),
+        scanRel.getTable(),
+        newGroupScan,
+        filterRel.getRowType(),
+        scanRel.getColumns(),
+        false);
+
+      call.transformTo(filterRel.copy(filterRel.getTraitSet(), ImmutableList.of(newScan)));
     }
   }
 
 
   @Override
   public boolean matches(RelOptRuleCall call) {
-    ScanPrel scanPrel = call.rel(1);
+    DrillScanRel scanPrel = call.rel(1);
 
     if (!(scanPrel.getGroupScan() instanceof ZeusGroupScan)) {
       return false;
