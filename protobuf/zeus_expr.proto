@@ -128,7 +128,6 @@ enum AggFuncId {
     SUM_I64=12;
     SUM_F4=13;
     SUM_F8=14;
-    SUM_STR=15;
 }
 
 message LiteralExpression {

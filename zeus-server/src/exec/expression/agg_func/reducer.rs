@@ -34,11 +34,27 @@ impl Reducer {
     Ok(())
   }
 
-  pub fn sum() -> Reducer {
+  pub fn sum(agg_func_id: AggFuncId) -> Reducer {
     Reducer {
-      id: AggFuncId::SUM,
+      id: agg_func_id,
       result: None,
       aggregator: Datum::add
+    }
+  }
+
+  pub fn min(agg_func_id: AggFuncId) -> Reducer {
+    Reducer {
+      id: agg_func_id,
+      result: None,
+      aggregator: Datum::min
+    }
+  }
+
+  pub fn max(agg_func_id: AggFuncId) -> Reducer {
+    Reducer {
+      id: agg_func_id,
+      result: None,
+      aggregator: Datum::max
     }
   }
 }

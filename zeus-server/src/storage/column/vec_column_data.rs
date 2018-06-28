@@ -70,6 +70,7 @@ impl Datum {
   }
 
   pub fn add(left: &Datum, right: &Datum) -> Result<Datum> {
+    //TODO: Use check
     match (left, right) {
       (&Datum::Int8(v1), &Datum::Int8(v2)) => Ok(Datum::Int8(v1+v2)),
       (&Datum::Int16(v1), &Datum::Int16(v2)) => Ok(Datum::Int16(v1+v2)),
@@ -78,6 +79,57 @@ impl Datum {
       (&Datum::Float4(v1), &Datum::Float4(v2)) => Ok(Datum::Float4(v1+v2)),
       (&Datum::Float8(v1), &Datum::Float8(v2)) => Ok(Datum::Float8(v1+v2)),
       (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
+    }
+  }
+
+  pub fn minus(left: &Datum, right: &Datum) -> Result<Datum> {
+    //TODO: Use check
+    match (left, right) {
+      (&Datum::Int32(v1), &Datum::Int32(v2)) => Ok(Datum::Int32(v1-v2)),
+      (&Datum::Int64(v1), &Datum::Int64(v2)) => Ok(Datum::Int64(v1-v2)),
+      (&Datum::Float4(v1), &Datum::Float4(v2)) => Ok(Datum::Float4(v1-v2)),
+      (&Datum::Float8(v1), &Datum::Float8(v2)) => Ok(Datum::Float8(v1-v2)),
+      (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
+    }
+  }
+
+  pub fn multiply(left: &Datum, right: &Datum) -> Result<Datum> {
+    //TODO: Use check
+    match (left, right) {
+      (&Datum::Int32(v1), &Datum::Int32(v2)) => Ok(Datum::Int32(v1*v2)),
+      (&Datum::Int64(v1), &Datum::Int64(v2)) => Ok(Datum::Int64(v1*v2)),
+      (&Datum::Float4(v1), &Datum::Float4(v2)) => Ok(Datum::Float4(v1*v2)),
+      (&Datum::Float8(v1), &Datum::Float8(v2)) => Ok(Datum::Float8(v1*v2)),
+      (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
+    }
+  }
+
+  pub fn divide(left: &Datum, right: &Datum) -> Result<Datum> {
+    //TODO: Use check
+    match (left, right) {
+      (&Datum::Int32(v1), &Datum::Int32(v2)) => Ok(Datum::Int32(v1/v2)),
+      (&Datum::Int64(v1), &Datum::Int64(v2)) => Ok(Datum::Int64(v1/v2)),
+      (&Datum::Float4(v1), &Datum::Float4(v2)) => Ok(Datum::Float4(v1/v2)),
+      (&Datum::Float8(v1), &Datum::Float8(v2)) => Ok(Datum::Float8(v1/v2)),
+      (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
+    }
+  }
+
+  pub fn min(left: &Datum, right: &Datum) -> Result<Datum> {
+    let ordering = Datum::try_cmp(left, right)?;
+
+    match ordering {
+      Ordering::Greater => Ok(right.clone()),
+      _ => Ok(left.clone())
+    }
+  }
+
+  pub fn max(left: &Datum, right: &Datum) -> Result<Datum> {
+    let ordering = Datum::try_cmp(left, right)?;
+
+    match ordering {
+      Ordering::Less => Ok(right.clone()),
+      _ => Ok(left.clone())
     }
   }
 
@@ -99,6 +151,7 @@ impl Datum {
       (left, right) => bail!("{:?} and {:?} can't be added together.", left, right)
     }
   }
+
 
   pub fn and(left: &Datum, right: &Datum) -> Result<Datum> {
     match (left, right) {

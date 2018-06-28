@@ -1,5 +1,6 @@
 pub mod logical_op;
 pub mod cmp_op;
+pub mod math_op;
 
 use super::EvalContext;
 use super::ScalarFuncExpr;
