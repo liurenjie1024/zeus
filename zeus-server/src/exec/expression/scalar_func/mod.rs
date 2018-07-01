@@ -7,10 +7,12 @@ use super::ScalarFuncExpr;
 use storage::column::Column;
 use exec::Block;
 use rpc::zeus_expr::ScalarFuncId;
+use rpc::zeus_meta::ColumnType;
 use self::logical_op::ReducedLogicalOperator;
 use self::logical_op::NotOperator;
 use self::logical_op::LikeOperator;
 use self::cmp_op::{CmpOperator, CmpOp};
+use self::math_op::MathOperator;;
 use util::errors::*;
 
 pub trait ScalarFunc {
@@ -108,5 +110,25 @@ dispatch! {
   NE_F4 => CmpOperator::f4_cmp_operator(CmpOp::NotEqual),
   NE_F8 => CmpOperator::f8_cmp_operator(CmpOp::NotEqual),
   NE_STR => CmpOperator::str_cmp_operator(CmpOp::NotEqual),
+
+  ADD_I32 => MathOperator::add(ColumnType::INT32),
+  ADD_I64 => MathOperator::add(ColumnType::INT64),
+  ADD_F4 => MathOperator::add(ColumnType::FLOAT4),
+  ADD_F8 => MathOperator::add(ColumnType::FLOAT8),
+
+  MINUS_I32 => MathOperator::minus(ColumnType::INT32),
+  MINUS_I64 => MathOperator::minus(ColumnType::INT64),
+  MINUS_F4 => MathOperator::minus(ColumnType::FLOAT4),
+  MINUS_F8 => MathOperator::minus(ColumnType::FLOAT8),
+
+  MUL_I32 => MathOperator::multiply(ColumnType::INT32),
+  MUL_I64 => MathOperator::multiply(ColumnType::INT64),
+  MUL_F4 => MathOperator::multiply(ColumnType::FLOAT4),
+  MUL_F8 => MathOperator::multiply(ColumnType::FLOAT8),
+
+  DIV_I32 => MathOperator::divide(ColumnType::INT32),
+  DIV_I64 => MathOperator::divide(ColumnType::INT64),
+  DIV_F4 => MathOperator::divide(ColumnType::FLOAT4),
+  DIV_F8 => MathOperator::divide(ColumnType::FLOAT8)
 }
 
