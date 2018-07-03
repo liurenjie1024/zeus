@@ -85,20 +85,20 @@ impl CmpOperator {
     }
   }
 
-  pub fn bool_cmp_operator(op: CmpOp) -> impl ScalarFunc {
-    CmpOperator::new(op,
-      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_bool))
-  }
-
-  pub fn i8_cmp_operator(op: CmpOp) -> impl ScalarFunc {
-    CmpOperator::new(op,
-      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i8))
-  }
-
-  pub fn i16_cmp_operator(op: CmpOp) -> impl ScalarFunc {
-    CmpOperator::new(op,
-     |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i16))
-  }
+//  pub fn bool_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+//    CmpOperator::new(op,
+//      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_bool))
+//  }
+//
+//  pub fn i8_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+//    CmpOperator::new(op,
+//      |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i8))
+//  }
+//
+//  pub fn i16_cmp_operator(op: CmpOp) -> impl ScalarFunc {
+//    CmpOperator::new(op,
+//     |left, right| CmpOperator::order_of_copy(left, right, Datum::to_i16))
+//  }
 
   pub fn i32_cmp_operator(op: CmpOp) -> impl ScalarFunc {
     CmpOperator::new(op,

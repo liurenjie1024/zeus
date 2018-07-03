@@ -14,7 +14,7 @@ pub struct MathOperator {
 }
 
 impl ScalarFunc for MathOperator {
-  fn eval(self, ctx: &EvalContext, input: &Block) -> Result<Column> {
+  fn eval(self, _ctx: &EvalContext, input: &Block) -> Result<Column> {
     let vec_data = input.columns_slice()[0].iter()
       .zip(input.columns_slice()[1].iter())
       .try_fold(Vec::new(), |mut ret, pair| -> Result<Vec<Datum>> {

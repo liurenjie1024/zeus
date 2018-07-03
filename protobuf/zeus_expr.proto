@@ -21,113 +21,83 @@ enum ScalarFuncId {
     LIKE = 3;
 
     // Compare operator
-    GT_BOOL = 21;
-    GT_I8 = 22;
-    GT_I16 = 23;
-    GT_I32 = 24;
-    GT_I64 = 25;
-    GT_F4 = 26;
-    GT_F8 = 27;
+    GT_INT32 = 24;
+    GT_INT64 = 25;
+    GT_FLOAT4 = 26;
+    GT_FLOAT8 = 27;
     GT_STR = 28;
 
-    GE_BOOL = 29;
-    GE_I8 = 30;
-    GE_I16 = 31;
-    GE_I32 = 32;
-    GE_I64 = 33;
-    GE_F4 = 34;
-    GE_F8 = 35;
+    GE_INT32 = 32;
+    GE_INT64 = 33;
+    GE_FLOAT4 = 34;
+    GE_FLOAT8 = 35;
     GE_STR = 36;
 
-    LT_BOOL = 37;
-    LT_I8 = 38;
-    LT_I16 = 39;
-    LT_I32 = 40;
-    LT_I64 = 41;
-    LT_F4 = 42;
-    LT_F8 = 43;
+    LT_INT32 = 40;
+    LT_INT64 = 41;
+    LT_FLOAT4 = 42;
+    LT_FLOAT8 = 43;
     LT_STR = 44;
 
-    LE_BOOL = 45;
-    LE_I8 = 46;
-    LE_I16 = 47;
-    LE_I32 = 48;
-    LE_I64 = 49;
-    LE_F4 = 50;
-    LE_F8 = 51;
+    LE_INT32 = 48;
+    LE_INT64 = 49;
+    LE_FLOAT4 = 50;
+    LE_FLOAT8 = 51;
     LE_STR = 52;
 
-    EQ_BOOL = 53;
-    EQ_I8 = 54;
-    EQ_I16 = 55;
-    EQ_I32 = 56;
-    EQ_I64 = 57;
-    EQ_F4 = 58;
-    EQ_F8 = 59;
+    EQ_INT32 = 56;
+    EQ_INT64 = 57;
+    EQ_FLOAT4 = 58;
+    EQ_FLOAT8 = 59;
     EQ_STR = 60;
 
-    NE_BOOL = 61;
-    NE_I8 = 62;
-    NE_I16 = 63;
-    NE_I32 = 64;
-    NE_I64 = 65;
-    NE_F4 = 66;
-    NE_F8 = 67;
+    NE_INT32 = 64;
+    NE_INT64 = 65;
+    NE_FLOAT4 = 66;
+    NE_FLOAT8 = 67;
     NE_STR = 68;
 
-    BETWEEN_I32=69;
-    BETWEEN_I64=70;
-    BETWEEN_F4=71;
-    BETWEEN_F8=72;
-    BETWEEN_STR=73;
-
-    IN_I32=74;
-    IN_I64=75;
-    IN_F4=76;
-    IN_F8=77;
-    IN_STR=78;
-
     // math operators
-    ADD_I32=79;
-    ADD_I64=80;
-    ADD_F4=81;
-    ADD_F8=82;
+    ADD_INT32=79;
+    ADD_INT64=80;
+    ADD_FLOAT4=81;
+    ADD_FLOAT8=82;
 
-    MINUS_I32=83;
-    MINUS_I64=84;
-    MINUS_F4=85;
-    MINUS_F8=86;
+    MINUS_INT32=83;
+    MINUS_INT64=84;
+    MINUS_FLOAT4=85;
+    MINUS_FLOAT8=86;
 
-    MUL_I32=87;
-    MUL_I64=88;
-    MUL_F4=89;
-    MUL_F8=90;
+    MUL_INT32=87;
+    MUL_INT64=88;
+    MUL_FLOAT4=89;
+    MUL_FLOAT8=90;
 
-    DIV_I32=91;
-    DIV_I64=92;
-    DIV_F4=93;
-    DIV_F8=94;
+    DIV_INT32=91;
+    DIV_INT64=92;
+    DIV_FLOAT4=93;
+    DIV_FLOAT8=94;
 }
 
 enum AggFuncId {
     COUNT = 0;
 
-    MAX_I32=1;
-    MAX_I64=2;
-    MAX_F4=3;
-    MAX_F8=4;
+    MAX_INT32=1;
+    MAX_INT64=2;
+    MAX_FLOAT4=3;
+    MAX_FLOAT8=4;
     MAX_STR=5;
 
-    MIN_I32=6;
-    MIN_I64=7;
-    MIN_F4=8;
-    MIN_F8=9;
+    MIN_INT32=6;
+    MIN_INT64=7;
+    MIN_FLOAT4=8;
+    MIN_FLOAT8=9;
     MIN_STR=10;
 
-    SUM_I32=11;
-    SUM_I64=12;
-    SUM_F4=13;
-    SUM_F8=14;
+    SUM_INT32=11;
+    SUM_INT64=12;
+    SUM_FLOAT4=13;
+    SUM_FLOAT8=14;
 }
 
 message LiteralExpression {

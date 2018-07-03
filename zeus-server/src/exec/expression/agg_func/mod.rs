@@ -13,21 +13,21 @@ pub trait AggFunc: Send {
 
 pub fn func_of(id: AggFuncId) -> Box<AggFunc> {
   match id {
-    AggFuncId::SUM_I32 => box reducer::Reducer::sum(id),
-    AggFuncId::SUM_I64 => box reducer::Reducer::sum(id),
-    AggFuncId::SUM_F4 => box reducer::Reducer::sum(id),
-    AggFuncId::SUM_F8 => box reducer::Reducer::sum(id),
+    AggFuncId::SUM_INT32 => box reducer::Reducer::sum(id),
+    AggFuncId::SUM_INT64 => box reducer::Reducer::sum(id),
+    AggFuncId::SUM_FLOAT4 => box reducer::Reducer::sum(id),
+    AggFuncId::SUM_FLOAT8 => box reducer::Reducer::sum(id),
 
-    AggFuncId::MAX_I32 => box reducer::Reducer::max(id),
-    AggFuncId::MAX_I64 => box reducer::Reducer::max(id),
-    AggFuncId::MAX_F4 => box reducer::Reducer::max(id),
-    AggFuncId::MAX_F8 => box reducer::Reducer::max(id),
+    AggFuncId::MAX_INT32 => box reducer::Reducer::max(id),
+    AggFuncId::MAX_INT64 => box reducer::Reducer::max(id),
+    AggFuncId::MAX_FLOAT4 => box reducer::Reducer::max(id),
+    AggFuncId::MAX_FLOAT8 => box reducer::Reducer::max(id),
     AggFuncId::MAX_STR => box reducer::Reducer::max(id),
 
-    AggFuncId::MIN_I32 => box reducer::Reducer::min(id),
-    AggFuncId::MIN_I64 => box reducer::Reducer::min(id),
-    AggFuncId::MIN_F4 => box reducer::Reducer::min(id),
-    AggFuncId::MIN_F8 => box reducer::Reducer::min(id),
+    AggFuncId::MIN_INT32 => box reducer::Reducer::min(id),
+    AggFuncId::MIN_INT64 => box reducer::Reducer::min(id),
+    AggFuncId::MIN_FLOAT4 => box reducer::Reducer::min(id),
+    AggFuncId::MIN_FLOAT8 => box reducer::Reducer::min(id),
     AggFuncId::MIN_STR => box reducer::Reducer::min(id),
 
     AggFuncId::COUNT => box count::Counter::new()

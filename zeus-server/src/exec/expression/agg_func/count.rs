@@ -10,7 +10,7 @@ pub struct Counter {
 }
 
 impl AggFunc for Counter {
-  fn aggregate(&mut self, args: &Block, pos: usize) -> Result<()> {
+  fn aggregate(&mut self, args: &Block, _pos: usize) -> Result<()> {
     self.result += args.len() as i32;
     Ok(())
   }
