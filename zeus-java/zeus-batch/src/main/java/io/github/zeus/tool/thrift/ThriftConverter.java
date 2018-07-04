@@ -43,8 +43,9 @@ public class ThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFieldId
       fields = EnumSet.allOf(fieldEnumClass);
 
       fields.forEach(field -> {
-          Optional<ColumnType> columnType = ThriftDataType.columnTypeOf(
-            filedMetaDataMap.get(field).valueMetaData.type);
+          Optional<ColumnType> columnType = DataTypeMappings
+            .thriftDataTypeMappingOf(filedMetaDataMap.get(field).valueMetaData.type)
+            .map(m -> m.zeusType());
           if (columnType.isPresent()) {
             ZeusColumnSchema columnSchema =  ZeusColumnSchema.newBuilder()
               .setId(field.getThriftFieldId())
@@ -74,17 +75,15 @@ public class ThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFieldId
 
     RowBuilder builder = new RowBuilder();
 
-    fields.forEach(f -> {
-      thriftDataTypeOf(f)
-        .map(t -> Optional.ofNullable(log.getFieldValue(f)).orElseGet(t::getDefaultValue))
-        .ifPresent(v -> builder.put(f.getThriftFieldId(), v));
-    });
+    fields.forEach(f -> thriftDataTypeOf(f)
+      .map(t -> Optional.ofNullable(log.getFieldValue(f)).orElseGet(t::defaultValue))
+      .ifPresent(v -> builder.put(f.getThriftFieldId(), v)));
 
     return builder.build();
   }
 
-  private Optional<ThriftDataType> thriftDataTypeOf(F field) {
-    return ThriftDataType.thriftDataTypeOf(filedMetaDataMap.get(field).valueMetaData.type);
+  private Optional<ThriftDataTypeMapping> thriftDataTypeOf(F field) {
+    return DataTypeMappings.thriftDataTypeMappingOf(filedMetaDataMap.get(field).valueMetaData.type);
   }
 
   public static void main(String[] args) {

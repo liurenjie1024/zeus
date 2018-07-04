@@ -15,13 +15,15 @@
     </modules>
 
     <properties>
-        <scala.version>2.12.5</scala.version>
-        <scala.binary>2.12</scala.binary>
+        <scala.version>2.11.12</scala.version>
+        <scala.binary>2.11</scala.binary>
         <grpc.version>1.7.0</grpc.version>
         <thrift.version>0.6.1</thrift.version>
         <slf4j.version>1.7.21</slf4j.version>
         <protobuf.version>3.4.0</protobuf.version>
         <mv-log-format.version>2.1.357</mv-log-format.version>
+        <spark.version>2.1.0</spark.version>
+        <elephant.version>4.6</elephant.version>
     </properties>
 
     <repositories>
@@ -55,6 +57,17 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.mediav.elephantbird</groupId>
+                <artifactId>elephant-bird-mediav</artifactId>
+                <version>${elephant.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql_${scala.binary}</artifactId>
+                <version>${spark.version}</version>
+                <scope>provided</scope>
+            </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
