@@ -1,5 +1,6 @@
 package io.github.zeus.tool.thrift
 
+import java.lang.{Boolean => JBool, Byte => JByte, Double => JDouble, Float => JFloat, Integer => JInt, Long => JLong, Short => JShort}
 import java.util.Optional
 
 import io.github.zeus.rpc.ColumnType
@@ -14,23 +15,23 @@ case class SparkDataTypeMapping(sparkType: DataType, zeusType: ColumnType, defau
 
 object DataTypeMappings {
   private val ThriftTypeMappings = List(
-    ThriftDataTypeMapping(TType.BOOL, ColumnType.BOOL, false),
-    ThriftDataTypeMapping(TType.BYTE, ColumnType.INT8, 0.toByte),
-    ThriftDataTypeMapping(TType.I16, ColumnType.INT16, 0.toShort),
-    ThriftDataTypeMapping(TType.I32, ColumnType.INT32, 0),
-    ThriftDataTypeMapping(TType.I64, ColumnType.INT64, 0L),
-    ThriftDataTypeMapping(TType.DOUBLE, ColumnType.FLOAT8, 0.0),
+    ThriftDataTypeMapping(TType.BOOL, ColumnType.BOOL,  JBool.FALSE),
+    ThriftDataTypeMapping(TType.BYTE, ColumnType.INT8, JByte.valueOf(0.toByte)),
+    ThriftDataTypeMapping(TType.I16, ColumnType.INT16, JShort.valueOf(0.toShort)),
+    ThriftDataTypeMapping(TType.I32, ColumnType.INT32, JInt.valueOf(0)),
+    ThriftDataTypeMapping(TType.I64, ColumnType.INT64, JLong.valueOf(0L)),
+    ThriftDataTypeMapping(TType.DOUBLE, ColumnType.FLOAT8, JDouble.valueOf(0.0)),
     ThriftDataTypeMapping(TType.STRING, ColumnType.STRING, "")
   )
   
   private val SparkTypeMappings = List(
-    SparkDataTypeMapping(DataTypes.BooleanType, ColumnType.BOOL, false),
-    SparkDataTypeMapping(DataTypes.ByteType, ColumnType.INT8, 0.toByte),
-    SparkDataTypeMapping(DataTypes.ShortType, ColumnType.INT16, 0.toShort),
-    SparkDataTypeMapping(DataTypes.IntegerType, ColumnType.INT32, 0),
-    SparkDataTypeMapping(DataTypes.LongType, ColumnType.INT64, 0L),
-    SparkDataTypeMapping(DataTypes.FloatType, ColumnType.FLOAT4, 0.0f),
-    SparkDataTypeMapping(DataTypes.DoubleType, ColumnType.FLOAT8, 0.0),
+    SparkDataTypeMapping(DataTypes.BooleanType, ColumnType.BOOL, JBool.FALSE),
+    SparkDataTypeMapping(DataTypes.ByteType, ColumnType.INT8, JByte.valueOf(0.toByte)),
+    SparkDataTypeMapping(DataTypes.ShortType, ColumnType.INT16, JShort.valueOf(0.toShort)),
+    SparkDataTypeMapping(DataTypes.IntegerType, ColumnType.INT32, JInt.valueOf(0)),
+    SparkDataTypeMapping(DataTypes.LongType, ColumnType.INT64, JLong.valueOf(0L)),
+    SparkDataTypeMapping(DataTypes.FloatType, ColumnType.FLOAT4, JFloat.valueOf(0.0f)),
+    SparkDataTypeMapping(DataTypes.DoubleType, ColumnType.FLOAT8, JDouble.valueOf(0.0)),
     SparkDataTypeMapping(DataTypes.StringType, ColumnType.STRING, "")
   )
 
