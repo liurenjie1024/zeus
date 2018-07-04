@@ -98,6 +98,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <!--<configuration>-->
+                    <!--<relocations>-->
+                        <!--<relocation>-->
+                            <!--<pattern>com.google.protobuf</pattern>-->
+                            <!--<shadedPattern>io.github.zeus.com.google.protobuf</shadedPattern>-->
+                        <!--</relocation>-->
+                        <!--<relocation>-->
+                            <!--<pattern>io.netty</pattern>-->
+                            <!--<shadedPattern>io.github.zeus.io.netty</shadedPattern>-->
+                        <!--</relocation>-->
+                    <!--</relocations>-->
+                    <!--<artifactSet>-->
+                        <!--<excludes>-->
+                            <!--<exclude>org.slf4j:*</exclude>-->
+                        <!--</excludes>-->
+                    <!--</artifactSet>-->
+                <!--</configuration>-->
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
