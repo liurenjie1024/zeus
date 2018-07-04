@@ -19,8 +19,8 @@ impl ScalarFunc for MathOperator {
     let vec_data = input.columns_slice()[0].iter()
       .zip(input.columns_slice()[1].iter())
       .try_fold(Vec::new(), |mut ret, pair| -> Result<Vec<Datum>> {
-        let left = eval_fn(pair.0)?;
-        let right = eval_fn(pair.1)?;
+        let left = (self.eval_fn)(&pair.0)?;
+        let right = (self.eval_fn)(&pair.1)?;
         ret.push((self.math_op)(&left, &right)?);
         Ok(ret)
       })?;
