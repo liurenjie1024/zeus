@@ -7,7 +7,6 @@ use super::ScalarFuncExpr;
 use storage::column::Column;
 use exec::Block;
 use rpc::zeus_expr::ScalarFuncId;
-use rpc::zeus_meta::ColumnType;
 use self::logical_op::ReducedLogicalOperator;
 use self::logical_op::NotOperator;
 use self::logical_op::LikeOperator;
