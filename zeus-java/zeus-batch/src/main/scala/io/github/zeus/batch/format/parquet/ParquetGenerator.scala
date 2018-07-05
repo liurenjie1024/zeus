@@ -13,7 +13,8 @@ import org.apache.spark.sql.SparkSession
 object ParquetGenerator {
   val folder = "rt-parquet"
   def main(args: Array[String]) = {
-
+    storeSchema
+    storeData
   }
 
   def storeSchema: Unit = {
