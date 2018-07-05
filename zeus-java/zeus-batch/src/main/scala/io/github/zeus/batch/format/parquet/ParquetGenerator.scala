@@ -21,6 +21,7 @@ object ParquetGenerator {
     val config = new Configuration()
     val fs = FileSystem.get(config)
 
+    fs.mkdirs(new Path(s"$folder"))
     val schemaPath = new Path(s"$folder/logs.schema")
     val schemaOutput = fs.create(schemaPath, true)
 
