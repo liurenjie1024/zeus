@@ -10,11 +10,14 @@ object ParquetGenerator {
       .appName("zeus-parquet-generator")
       .getOrCreate()
 
-    new ThriftDataFrameBuilder[UnitedEvent, UnitedEvent._Fields]("/mvad/rawlog/dsp-charge/2018-07-03/*/dsp.charge.6.click/*")
+    val df = new ThriftDataFrameBuilder[UnitedEvent, UnitedEvent._Fields]("/mvad/rawlog/dsp-charge/2018-07-03/*/dsp.charge.6.click/*")
       .build(spark)
       .limit(1000)
-      .coalesce(1)
-      .write.parquet("rt-parquet")
+
+    println(s"Dataframe size is ${df.count()}")
+
+//      .coalesce(1)
+//      .write.parquet("rt-parquet")
 
     spark.close()
   }
