@@ -15,7 +15,6 @@ object ParquetGenerator {
       .limit(1000)
 
     println(s"Dataframe size is ${df.count()}")
-
     df.coalesce(1)
       .write.parquet("rt-parquet")
 

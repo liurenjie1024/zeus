@@ -9,8 +9,9 @@ object ParquetReader {
       .getOrCreate()
 
     val data = spark.read.parquet("rt-parquet/*.parquet")
-        .count()
-    println(s"Line number is ${data}")
+
+    data.printSchema()
+    println(s"Line number is ${data.count()}")
 
     spark.close()
   }
