@@ -20,6 +20,7 @@ extern crate toml;
 extern crate error_chain;
 extern crate arrow;
 extern crate byteorder;
+extern crate parquet;
 
 pub mod exec;
 pub mod rpc;

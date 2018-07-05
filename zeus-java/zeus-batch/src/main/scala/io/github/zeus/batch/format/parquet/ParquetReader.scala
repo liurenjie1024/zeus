@@ -8,7 +8,7 @@ object ParquetReader {
       .appName("zeus-parquet-generator")
       .getOrCreate()
 
-    val lines = spark.read.parquet("rt-parquet")
+    val lines = spark.read.parquet("rt-parquet/*.parquet")
         .count()
     println(s"Line number is ${lines}")
 
