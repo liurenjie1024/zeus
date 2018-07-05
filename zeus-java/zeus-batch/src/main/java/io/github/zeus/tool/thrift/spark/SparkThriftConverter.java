@@ -1,7 +1,9 @@
 package io.github.zeus.tool.thrift.spark;
 
 import io.github.zeus.tool.thrift.DataTypeMappings;
+import io.github.zeus.tool.thrift.SparkDataTypeMapping;
 import io.github.zeus.tool.thrift.ThriftConverter;
+import io.github.zeus.tool.thrift.ThriftDataTypeMapping;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.Metadata;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class SparkThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFieldIdEnum>
@@ -70,6 +73,13 @@ public class SparkThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFi
         Metadata.empty()));
   }
 
+  private Optional<SparkDataTypeMapping> sparkDataTypeMappingOf(F field) {
+    initSchema();
+    return DataTypeMappings.thriftDataTypeMappingOf(
+      this.filedMetaDataMap.get(field).valueMetaData.type)
+      .flatMap(m -> DataTypeMappings.sparkDataTypeMappingOf(m.zeusType()));
+  }
+
   private boolean isFieldSupported(F field) {
     initSchema();
     return fieldSchemaOf(filedMetaDataMap.get(field)).isPresent();
@@ -77,8 +87,13 @@ public class SparkThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFi
 
   public Row createRow(T log) {
     return RowFactory.create(fields.stream()
-      .filter(this::isFieldSupported)
-      .map(log::getFieldValue)
+      .map(f -> {
+        Optional<SparkDataTypeMapping> typeMapping = sparkDataTypeMappingOf(f);
+        return typeMapping.map(mapping -> Optional.of(log.getFieldValue(f))
+          .orElse(mapping.defaultValue()))
+          .orElse(null);
+      })
+      .filter(Objects::nonNull)
       .toArray());
   }
 }
