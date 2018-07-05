@@ -80,16 +80,11 @@ public class SparkThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFi
       .flatMap(m -> DataTypeMappings.sparkDataTypeMappingOf(m.zeusType()));
   }
 
-  private boolean isFieldSupported(F field) {
-    initSchema();
-    return fieldSchemaOf(filedMetaDataMap.get(field)).isPresent();
-  }
-
   public Row createRow(T log) {
     return RowFactory.create(fields.stream()
       .map(f -> {
         Optional<SparkDataTypeMapping> typeMapping = sparkDataTypeMappingOf(f);
-        return typeMapping.map(mapping -> Optional.of(log.getFieldValue(f))
+        return typeMapping.map(mapping -> Optional.ofNullable(log.getFieldValue(f))
           .orElse(mapping.defaultValue()))
           .orElse(null);
       })
