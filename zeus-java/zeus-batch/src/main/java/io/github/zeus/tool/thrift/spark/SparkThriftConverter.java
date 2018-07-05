@@ -18,7 +18,8 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 
-public class SparkThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFieldIdEnum> implements Serializable {
+public class SparkThriftConverter<T extends TBase<T, F>, F extends Enum<F> & TFieldIdEnum>
+  implements Serializable {
   private static final Logger LOGGER = LoggerFactory.getLogger(ThriftConverter.class);
   private final Class<T> klass;
 

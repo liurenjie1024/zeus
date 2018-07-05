@@ -10,7 +10,8 @@ import org.apache.thrift.{TBase, TFieldIdEnum}
 
 import scala.reflect.ClassTag
 
-class ThriftDataFrameBuilder[T <: TBase[T, F], F <: Enum[F] with TFieldIdEnum](path: String)(implicit c: ClassTag[T]) {
+class ThriftDataFrameBuilder[T <: TBase[T, F], F <: Enum[F] with TFieldIdEnum](path: String)(implicit c: ClassTag[T])
+  extends Serializable {
   private val sparkThriftConverter = new SparkThriftConverter[T, F](c.runtimeClass.asInstanceOf[Class[T]])
   def build(spark: SparkSession): DataFrame = {
     val rowRDD = buildRDD(spark)
