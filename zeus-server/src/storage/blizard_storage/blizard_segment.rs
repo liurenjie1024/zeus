@@ -146,37 +146,44 @@ impl FileSegmentBlockInputStream {
     match (column_type, column_reader) {
       (ColumnType::BOOL, ColumnReader::BoolColumnReader(mut r)) => {
         let mut vec = Vec::<bool>::with_capacity(row_num);
-        r.read_batch(row_num, None, None, &mut vec)?;
+        let (num_read, level_read) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (ColumnType::INT8, ColumnReader::Int32ColumnReader(mut r)) => {
         let mut vec = Vec::<i32>::with_capacity(row_num);
-        r.read_batch(row_num, None, None, &mut vec)?;
+        let (num_read, level_read) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| (x as i8).into()).collect())
       }
       (ColumnType::INT16, ColumnReader::Int32ColumnReader(mut r)) => {
         let mut vec = Vec::<i32>::with_capacity(row_num);
-        r.read_batch(row_num, None, None, &mut vec)?;
+        let (num_read, level_read) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| (x as i16).into()).collect())
       }
       (ColumnType::INT32, ColumnReader::Int32ColumnReader(mut r)) => {
         let mut vec = Vec::<i32>::with_capacity(row_num);
-        r.read_batch(row_num, None, None, &mut vec)?;
+        let (num_read, level_read) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (ColumnType::INT64, ColumnReader::Int64ColumnReader(mut r)) => {
         let mut vec = Vec::<i64>::with_capacity(row_num);
-        r.read_batch(row_num, None, None, &mut vec)?;
+        let (num_read, level_read) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (ColumnType::FLOAT4, ColumnReader::FloatColumnReader(mut r)) => {
         let mut vec = Vec::<f32>::with_capacity(row_num);
-        r.read_batch(row_num, None, None, &mut vec)?;
+        let (num_read, level_read) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (ColumnType::FLOAT8, ColumnReader::DoubleColumnReader(mut r)) => {
         let mut vec = Vec::<f64>::with_capacity(row_num);
-        r.read_batch(row_num, None, None, &mut vec)?;
+        let (num_read, level_read) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (column_type, _) => bail!("Unable to read column for {:?}", column_type)
