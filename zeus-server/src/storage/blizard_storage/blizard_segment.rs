@@ -102,6 +102,7 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 
     let row_group_reader = self.reader.get_row_group(self.next_block_idx)?;
     let row_num = row_group_reader.metadata().num_rows();
+    debug!("Row number for row group {:?} is {:?}", self.next_block_idx, row_num);
 
     let column_vec = row_group_reader.metadata()
       .columns()
