@@ -139,7 +139,7 @@ mod tests {
 
       // create scala func expr
       let mut scalar_func = ScalarFunction::new();
-      scalar_func.set_func_id(ScalarFuncId::GT_I64);
+      scalar_func.set_func_id(ScalarFuncId::GT_INT64);
       scalar_func.mut_children().push(column_expr_a);
       scalar_func.mut_children().push(const_expr);
 

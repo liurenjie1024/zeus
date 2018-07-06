@@ -293,7 +293,7 @@ mod tests {
       let expr_a = ExpressionBuilder::new_column_ref("a", ColumnType::INT8)
         .build();
 
-      let expr = ExpressionBuilder::new_agg_func("sum(a)", ColumnType::INT8, AggFuncId::SUM)
+      let expr = ExpressionBuilder::new_agg_func("sum(a)", ColumnType::INT8, AggFuncId::SUM_INT32)
         .add_children(expr_a)
         .build();
 
@@ -306,7 +306,7 @@ mod tests {
       let expr_b = ExpressionBuilder::new_column_ref("b", ColumnType::INT64)
         .build();
 
-      let expr = ExpressionBuilder::new_agg_func("sum(b)", ColumnType::INT64, AggFuncId::SUM)
+      let expr = ExpressionBuilder::new_agg_func("sum(b)", ColumnType::INT64, AggFuncId::SUM_INT32)
         .add_children(expr_b)
         .build();
 
