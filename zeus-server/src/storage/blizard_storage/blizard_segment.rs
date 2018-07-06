@@ -13,6 +13,7 @@ use std::convert::TryFrom;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fmt::Formatter;
+use std::default::Default;
 
 use byteorder::ReadBytesExt;
 use byteorder::LittleEndian;
@@ -188,6 +189,20 @@ impl FileSegmentBlockInputStream {
         let (num_read, _) = r.read_batch(row_num, None, None, &mut vec)?;
         debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
+      }
+      (ColumnType::STRING, ColumnReader::ByteArrayColumnReader(mut r)) => {
+        let mut vec = Vec::with_capacity(row_num);
+        vec.resize_default(row_num);
+        let (num_read, _) = r.read_batch(row_num, None, None, &mut vec)?;
+        debug!("Read {} rows.", num_read);
+        vec.into_iter()
+          .try_fold(Vec::new(), |mut ret, byte_arr| -> Result<Vec<Datum>> {
+            let mut bytes = Vec::new();
+            bytes.extend_from_slice(byte_arr.data());
+            let str = String::from_utf8(bytes)?;
+            ret.push(str.into());
+            Ok(ret)
+          })
       }
       (column_type, _) => bail!("Unable to read column for {:?}", column_type)
     }

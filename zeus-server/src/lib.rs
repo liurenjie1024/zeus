@@ -2,6 +2,7 @@
 #![feature(fnbox)]
 #![feature(box_syntax)]
 #![feature(try_from)]
+#![feature(vec_resize_default)]
 #![recursion_limit="128"]
 
 extern crate bytes;
