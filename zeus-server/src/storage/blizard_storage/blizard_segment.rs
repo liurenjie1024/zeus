@@ -166,13 +166,13 @@ impl FileSegmentBlockInputStream {
         Ok(vec.into_iter().map(|x| (x as i16).into()).collect())
       }
       (ColumnType::INT32, ColumnReader::Int32ColumnReader(mut r)) => {
-        let mut vec = Vec::<i32>::with_capacity(row_num);
+        let mut vec = vec![0; row_num];
         let (num_read, _) = r.read_batch(row_num, None, None, &mut vec)?;
         debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (ColumnType::INT64, ColumnReader::Int64ColumnReader(mut r)) => {
-        let mut vec = Vec::<i64>::with_capacity(row_num);
+        let mut vec = vec![0; row_num];
         let (num_read, _) = r.read_batch(row_num, None, None, &mut vec)?;
         debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
