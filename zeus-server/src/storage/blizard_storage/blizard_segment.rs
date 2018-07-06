@@ -148,7 +148,7 @@ impl FileSegmentBlockInputStream {
     column_reader: ColumnReader) -> Result<Vec<Datum>> {
     match (column_type, column_reader) {
       (ColumnType::BOOL, ColumnReader::BoolColumnReader(mut r)) => {
-        let mut vec = vec![0; row_num];
+        let mut vec = vec![false; row_num];
         let (num_read, _) = r.read_batch(row_num, None, None, &mut vec)?;
         debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
@@ -178,13 +178,13 @@ impl FileSegmentBlockInputStream {
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (ColumnType::FLOAT4, ColumnReader::FloatColumnReader(mut r)) => {
-        let mut vec = vec![0; row_num];
+        let mut vec = vec![0f32; row_num];
         let (num_read, _) = r.read_batch(row_num, None, None, &mut vec)?;
         debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
       (ColumnType::FLOAT8, ColumnReader::DoubleColumnReader(mut r)) => {
-        let mut vec = vec![0; row_num];
+        let mut vec = vec![0f64; row_num];
         let (num_read, _) = r.read_batch(row_num, None, None, &mut vec)?;
         debug!("Read {} rows.", num_read);
         Ok(vec.into_iter().map(|x| x.into()).collect())
