@@ -74,7 +74,7 @@ impl BlizardSegment {
       ParquetSerializedFileReader::try_from(self.data_path.as_path())?
     };
 
-    debug!("Metadata for {:?} is {:?}", self.data_path, reader.metadata());
+    debug!("Num of row groups for {:?} is {:?}", self.data_path, reader.num_row_groups());
 
     Ok(Box::new(FileSegmentBlockInputStream {
       phase: ExecPhase::UnInited,
