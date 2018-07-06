@@ -164,6 +164,11 @@ impl FileSegmentBlockInputStream {
         r.read_batch(row_num, None, None, &mut vec)?;
         Ok(vec.into_iter().map(|x| x.into()).collect())
       }
+      (ColumnType::INT64, ColumnReader::Int64ColumnReader(mut r)) => {
+        let mut vec = Vec::<i64>::with_capacity(row_num);
+        r.read_batch(row_num, None, None, &mut vec)?;
+        Ok(vec.into_iter().map(|x| x.into()).collect())
+      }
       (ColumnType::FLOAT4, ColumnReader::FloatColumnReader(mut r)) => {
         let mut vec = Vec::<f32>::with_capacity(row_num);
         r.read_batch(row_num, None, None, &mut vec)?;
