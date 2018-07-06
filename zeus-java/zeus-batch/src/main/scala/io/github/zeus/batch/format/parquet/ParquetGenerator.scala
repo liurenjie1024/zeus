@@ -61,7 +61,7 @@ object ParquetGenerator {
 
     val df = new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields]("/mvad/rawlog/dsp-charge/2018-07-03/*/dsp.charge.6.click/*")
       .build(spark)
-      .limit(1000)
+//      .limit(1000)
 
 //    println(s"Dataframe size is ${df.count()}")
     df.coalesce(1)
