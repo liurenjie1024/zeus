@@ -23,6 +23,7 @@ error_chain! {
     TomlSer(::toml::ser::Error);
     TomlDe(::toml::de::Error);
     UTF8(::std::string::FromUtf8Error);
+    Parquet(::parquet::errors::ParquetError);
   }
 
   errors {

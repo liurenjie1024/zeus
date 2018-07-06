@@ -8,10 +8,17 @@ use std::io::Seek;
 use std::sync::Arc;
 use std::io::Error as StdIoError;
 use std::io::ErrorKind as StdIoErrorKind;
+use std::vec::Vec;
+use std::convert::TryFrom;
 use std::collections::HashMap;
+use std::fmt::Debug;
+use std::fmt::Formatter;
 
 use byteorder::ReadBytesExt;
 use byteorder::LittleEndian;
+use parquet::file::reader::FileReader as ParquetFileReader;
+use parquet::file::reader::SerializedFileReader as ParquetSerializedFileReader;
+use parquet::column::reader::ColumnReader;
 use protobuf::parse_from_reader;
 
 use exec::ExecPhase;
@@ -27,44 +34,14 @@ use rpc::zeus_blizard_format::SegmentIndex;
 use rpc::zeus_blizard_format::ColumnNode;
 use util::errors::*;
 
-const EXT_INDEX: &'static str = "idx";
-const EXT_DATA: &'static str = "bin";
-
 pub(super) struct BlizardSegment {
-  index: Arc<SegmentIndex>,
-  data_path: Box<Path>,
-  name: String
+  data_path: PathBuf,
 }
 
 impl BlizardSegment {
-  pub fn open<P: AsRef<Path>>(dir: &P, name: &str) -> Result<BlizardSegment> {
-    let mut path = PathBuf::new();
-    path.push(dir.to_owned());
-    path.push(name);
-
-    // Read index
-    path.set_extension(EXT_INDEX);
-    let err_msg = format!("Failed to parse open index file: \"{:?}\"", path);
-    let mut file = File::open(&path)
-      .chain_err(move || {
-        error!("{}", err_msg);
-        err_msg
-      })?;
-    let index = parse_from_reader::<SegmentIndex>(&mut file)?;
-    debug!("Segment index read:{:?}", index);
-
-    // Check file data eixsts
-    path.set_extension(EXT_DATA);
-    if !path.exists() {
-      let err_msg = format!("Data file \"{:?}\" not found.", path);
-      error!("{}", err_msg);
-      bail!(StdIoError::new(StdIoErrorKind::NotFound, err_msg));
-    }
-
+  pub fn open<P: AsRef<Path>>(path: &P) -> Result<BlizardSegment> {
     Ok(BlizardSegment {
-      index: Arc::new(index),
-      data_path: path.into_boxed_path(),
-      name: name.to_string()
+      data_path: path.as_ref().to_path_buf(),
     })
   }
 }
@@ -72,11 +49,8 @@ impl BlizardSegment {
 struct FileSegmentBlockInputStream {
   phase: ExecPhase,
   next_block_idx: usize,
-  path: Arc<PathBuf> ,
-  reader: Option<File>,
-  index: Arc<SegmentIndex>,
-  column_types: HashMap<i32, ColumnType>,
-  column_names: HashMap<i32, String>,
+  reader: Box<dyn ParquetFileReader>,
+  column_types: HashMap<String, ColumnType>,
 }
 
 impl BlizardSegment {
@@ -87,29 +61,24 @@ impl BlizardSegment {
   {
     let scan_node = context.scan_node;
 
-    let mut column_types: HashMap<i32, ColumnType> = HashMap::new();
-    let mut column_names: HashMap<i32, String> = HashMap::new();
+    let mut column_types: HashMap<String, ColumnType> = HashMap::new();
 
     let table_schema =
       context.catalog_manager.get_table_schema(scan_node.table_id).unwrap();
     for column_id in &scan_node.columns {
       let column_schema = table_schema.get_column_schema(*column_id).unwrap();
-      column_types.insert(*column_id, column_schema.get_type());
-      column_names.insert(*column_id, column_schema.get_name());
+      column_types.insert(column_schema.get_name(), column_schema.get_type());
     }
 
-    let mut path = self.data_path.to_path_buf();
-    path.set_file_name(&self.name);
-    path.set_extension(EXT_DATA);
+    let reader: Box<dyn ParquetFileReader> = box {
+      ParquetSerializedFileReader::try_from(self.data_path.as_path())?
+    };
 
     Ok(Box::new(FileSegmentBlockInputStream {
       phase: ExecPhase::UnInited,
       next_block_idx: 0,
-      path: Arc::new(path),
-      reader: None,
-      index: self.index.clone(),
+      reader,
       column_types,
-      column_names,
     }))
   }
 }
@@ -118,15 +87,6 @@ impl BlockInputStream for FileSegmentBlockInputStream {
   fn open(&mut self) -> Result<()> {
     assert_eq!(ExecPhase::UnInited, self.phase);
 
-    let path = self.path.clone();
-    let reader = Some(File::open(&*(path.clone()))
-      .chain_err(move || {
-        let err_msg = format!("Failed to open file: \"{:?}\"", path);
-        error!("{:?}", err_msg);
-        err_msg
-      })?);
-
-    self.reader = reader;
     self.next_block_idx = 0;
     self.phase = ExecPhase::Opened;
     Ok(())
@@ -134,40 +94,38 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 
   fn next(&mut self) -> Result<Block> {
     assert!((ExecPhase::Opened == self.phase) || (ExecPhase::Executed == self.phase));
-    if self.next_block_idx >= self.index.get_block_node().len() {
+    if self.next_block_idx >= self.reader.num_row_groups() {
       bail!(ErrorKind::DB(DBErrorKind::EOF))
     }
 
-    let block_handle = self.index.get_block_node().get(self.next_block_idx).unwrap();
+    let row_group_reader = self.reader.get_row_group(self.next_block_idx)?;
+    let row_num = row_group_reader.metadata().num_rows();
 
-    for x in self.column_names.keys() {
-      assert!(block_handle.get_column_node().contains_key(x),
-              "Column {:?} doesn't exist in {:?}.", x, self.path);
-    }
+    let column_vec = row_group_reader.metadata()
+      .columns()
+      .iter()
+      .enumerate()
+      .filter(|c| self.column_types.contains_key(&c.1.column_path().string()))
+      .try_fold(Vec::new(), |mut columns, c| -> Result<Vec<Column>> {
+        let column_name = c.1.column_path().string();
+        let column_reader = row_group_reader.get_column_reader(c.0)?;
+        let column_type = self.column_types[&column_name];
 
-    let mut sorted_column_ids = self.column_names.keys().cloned().collect::<Vec<i32>>();
-    sorted_column_ids.sort_by_key(|id| block_handle.column_node[id].start);
+        let data_vec = FileSegmentBlockInputStream::build_column(row_num as usize,
+          column_type, column_reader)?;
+        let column = ColumnBuilder::new_vec(column_type, data_vec)
+          .set_name(column_name.as_str())
+          .build();
 
-    let mut columns: Vec<Column> = Vec::new();
-    for column_id in &sorted_column_ids {
-      let column_handle = block_handle.get_column_node().get(column_id).unwrap();
-      let column_vec = FileSegmentBlockInputStream::load_column(
-        &mut self.reader.as_mut().unwrap(),
-        &column_handle,
-        self.column_types[column_id],
-        block_handle.block_column_size as usize)?;
-
-      let column = ColumnBuilder::new_vec(self.column_types[column_id], column_vec)
-        .set_name(self.column_names[column_id].as_str())
-        .build();
-      columns.push(column);
-    }
+        columns.push(column);
+        Ok(columns)
+      })?;
 
     self.next_block_idx += 1;
 
     Ok(Block {
-      columns,
-      eof: self.next_block_idx >= self.index.get_block_node().len(),
+      columns: column_vec,
+      eof: self.next_block_idx >= self.reader.num_row_groups(),
     })
   }
 
@@ -178,6 +136,46 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 
     self.phase = ExecPhase::Closed;
     Ok(())
+  }
+}
+
+impl FileSegmentBlockInputStream {
+  fn build_column(row_num: usize,
+    column_type: ColumnType,
+    column_reader: ColumnReader) -> Result<Vec<Datum>> {
+    match (column_type, column_reader) {
+      (ColumnType::BOOL, ColumnReader::BoolColumnReader(mut r)) => {
+        let mut vec = Vec::<bool>::with_capacity(row_num);
+        r.read_batch(row_num, None, None, &mut vec)?;
+        Ok(vec.into_iter().map(|x| x.into()).collect())
+      }
+      (ColumnType::INT8, ColumnReader::Int32ColumnReader(mut r)) => {
+        let mut vec = Vec::<i32>::with_capacity(row_num);
+        r.read_batch(row_num, None, None, &mut vec)?;
+        Ok(vec.into_iter().map(|x| (x as i8).into()).collect())
+      }
+      (ColumnType::INT16, ColumnReader::Int32ColumnReader(mut r)) => {
+        let mut vec = Vec::<i32>::with_capacity(row_num);
+        r.read_batch(row_num, None, None, &mut vec)?;
+        Ok(vec.into_iter().map(|x| (x as i16).into()).collect())
+      }
+      (ColumnType::INT32, ColumnReader::Int32ColumnReader(mut r)) => {
+        let mut vec = Vec::<i32>::with_capacity(row_num);
+        r.read_batch(row_num, None, None, &mut vec)?;
+        Ok(vec.into_iter().map(|x| x.into()).collect())
+      }
+      (ColumnType::FLOAT4, ColumnReader::FloatColumnReader(mut r)) => {
+        let mut vec = Vec::<f32>::with_capacity(row_num);
+        r.read_batch(row_num, None, None, &mut vec)?;
+        Ok(vec.into_iter().map(|x| x.into()).collect())
+      }
+      (ColumnType::FLOAT8, ColumnReader::DoubleColumnReader(mut r)) => {
+        let mut vec = Vec::<f64>::with_capacity(row_num);
+        r.read_batch(row_num, None, None, &mut vec)?;
+        Ok(vec.into_iter().map(|x| x.into()).collect())
+      }
+      (column_type, _) => bail!("Unable to read column for {:?}", column_type)
+    }
   }
 }
 

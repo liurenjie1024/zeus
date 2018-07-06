@@ -170,7 +170,7 @@ impl Default for ExecContext {
   }
 }
 
-pub trait ExecNode: Send + 'static {
+pub trait ExecNode: 'static {
   fn open(
     &mut self,
     context: &mut ExecContext,

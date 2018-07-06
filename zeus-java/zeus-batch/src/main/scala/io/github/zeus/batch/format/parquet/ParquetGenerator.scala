@@ -14,7 +14,7 @@ object ParquetGenerator {
   val folder = "rt-parquet"
   def main(args: Array[String]) = {
     storeSchema
-//    storeData
+    storeData
   }
 
   def storeSchema: Unit = {
