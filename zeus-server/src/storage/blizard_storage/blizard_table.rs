@@ -1,9 +1,6 @@
 use std::collections::LinkedList;
 use std::path::PathBuf;
-use std::fs::File;
 use std::fs;
-use std::io::BufReader;
-use std::io::BufRead;
 
 use super::super::storage::Storage;
 use super::super::storage::ScanContext;
