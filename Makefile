@@ -12,9 +12,10 @@ RUST_OUT_DIR=zeus-server/src/rpc
 PROTOC_RUST_PLUGIN=`which protoc-gen-rust`
 GRPC_RUST_PLUGIN=`which grpc_rust_plugin`
 
+
 all: RUST_BUILD JAVA_BUILD
 
-RUST_GRPC: $(PROTO_DEFS)
+RUST_GRPC_GEN: $(PROTO_DEFS)
 	echo "Building rust grpc"
 	$(PROTOC) --rust_out=$(RUST_OUT_DIR) \
 	    -I$(PROTO_DIR) \
@@ -23,7 +24,7 @@ RUST_GRPC: $(PROTO_DEFS)
 		--plugin=protoc-gen-rust=$(PROTOC_RUST_PLUGIN) \
 		$(PROTO_DEFS)
 
-RUST_BUILD: RUST_GRPC
+RUST_BUILD:
 	echo "Building rust"
 	export RUSTFLAGS="-A renamed_and_removed_lints"
 	cd zeus-server && cargo build
