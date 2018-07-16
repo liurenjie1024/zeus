@@ -20,7 +20,7 @@ use scheduler::build as build_scheduler;
 #[allow(dead_code)]
 pub struct ZeusServer {
   server: GrpcServer,
-  context: ServerContext
+  context: ServerContext,
 }
 
 impl ZeusServer {
