@@ -1,26 +1,12 @@
 use std::path::Path;
 use std::path::PathBuf;
-use std::borrow::ToOwned;
-use std::fs::File;
-use std::io::Read;
-use std::io::SeekFrom;
-use std::io::Seek;
-use std::sync::Arc;
-use std::io::Error as StdIoError;
-use std::io::ErrorKind as StdIoErrorKind;
 use std::vec::Vec;
 use std::convert::TryFrom;
 use std::collections::HashMap;
-use std::fmt::Debug;
-use std::fmt::Formatter;
-use std::default::Default;
 
-use byteorder::ReadBytesExt;
-use byteorder::LittleEndian;
 use parquet::file::reader::FileReader as ParquetFileReader;
 use parquet::file::reader::SerializedFileReader as ParquetSerializedFileReader;
 use parquet::column::reader::ColumnReader;
-use protobuf::parse_from_reader;
 
 use exec::ExecPhase;
 use exec::Block;
@@ -31,8 +17,6 @@ use storage::ScanContext;
 use storage::BlockInputStream;
 use storage::ErrorKind as DBErrorKind;
 use rpc::zeus_meta::ColumnType;
-use rpc::zeus_blizard_format::SegmentIndex;
-use rpc::zeus_blizard_format::ColumnNode;
 use util::errors::*;
 
 pub(super) struct BlizardSegment {
