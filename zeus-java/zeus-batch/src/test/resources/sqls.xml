@@ -1,0 +1,12 @@
+<sqls>
+    <sql name="q1" isOrdered="true">
+        <![CDATA[
+        select * from logs
+        ]]>
+    </sql>
+    <sql name="q2">
+        <![CDATA[
+        select count(1) from logs
+        ]]>
+    </sql>
+</sqls>
