@@ -10,6 +10,7 @@ SPARK_CMD = """$SPARK_HOME/bin/spark-submit \
   --conf spark.dynamicAllocation.enable=false \
   --conf spark.executor.instances={instance_num} \
   --conf spark.sql.parquet.compression.codec=uncompressed \
+  --conf mapreduce.output.fileoutputformat.compress=false \
   --conf spark.driver.memory=60G \
   --queue adhoc \
   --driver-java-options '-XX:+UseG1GC -XX:+PrintGC -XX:+PrintGCDetails -Xloggc:spark.driver.gc.log' \
