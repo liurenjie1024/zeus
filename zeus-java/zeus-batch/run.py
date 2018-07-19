@@ -7,7 +7,7 @@ SPARK_CMD = """$SPARK_HOME/bin/spark-submit \
   --conf spark.executor.memory=12G \
   --conf spark.task.maxFailures=1000 \
   --conf spark.yarn.max.executor.failures=2000 \
-  --conf mapreduce.output.fileoutputformat.compress=false \
+  --conf mapred.output.fileoutputformat.compress=false \
   --conf spark.dynamicAllocation.enable=false \
   --conf spark.executor.instances={instance_num} \
   --conf spark.driver.memory=60G \
@@ -31,7 +31,7 @@ def prepare_parquet():
     class_name = "io.github.zeus.integrationtest.preparation.PrepareParquetData"
     instance_num = 100
 
-    source_path = "/mvad/rawlog/dsp-charge/2018-07-17/15/dsp.charge.6.click/*"
+    source_path = "/mvad/rawlog/dsp-charge/2018-07-17/*/dsp.charge.6.click/*"
     args = "-s {source_path} -d {dest_path} -p 8 -n 10000".format(
         source_path=source_path,
         dest_path=PARQUET_DIR)
