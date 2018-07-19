@@ -45,7 +45,7 @@ def prepare_query_result():
 
     sqls_file = "src/main/resources/sqls.xml"
     parquet_file = "{}/1/*.parquet".format(PARQUET_DIR)
-    view_name = "logs.realtimelog"
+    view_name = "realtimelog"
 
     args = "-s {sqls_file} -p {parquet_file} -o {output_path} -n {view_name}".format(
         sqls_file=sqls_file,
