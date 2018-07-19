@@ -41,7 +41,7 @@ def prepare_parquet():
 
 def prepare_query_result():
     class_name = "io.github.zeus.integrationtest.preparation.PrepareQueryResult"
-    instance_num = 100
+    instance_num = 8
 
     sqls_file = "src/main/resources/sqls.xml"
     parquet_file = "{}/1/*.parquet".format(PARQUET_DIR)

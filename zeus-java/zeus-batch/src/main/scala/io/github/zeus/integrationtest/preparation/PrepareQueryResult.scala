@@ -34,7 +34,7 @@ object PrepareQueryResult {
         .required()
 
       opt[String]('n', "viewName")
-        .action((o, c) => c.copy(outputPath = o))
+        .action((o, c) => c.copy(viewName = o))
         .required()
     }.parse(args, Config()) match {
       case Some(t) => t
