@@ -60,7 +60,6 @@ object PrepareQueryResult {
 
     for (sql <- sqls) {
       val sqlOutputPath = s"${execConfig.outputPath}/${sql.name}"
-      fs.mkdirs(new Path(sqlOutputPath))
 
       spark.sql(sql.sql)
         .coalesce(1)
