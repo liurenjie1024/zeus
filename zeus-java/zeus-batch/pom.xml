@@ -53,6 +53,10 @@
             <groupId>com.github.scopt</groupId>
             <artifactId>scopt_${scala.binary}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.rogach</groupId>
+            <artifactId>scallop_${scala.binary}</artifactId>
+        </dependency>
     </dependencies>
 
 

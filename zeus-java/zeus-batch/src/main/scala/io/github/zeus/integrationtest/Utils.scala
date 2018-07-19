@@ -2,6 +2,8 @@ package io.github.zeus.integrationtest
 
 import org.apache.hadoop.fs.{FileSystem, Path}
 
+import scala.util.control.NonFatal
+
 object Utils {
   def isEmptyDir(path: Path, fs: FileSystem): Boolean = {
     if (fs.exists(path)) {
@@ -12,6 +14,30 @@ object Utils {
       }
     } else {
       true
+    }
+  }
+
+  def withResource[A <: AutoCloseable, R](resource: A)(f: A => R): R = {
+    require(resource != null, "resource can't be null")
+
+    var exception: Throwable = _
+    try {
+      f(resource)
+    } catch {
+      case t: Throwable =>
+        exception = t
+        throw exception
+    } finally {
+      try {
+        resource.close()
+      } catch {
+        case t: Throwable =>
+          if (exception != null) {
+            exception.addSuppressed(t)
+          } else {
+            throw t
+          }
+      }
     }
   }
 }

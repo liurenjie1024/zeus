@@ -25,6 +25,7 @@
         <spark.version>2.1.0</spark.version>
         <elephant.version>4.6</elephant.version>
         <scopt.version>3.7.0</scopt.version>
+        <scallop.version>3.1.2</scallop.version>
     </properties>
 
     <repositories>
@@ -130,6 +131,11 @@
                 <groupId>com.github.scopt</groupId>
                 <artifactId>scopt_${scala.binary}</artifactId>
                 <version>${scopt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.rogach</groupId>
+                <artifactId>scallop_${scala.binary}</artifactId>
+                <version>${scallop.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
