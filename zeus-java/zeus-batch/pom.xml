@@ -49,6 +49,10 @@
             <groupId>com.mediav.elephantbird</groupId>
             <artifactId>elephant-bird-mediav</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_${scala.binary}</artifactId>
+        </dependency>
     </dependencies>
 
 
