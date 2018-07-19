@@ -7,9 +7,9 @@ SPARK_CMD = """$SPARK_HOME/bin/spark-submit \
   --conf spark.executor.memory=12G \
   --conf spark.task.maxFailures=1000 \
   --conf spark.yarn.max.executor.failures=2000 \
-  --conf mapred.output.fileoutputformat.compress=false \
   --conf spark.dynamicAllocation.enable=false \
   --conf spark.executor.instances={instance_num} \
+  --conf spark.sql.parquet.compression.codec=uncompressed \
   --conf spark.driver.memory=60G \
   --queue adhoc \
   --driver-java-options '-XX:+UseG1GC -XX:+PrintGC -XX:+PrintGCDetails -Xloggc:spark.driver.gc.log' \
