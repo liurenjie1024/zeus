@@ -14,7 +14,7 @@ SPARK_CMD = """$SPARK_HOME/bin/spark-submit \
   --queue adhoc \
   --driver-java-options '-XX:+UseG1GC -XX:+PrintGC -XX:+PrintGCDetails -Xloggc:spark.driver.gc.log' \
   --driver-memory 16G \
-  target/spark-sql-lib-0.0.1-SNAPSHOT.jar {args}"""
+  target/zeus-batch-0.0.1-SNAPSHOT.jar {args}"""
 
 PARQUET_DIR = "zeus-data/parquet"
 QUERY_RESULT_DIR = "zeus-data/result"
