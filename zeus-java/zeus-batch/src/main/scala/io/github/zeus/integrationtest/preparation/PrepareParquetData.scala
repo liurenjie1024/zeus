@@ -98,7 +98,7 @@ object PrepareParquetData {
     new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields](execConfig.sourcePath)
       .build(spark)
       .limit(execConfig.partitionNum * execConfig.partitionLimit)
-      .coalesce(execConfig.partitionNum)
+      .repartition(execConfig.partitionNum)
       .write.parquet(s"${execConfig.destPath}/1")
 
     spark.close()

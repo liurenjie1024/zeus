@@ -31,7 +31,7 @@ def prepare_parquet():
     class_name = "io.github.zeus.integrationtest.preparation.PrepareParquetData"
     instance_num = 100
 
-    source_path = "/mvad/rawlog/dsp-charge/2018-07-17/*/dsp.charge.6.click/*"
+    source_path = "/mvad/rawlog/dsp-charge/2018-07-17/09/dsp.charge.6.click/*"
     args = "-s {source_path} -d {dest_path} -p 8 -n 10000".format(
         source_path=source_path,
         dest_path=PARQUET_DIR)
