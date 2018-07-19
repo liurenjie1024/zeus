@@ -7,8 +7,8 @@ import org.apache.spark.sql.SparkSession
 import org.slf4j.{Logger, LoggerFactory}
 import scopt.OptionParser
 
-object GenerateQueryResult {
-  val LOG: Logger = LoggerFactory.getLogger(GenerateQueryResult.getClass.getName)
+object PrepareQueryResult {
+  val LOG: Logger = LoggerFactory.getLogger(PrepareQueryResult.getClass.getName)
   case class Config(sqlPath: String = null,
     parquetPath: String = null,
     outputPath: String = null,

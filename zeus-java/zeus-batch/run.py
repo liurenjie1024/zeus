@@ -39,4 +39,22 @@ def prepare_parquet():
     run_spark(class_name, instance_num, args)
 
 
-prepare_parquet()
+def prepare_query_result():
+    class_name = "io.github.zeus.integrationtest.preparation.PrepareQueryResult"
+    instance_num = 100
+
+    sqls_file = "src/main/resources/sqls.xml"
+    parquet_file = "{}/1/*.parquet".format(PARQUET_DIR)
+    view_name = "logs.realtimelog"
+
+    args = "-s {sqls_file} -p {parquet_file} -o {output_path} -n {view_name}".format(
+        sqls_file=sqls_file,
+        parquet_file=parquet_file,
+        output_path=QUERY_RESULT_DIR,
+        view_name=view_name)
+
+    run_spark(class_name, instance_num, args)
+
+
+# prepare_parquet()
+prepare_query_result()
