@@ -28,13 +28,13 @@ def run_spark(class_name, instance_num, args):
 
 
 def prepare_parquet():
-    class_name = "io.github.zeus.integrationtest.preparation.PrepareParquetData$"
+    class_name = "io.github.zeus.integrationtest.preparation.PrepareParquetData"
     instance_num = 100
 
     source_path = "/mvad/rawlog/dsp-charge/2018-07-17/15/dsp.charge.6.click/*"
     args = "-s {source_path} -d {dest_path} -p 8 -n 10000".format(
-        source_path = source_path,
-        dest_path = PARQUET_DIR)
+        source_path=source_path,
+        dest_path=PARQUET_DIR)
 
     run_spark(class_name, instance_num, args)
 

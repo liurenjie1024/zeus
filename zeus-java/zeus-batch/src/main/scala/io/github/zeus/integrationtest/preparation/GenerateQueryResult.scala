@@ -66,6 +66,8 @@ object GenerateQueryResult {
         .coalesce(1)
         .write.json(sqlOutputPath)
     }
+
+    spark.close()
   }
 
   def checkAndMkOutputDir: Unit = {

@@ -45,7 +45,8 @@ object PrepareParquetData {
         null
     }
 
-
+    storeSchema
+    storeData
   }
 
   def storeSchema: Unit = {
@@ -94,13 +95,10 @@ object PrepareParquetData {
       .appName("zeus-parquet-generator")
       .getOrCreate()
 
-    val df = new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields](execConfig.sourcePath)
+    new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields](execConfig.sourcePath)
       .build(spark)
-        .limit(execConfig.partitionNum * execConfig.partitionLimit)
-    //      .limit(1000)
-
-    //    println(s"Dataframe size is ${df.count()}")
-    df.coalesce(execConfig.partitionNum)
+      .limit(execConfig.partitionNum * execConfig.partitionLimit)
+      .coalesce(execConfig.partitionNum)
       .write.parquet(s"${execConfig.destPath}/1")
 
     spark.close()
