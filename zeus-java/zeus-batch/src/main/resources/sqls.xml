@@ -1,12 +1,12 @@
 <sqls>
     <sql name="q1" isOrdered="true">
         <![CDATA[
-        select count(*) from logs.realtimelog
+        select count(*) from realtimelog
         ]]>
     </sql>
     <sql name="q2">
         <![CDATA[
-        select advertiserId, sum(fee) from logs.realtimelog
+        select advertiserId, sum(fee) from realtimelog
         ]]>
     </sql>
 </sqls>
