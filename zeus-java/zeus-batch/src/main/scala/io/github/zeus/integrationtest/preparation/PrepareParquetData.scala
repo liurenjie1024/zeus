@@ -2,10 +2,10 @@ package io.github.zeus.integrationtest.preparation
 
 import com.google.protobuf.CodedOutputStream
 import com.mediav.realtime.log.RealtimeLog
-import io.github.zeus.integrationtest.Utils
 import io.github.zeus.rpc.{ZeusCatalog, ZeusDBSchema, ZeusTableSchema}
 import io.github.zeus.tool.thrift.ThriftConverter
 import io.github.zeus.tool.thrift.spark.ThriftDataFrameBuilder
+import io.github.zeus.utils.Utils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.SparkSession

@@ -1,8 +1,6 @@
-package io.github.zeus.integrationtest
+package io.github.zeus.utils
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-
-import scala.util.control.NonFatal
 
 object Utils {
   def isEmptyDir(path: Path, fs: FileSystem): Boolean = {

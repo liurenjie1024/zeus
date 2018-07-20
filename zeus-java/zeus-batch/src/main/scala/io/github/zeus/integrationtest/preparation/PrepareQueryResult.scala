@@ -1,6 +1,7 @@
 package io.github.zeus.integrationtest.preparation
 
-import io.github.zeus.integrationtest.{SqlElement, Utils}
+import io.github.zeus.integrationtest.SqlElement
+import io.github.zeus.utils.Utils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.SparkSession
