@@ -15,27 +15,27 @@ object Utils {
     }
   }
 
-  def withResource[A <: AutoCloseable, R](resource: A)(f: A => R): R = {
-    require(resource != null, "resource can't be null")
-
-    var exception: Throwable = _
-    try {
-      f(resource)
-    } catch {
-      case t: Throwable =>
-        exception = t
-        throw exception
-    } finally {
-      try {
-        resource.close()
-      } catch {
-        case t: Throwable =>
-          if (exception != null) {
-            exception.addSuppressed(t)
-          } else {
-            throw t
-          }
-      }
-    }
-  }
+//  def withResource[A <: AutoCloseable, R](resource: A)(f: A => R): R = {
+//    require(resource != null, "resource can't be null")
+//
+//    var exception: Throwable = _
+//    try {
+//      f(resource)
+//    } catch {
+//      case t: Throwable =>
+//        exception = t
+//        throw exception
+//    } finally {
+//      try {
+//        resource.close()
+//      } catch {
+//        case t: Throwable =>
+//          if (exception != null) {
+//            exception.addSuppressed(t)
+//          } else {
+//            throw t
+//          }
+//      }
+//    }
+//  }
 }
