@@ -1,7 +1,7 @@
 package io.github.zeus.integrationtest.verify
 
 import java.nio.file.{Files, Paths}
-import java.sql.{Connection, Driver, DriverManager}
+import java.sql._
 
 import io.circe.Json
 import io.github.zeus.integrationtest.{Command, SqlElement}
@@ -35,30 +35,64 @@ class VerifyCommand(args: VerifyArgs) extends Command {
     val conn = DriverManager.getConnection(args.jdbcUrl())
     val templateEngine = new TemplateEngine
 
+    val drillEnv = Map("tableName" -> args.drillTableName())
+    val zeusEnv = Map("tableName" -> args.zeusTableName())
+
+    var (sameCounter, diffCounter, failureCoutner) = (0, 0, 0)
+
     conn.flatMap { c =>
       c.createStatement().flatMap { stat =>
         sqls.foreach { sql =>
           LOG.info(s"Comparing sql: ${sql.name}")
 
-          val drillSql = templateEngine.transform(sql.sql, Map("tableName" => ))
+          val drillSql = templateEngine.transform(sql.sql, drillEnv)
+          LOG.info(s"Drill sql is: [$drillSql]")
 
-//          stat.executeQuery(sql.sql) { rs =>
-//
-//          }
+          val zeusSql = templateEngine.transform(sql.sql, zeusEnv)
+          LOG.info(s"Zeus sql is: [$zeusSql]")
+          try {
+            stat.executeQuery(drillSql) { drillResultSet =>
+              stat.executeQuery(zeusSql) { zeusResultSet =>
+                val drillRS = JDBCResultSet.fromResultSet(drillResultSet)
+                val zeusRS = JDBCResultSet.fromResultSet(zeusResultSet)
+
+                val same = if (sql.isOrdered) {
+                  JDBCResultSet.compareOrdered(drillRS, zeusRS)
+                } else {
+                  JDBCResultSet.compareUnordered(drillRS, zeusRS)
+                }
+
+                if (same) {
+                  sameCounter += 1
+                  LOG.info(s"${sql.name} is same.")
+                } else {
+                  diffCounter += 1
+                  LOG.info(s"${sql.name} is different.")
+                }
+              }
+            }
+          } catch {
+            case t: Throwable =>
+              failureCoutner += 1
+              LOG.error(s"Failed to compare ${sql.name}", t)
+          }
         }
       }
     }
   }
 
-  private def loadExpectedResult(name: String): Json = {
-    val data = new String(
-      Files.readAllBytes(Paths.get(s"${args.resultDir}/${name}.json}")),
-      "UTF-8")
-    parse(data) match {
-      case Left(f) =>
-        throw f
-      case Right(json) =>
-        json
-    }
-  }
+//  private def compareResultSet(expectedRS: ResultSet,
+//    actualRS: ResultSet, isOrdered: Boolean): Boolean = {
+//
+//  }
+//  def compareResultSetMetadata(
+//    expectedRSMetadata: ResultSetMetaData,
+//    actualRSMetadata: ResultSetMetaData): Boolean = {
+//
+//    if (expectedRSMetadata.getColumnCount != actualRSMetadata.getColumnCount) {
+//    }
+//  }
+}
+
+object VerifyCommand {
 }
