@@ -1,7 +1,9 @@
 package io.github.zeus.integrationtest.preparation
 
+
 import com.google.protobuf.CodedOutputStream
 import com.mediav.realtime.log.RealtimeLog
+import io.github.zeus.integrationtest.Command
 import io.github.zeus.rpc.{ZeusCatalog, ZeusDBSchema, ZeusTableSchema}
 import io.github.zeus.tool.thrift.ThriftConverter
 import io.github.zeus.tool.thrift.spark.ThriftDataFrameBuilder
@@ -9,42 +11,13 @@ import io.github.zeus.utils.Utils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.SparkSession
+import org.rogach.scallop.{ScallopOption, Subcommand}
 import org.slf4j.LoggerFactory
 
-object PrepareParquetData {
-  case class Config(sourcePath: String = null, destPath: String = null,
-    partitionLimit: Int = 10000, partitionNum: Int = 8)
-  val LOG = LoggerFactory.getLogger(PrepareParquetData.getClass.getName)
+class PreparingParquetData(execConfig: PreparingParquetDataArgs) extends Command {
+  val LOG = LoggerFactory.getLogger(classOf[PreparingParquetData])
 
-  var execConfig: Config = _
-
-  def main(args: Array[String]): Unit = {
-    execConfig = new scopt.OptionParser[Config]("PreparingParquet") {
-      head("PreparingParquet", "0.1")
-
-      opt[String]('s', "source")
-        .action((source, c) => c.copy(sourcePath = source))
-        .required()
-
-      opt[String]('d', "dest")
-        .action((dest, c) => c.copy(destPath = dest))
-        .required()
-
-      opt[Int]('p', "partitionNum")
-        .action((partitionNum, c) => c.copy(partitionNum = partitionNum))
-        .optional()
-
-      opt[Int]('n', "partitionLimit")
-        .action((partitionLimit, c) => c.copy(partitionLimit = partitionLimit))
-        .optional()
-
-    }.parse(args, Config()) match {
-      case Some(c) => c
-      case None =>
-        System.exit(1)
-        null
-    }
-
+  override def run(): Unit = {
     storeSchema
     storeData
   }
@@ -53,12 +26,12 @@ object PrepareParquetData {
     val config = new Configuration()
     val fs = FileSystem.get(config)
 
-    val path = new Path(s"${execConfig.destPath}")
+    val path = new Path(s"${execConfig.destPath()}")
     if (!Utils.isEmptyDir(path, fs)) {
       throw new IllegalStateException(s"${path.toUri} is not empty")
     }
     fs.mkdirs(path)
-    val schemaPath = new Path(s"${execConfig.destPath}/logs.schema")
+    val schemaPath = new Path(s"${execConfig.destPath()}/logs.schema")
     val schemaOutput = fs.create(schemaPath, true)
 
     val catalogOuptput = CodedOutputStream.newInstance(schemaOutput)
@@ -95,12 +68,20 @@ object PrepareParquetData {
       .appName("zeus-parquet-generator")
       .getOrCreate()
 
-    new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields](execConfig.sourcePath)
+    new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields](execConfig.sourcePath())
       .build(spark)
-      .limit(execConfig.partitionNum * execConfig.partitionLimit)
-      .repartition(execConfig.partitionNum)
-      .write.parquet(s"${execConfig.destPath}/1")
+      .limit(execConfig.partitionNum() * execConfig.partitionLimit())
+      .repartition(execConfig.partitionNum())
+      .write.parquet(s"${execConfig.destPath()}/1")
 
     spark.close()
   }
+}
+
+
+class PreparingParquetDataArgs extends Subcommand("preparing-parquet") {
+  val sourcePath: ScallopOption[String] = opt[String]("sourcePath", 's', required = true)
+  val destPath: ScallopOption[String] = opt[String]("destPath", 'd', required = true)
+  val partitionLimit: ScallopOption[Int] = opt[Int]("partitionLimit", 'l', default = Some(1000), required = false)
+  val partitionNum: ScallopOption[Int] = opt[Int]("partitionNum", 'p', default = Some(8), required = false)
 }

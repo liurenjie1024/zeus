@@ -1,21 +1,19 @@
 package io.github.zeus.integrationtest.verify
 
-import java.nio.file.{Files, Paths}
-import java.sql._
+import java.io.{FileOutputStream, PrintWriter}
+import java.sql.DriverManager
 
-import io.circe.Json
 import io.github.zeus.integrationtest.{Command, SqlElement}
-import org.slf4j.{Logger, LoggerFactory}
 import io.github.zeus.utils.AutoManageResources._
-import io.circe.parser._
 import io.github.zeus.utils.template.TemplateEngine
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.FileSystem
+import org.slf4j.{Logger, LoggerFactory}
 
 class VerifyCommand(args: VerifyArgs) extends Command {
   private val LOG: Logger = LoggerFactory.getLogger(classOf[VerifyCommand])
-  override def run: Unit = {
 
+  override def run: Unit = {
+    val sqls = loadSqls
+    compareResults(sqls)
   }
 
   private def loadSqls: Seq[SqlElement] = {
@@ -30,7 +28,7 @@ class VerifyCommand(args: VerifyArgs) extends Command {
 
   private def compareResults(sqls: Seq[SqlElement]): Unit = {
     LOG.info("Comparing results...")
-    Class.forName(args.jdbcDriverClassname())
+    Class.forName(args.jdbcDriver())
 
     val conn = DriverManager.getConnection(args.jdbcUrl())
     val templateEngine = new TemplateEngine
@@ -39,6 +37,7 @@ class VerifyCommand(args: VerifyArgs) extends Command {
     val zeusEnv = Map("tableName" -> args.zeusTableName())
 
     var (sameCounter, diffCounter, failureCoutner) = (0, 0, 0)
+    val compareResults = List.newBuilder[CompareResult]
 
     conn.flatMap { c =>
       c.createStatement().flatMap { stat =>
@@ -50,13 +49,20 @@ class VerifyCommand(args: VerifyArgs) extends Command {
 
           val zeusSql = templateEngine.transform(sql.sql, zeusEnv)
           LOG.info(s"Zeus sql is: [$zeusSql]")
-          try {
-            stat.executeQuery(drillSql) { drillResultSet =>
-              stat.executeQuery(zeusSql) { zeusResultSet =>
-                val drillRS = JDBCResultSet.fromResultSet(drillResultSet)
-                val zeusRS = JDBCResultSet.fromResultSet(zeusResultSet)
 
-                val same = if (sql.isOrdered) {
+          var same = false
+          var drillRS: JDBCResultSet = null
+          var zeusRS: JDBCResultSet = null
+          var error: Throwable = null
+
+          try {
+            stat.executeQuery(drillSql).flatMap { drillResultSet =>
+              drillRS = JDBCResultSet.fromResultSet(drillResultSet)
+
+              stat.executeQuery(zeusSql).flatMap { zeusResultSet =>
+                zeusRS = JDBCResultSet.fromResultSet(zeusResultSet)
+
+                same = if (sql.isOrdered) {
                   JDBCResultSet.compareOrdered(drillRS, zeusRS)
                 } else {
                   JDBCResultSet.compareUnordered(drillRS, zeusRS)
@@ -73,26 +79,22 @@ class VerifyCommand(args: VerifyArgs) extends Command {
             }
           } catch {
             case t: Throwable =>
+              error = t
               failureCoutner += 1
               LOG.error(s"Failed to compare ${sql.name}", t)
           }
+
+          compareResults += CompareResult(sql, same, Option(drillRS), Option(zeusRS), Option(error))
         }
       }
     }
+
+    new FileOutputStream(args.outputFilename()).flatMap { fos =>
+      new PrintWriter(fos) { writer =>
+        CompareResults(sameCounter, diffCounter, failureCoutner,
+          compareResults.result()).output(writer)
+      }
+    }
   }
-
-//  private def compareResultSet(expectedRS: ResultSet,
-//    actualRS: ResultSet, isOrdered: Boolean): Boolean = {
-//
-//  }
-//  def compareResultSetMetadata(
-//    expectedRSMetadata: ResultSetMetaData,
-//    actualRSMetadata: ResultSetMetaData): Boolean = {
-//
-//    if (expectedRSMetadata.getColumnCount != actualRSMetadata.getColumnCount) {
-//    }
-//  }
 }
 
-object VerifyCommand {
-}

@@ -1,12 +1,22 @@
 <sqls>
     <sql name="q1">
         <![CDATA[
-        select count(*) from realtimelog
+        select count(*) from {{tableName}}
         ]]>
     </sql>
     <sql name="q2">
         <![CDATA[
-        select advertiserId, sum(fee) from realtimelog group by advertiserId
+        select advertiserId, sum(fee) from {{tableName}} group by advertiserId
+        ]]>
+    </sql>
+    <sql name="q3">
+        <![CDATA[
+        select advertiserId, sum(fee) from {{tableName}} group by advertiserId having sum(fee) > 0
+        ]]>
+    </sql>
+    <sql name="q4">
+        <![CDATA[
+        select advertiserId, sum(fee) from {{tableName}} group by advertiserId order by advertiserId, sum(fee) desc limit 10
         ]]>
     </sql>
 </sqls>
