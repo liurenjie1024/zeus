@@ -68,12 +68,20 @@ class PreparingParquetData(execConfig: PreparingParquetDataArgs) extends Command
       .appName("zeus-parquet-generator")
       .getOrCreate()
 
-    new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields](execConfig.sourcePath())
-      .build(spark)
-      .limit(execConfig.partitionNum() * execConfig.partitionLimit())
-      .repartition(execConfig.partitionNum())
-      .write.parquet(s"${execConfig.destPath()}/1")
+    import spark.implicits._
 
+    val df = new ThriftDataFrameBuilder[RealtimeLog, RealtimeLog._Fields](execConfig.sourcePath())
+      .build(spark)
+      .limit(execConfig.totalNum.get)
+      .repartition(execConfig.partitionNum())
+      .sortWithinPartitions($"timestamp".desc)
+      .write
+
+    execConfig.parquetBlockSize
+      .toOption
+      .foreach(x => df.option("parquet.block.size", x))
+
+    df.parquet(s"${execConfig.destPath()}/1")
     spark.close()
   }
 }
@@ -84,4 +92,12 @@ class PreparingParquetDataArgs extends Subcommand("preparing-parquet") {
   val destPath: ScallopOption[String] = opt[String]("destPath", 'd', required = true)
   val partitionLimit: ScallopOption[Int] = opt[Int]("partitionLimit", 'l', default = Some(1000), required = false)
   val partitionNum: ScallopOption[Int] = opt[Int]("partitionNum", 'p', default = Some(8), required = false)
+  val parquetBlockSize: ScallopOption[Long] = opt[Long]("parquetBlockSize", 'b')
+
+  def totalNum: Option[Int] = {
+    (partitionLimit.toOption, partitionNum.toOption) match {
+      case (Some(limit), Some(num)) => Some(num * limit)
+      case _ => None
+    }
+  }
 }
