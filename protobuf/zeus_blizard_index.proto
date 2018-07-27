@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option java_package="io.github.zeus.format.blizard.index";
+option java_multiple_files=true;
+
+message IntColumnIndex {
+    int32 min_value = 1;
+    int32 max_value = 2;
+}
+
+message LongColumnIndex {
+    int64 min_value = 1;
+    int64 max_value = 2;
+}
+
+message FloatColumnIndex {
+    float min_value = 1;
+    float max_value = 2;
+}
+
+message DoubleColumnIndex {
+    double min_value = 1;
+    double max_value = 2;
+}
+
+message StringColumnIndex {
+    string min_value = 1;
+    string max_value = 2;
+}
+
+message ColumnIndex {
+    IntColumnIndex intIndex = 1;
+    LongColumnIndex longIndex = 2;
+    FloatColumnIndex floatIndex = 3;
+    DoubleColumnIndex doubleIndex = 4;
+    StringColumnIndex stringIndex = 5;
+}
+
+message RowGroupIndex {
+    int32 row_group_num = 1;
+    map<string, ColumnIndex> indexes = 2;
+}
+
+message FileIndex {
+    string filename = 1;
+    repeated RowGroupIndex indexes = 2;
+}
+
