@@ -65,6 +65,10 @@ impl Block {
     }
   }
 
+  pub fn is_empty(&self) -> bool {
+    self.columns.is_empty()
+  }
+
   pub fn column_by_name(&self, name: &str) -> Option<Column> {
     self.columns.iter()
       .find(|x| x.name() == Some(name))
@@ -256,28 +260,30 @@ impl DAGExecutor {
     loop {
       let block = self.root.next()?;
 
-      let mut column_iterators: Vec<ColumnValueIter> =
-        block.columns.iter().map(|c| c.column_value_iter()).collect();
+      if !block.is_empty() {
+        let mut column_iterators: Vec<ColumnValueIter> =
+          block.columns.iter().map(|c| c.column_value_iter()).collect();
 
-      loop {
-        let mut incomplete = 0usize;
-        let mut row = RowResult::new();
-        for column_iter in &mut column_iterators {
-          match column_iter.next() {
-            Some(t) => row.columns.push(t),
-            None => {
-              incomplete += 1;
-            },
+        loop {
+          let mut incomplete = 0usize;
+          let mut row = RowResult::new();
+          for column_iter in &mut column_iterators {
+            match column_iter.next() {
+              Some(t) => row.columns.push(t),
+              None => {
+                incomplete += 1;
+              },
+            }
           }
-        }
 
-        if 0 == incomplete {
-          rows.push(row);
-        } else {
-          if incomplete < column_iterators.len() {
-            warn!("Block incomplete, there are {} columns incomplete.", incomplete);
+          if 0 == incomplete {
+            rows.push(row);
+          } else {
+            if incomplete < column_iterators.len() {
+              warn!("Block incomplete, there are {} columns incomplete.", incomplete);
+            }
+            break;
           }
-          break;
         }
       }
 

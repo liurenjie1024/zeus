@@ -4,19 +4,19 @@
         select count(*) from {{tableName}}
         ]]>
     </sql>
-    <sql name="q2">
-        <![CDATA[
-        select advertiserId, sum(fee) from {{tableName}} group by advertiserId
-        ]]>
-    </sql>
     <sql name="q3">
         <![CDATA[
         select advertiserId, sum(fee) from {{tableName}} group by advertiserId having sum(fee) > 0
         ]]>
     </sql>
-    <sql name="q4">
+    <sql name="q4" isOrdered="true">
         <![CDATA[
         select advertiserId, sum(fee) from {{tableName}} group by advertiserId order by advertiserId, sum(fee) desc limit 10
+        ]]>
+    </sql>
+    <sql name="q5">
+        <![CDATA[
+        select advertiserId, fee from logs.realtimelog where `timestamp` > 1531791601000 and `timestamp` < 1531791642000 order by advertiserId, fee
         ]]>
     </sql>
 </sqls>

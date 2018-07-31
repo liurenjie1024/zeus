@@ -22,6 +22,10 @@ impl ExecNode for FilterExecNode {
 
   fn next(&mut self) -> Result<Block> {
     let input_block = self.input.next()?;
+    if input_block.is_empty() {
+      return Ok(input_block);
+    }
+
     let eval_context = EvalContext::default();
 
     match self.filter {

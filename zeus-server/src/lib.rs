@@ -3,6 +3,7 @@
 #![feature(box_syntax)]
 #![feature(try_from)]
 #![feature(vec_resize_default)]
+#![feature(int_to_from_bytes)]
 #![recursion_limit="128"]
 
 extern crate bytes;
@@ -23,6 +24,7 @@ extern crate error_chain;
 extern crate arrow;
 extern crate byteorder;
 extern crate parquet;
+extern crate parquet_format;
 
 pub mod exec;
 pub mod rpc;

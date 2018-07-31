@@ -24,6 +24,10 @@ impl ExecNode for ProjectExecNode {
 
   fn next(&mut self) -> Result<Block> {
     let next_input_block = self.input.next()?;
+    if next_input_block.is_empty() {
+      return Ok(next_input_block);
+    }
+
     let eval_context = EvalContext::default();
 
     let mut columns = self.mappers.iter_mut()

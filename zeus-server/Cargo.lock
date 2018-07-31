@@ -842,6 +842,7 @@ dependencies = [
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log4rs 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "parquet 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parquet-format 2.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "prometheus 0.3.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
