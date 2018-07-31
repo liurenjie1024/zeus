@@ -111,3 +111,24 @@ impl Expr {
   }
 }
 
+impl ScalarFuncExpr {
+  pub fn get_id(&self) -> ScalarFuncId {
+    self.id
+  }
+
+  pub fn get_args(&self) -> &[Expr] {
+    self.args.as_slice()
+  }
+}
+
+impl ColumnRefExpr {
+  pub fn get_column_name(&self) -> String {
+    self.column_name.clone()
+  }
+}
+
+impl LiteralExpr {
+  pub fn get_data(&self) -> Datum {
+    self.data.clone()
+  }
+}

@@ -18,6 +18,7 @@ message ScanNode {
     int32 db_id = 1;
     int32 table_id = 2;
     repeated int32 columns = 3;
+    repeated Expression filters = 4;
 }
 
 message FilterNode {

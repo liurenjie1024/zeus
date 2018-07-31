@@ -6,10 +6,13 @@ use std::collections::HashMap;
 
 use parquet::file::reader::FileReader as ParquetFileReader;
 use parquet::file::reader::SerializedFileReader as ParquetSerializedFileReader;
+use parquet::file::reader::RowGroupReader;
+use parquet::file::metadata::RowGroupMetaDataPtr;
 use parquet::column::reader::ColumnReader;
 
 use exec::ExecPhase;
 use exec::Block;
+use exec::expression::Expr;
 use storage::column::Column;
 use storage::column::vec_column_data::Datum;
 use storage::column::ColumnBuilder;
@@ -35,6 +38,7 @@ struct FileSegmentBlockInputStream {
   phase: ExecPhase,
   next_block_idx: usize,
   reader: Box<dyn ParquetFileReader>,
+  filter: Option<Expr>,
   column_types: HashMap<String, ColumnType>,
 }
 
@@ -45,6 +49,18 @@ impl BlizardSegment {
   ) -> Result<Box<BlockInputStream>>
   {
     let scan_node = context.scan_node;
+
+    // Create filter
+    // Currently only one filter is supported
+    if scan_node.get_filters().len() > 1 {
+      bail!("Scan node can only have one filter");
+    }
+
+    let filter = scan_node.get_filters()
+      .first()
+      .map(Expr::new)
+      .map_or(Ok(None), |e| e.map(Some))?;
+
 
     let mut column_types: HashMap<String, ColumnType> = HashMap::new();
 
@@ -65,6 +81,7 @@ impl BlizardSegment {
       phase: ExecPhase::UnInited,
       next_block_idx: 0,
       reader,
+      filter,
       column_types,
     }))
   }
@@ -81,15 +98,56 @@ impl BlockInputStream for FileSegmentBlockInputStream {
 
   fn next(&mut self) -> Result<Block> {
     assert!((ExecPhase::Opened == self.phase) || (ExecPhase::Executed == self.phase));
-    if self.next_block_idx >= self.reader.num_row_groups() {
+    let row_groups_count = self.reader.num_row_groups();
+    if self.next_block_idx >= row_groups_count {
       bail!(ErrorKind::DB(DBErrorKind::EOF))
     }
 
-    let row_group_reader = self.reader.get_row_group(self.next_block_idx)?;
-    let row_num = row_group_reader.metadata().num_rows();
-    debug!("Row number for row group {:?} is {:?}", self.next_block_idx, row_num);
+    let mut result: Option<Block> = None;
 
-    let column_vec = row_group_reader.metadata()
+    while self.next_block_idx < row_groups_count {
+      let row_group_reader = self.reader.get_row_group(self.next_block_idx)?;
+      let row_num = row_group_reader.metadata().num_rows();
+      debug!("Row number for row group {:?} is {:?}", self.next_block_idx, row_num);
+
+      let row_group_metadata = row_group_reader.metadata();
+
+      let need_scan = self.filter.as_ref()
+        .map(|x| x.filter(row_group_metadata.clone()))
+        .unwrap_or(true);
+
+      self.next_block_idx += 1;
+
+      if need_scan {
+        let mut block = self.read_next_block(row_group_reader, row_group_metadata.clone())?;
+        block.eof = self.next_block_idx >= self.reader.num_row_groups();
+
+        result = Some(block);
+        break;
+      } else {
+        debug!("Skipping row group {:?}", self.next_block_idx);
+      }
+    }
+
+    Ok(result.unwrap_or(Block::default()))
+  }
+
+  fn close(&mut self) -> Result<()> {
+    if self.phase == ExecPhase::Closed {
+      return Ok(());
+    }
+
+    self.phase = ExecPhase::Closed;
+    Ok(())
+  }
+}
+
+impl FileSegmentBlockInputStream {
+  fn read_next_block(&self, row_group_reader: Box<dyn RowGroupReader>,
+    row_group_metadata: RowGroupMetaDataPtr) -> Result<Block> {
+
+    let row_num = row_group_reader.metadata().num_rows();
+    let columns = row_group_metadata
       .columns()
       .iter()
       .enumerate()
@@ -109,21 +167,10 @@ impl BlockInputStream for FileSegmentBlockInputStream {
         Ok(columns)
       })?;
 
-    self.next_block_idx += 1;
-
     Ok(Block {
-      columns: column_vec,
-      eof: self.next_block_idx >= self.reader.num_row_groups(),
+      columns,
+      eof: false
     })
-  }
-
-  fn close(&mut self) -> Result<()> {
-    if self.phase == ExecPhase::Closed {
-      return Ok(());
-    }
-
-    self.phase = ExecPhase::Closed;
-    Ok(())
   }
 }
 
