@@ -112,6 +112,16 @@ impl Expr {
 }
 
 impl ScalarFuncExpr {
+  pub fn new(column_type: ColumnType, func_id: ScalarFuncId, args: Vec<Expr>, alias: String) ->
+    Result<ScalarFuncExpr> {
+    Ok(Self {
+      column_type,
+      id: func_id,
+      args,
+      alias,
+    })
+  }
+
   pub fn get_id(&self) -> ScalarFuncId {
     self.id
   }
@@ -122,12 +132,29 @@ impl ScalarFuncExpr {
 }
 
 impl ColumnRefExpr {
+  pub fn new(column_name: String, column_type: ColumnType, alias: String) -> Self {
+    Self {
+      column_type,
+      column_name,
+      alias
+    }
+  }
+
   pub fn get_column_name(&self) -> String {
     self.column_name.clone()
   }
 }
 
 impl LiteralExpr {
+  pub fn new(column_type: ColumnType, data: Datum, alias: String) -> Result<Self> {
+    // TODO: Check column_type and data
+    Ok(LiteralExpr {
+      column_type,
+      data,
+      alias
+    })
+  }
+
   pub fn get_data(&self) -> Datum {
     self.data.clone()
   }

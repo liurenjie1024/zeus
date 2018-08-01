@@ -20,8 +20,7 @@ impl ScalarFuncExpr {
       // logical operators
       ScalarFuncId::AND => self.eval_and(row_group_metadata),
       ScalarFuncId::OR => self.eval_or(row_group_metadata),
-      ScalarFuncId::NOT => self.eval_not(row_group_metadata),
-      
+
       // cmp operators
       ScalarFuncId::GT_INT32 => self.eval_gt_i32(row_group_metadata),
       ScalarFuncId::GT_INT64 => self.eval_gt_i64(row_group_metadata),
@@ -60,15 +59,7 @@ impl ScalarFuncExpr {
 
     self.get_args()
       .iter()
-      .any(|e| !e.filter(row_group_metadata.clone()))
-  }
-
-  fn eval_not(&self, row_group_metadata: RowGroupMetaDataPtr) -> bool {
-    assert_eq!(ScalarFuncId::NOT, self.get_id());
-    self.get_args()
-      .first()
-      .map(|e| !e.filter(row_group_metadata))
-      .unwrap_or(true)
+      .all(|e| e.filter(row_group_metadata.clone()))
   }
 
   fn eval_or(&self, row_group_metadata: RowGroupMetaDataPtr) -> bool {
@@ -76,7 +67,7 @@ impl ScalarFuncExpr {
 
     self.get_args()
       .iter()
-      .all(|e| e.filter(row_group_metadata.clone()))
+      .any(|e| e.filter(row_group_metadata.clone()))
   }
 }
 
@@ -309,6 +300,227 @@ impl ScalarFuncExpr {
   }
 }
 
+#[cfg(test)]
+mod tests {
+  use std::rc::Rc;
+
+  use parquet::file::metadata::RowGroupMetaData;
+  use parquet::file::metadata::RowGroupMetaDataPtr;
+  use parquet::schema::types::SchemaDescriptor;
+  use parquet::schema::types::Type;
+  use parquet::basic::Type as PhysicalType;
+  use parquet::basic::LogicalType;
+
+  use parquet_format::RowGroup;
+  use parquet_format::ColumnMetaData;
+  use parquet_format::Type as ParquetType;
+  use parquet_format::CompressionCodec;
+  use parquet_format::Statistics;
+  use parquet_format::ColumnChunk;
+
+  use rpc::zeus_expr::Expression;
+  use rpc::zeus_expr::LiteralExpression;
+  use rpc::zeus_expr::ExpressionType;
+  use rpc::zeus_meta::ColumnValue;
+  use rpc::zeus_meta::ColumnType;
+  use rpc::zeus_expr::ColumnRef;
+  use rpc::zeus_expr::ScalarFunction;
+  use rpc::zeus_expr::ScalarFuncId;
+
+  use exec::expression::Expr;
+  use exec::expression::ScalarFuncExpr;
+  use exec::expression::LiteralExpr;
+  use exec::expression::ColumnRefExpr;
+
+  use storage::column::vec_column_data::Datum;
+
+
+  use util::errors::*;
+
+  fn create_row_group_metadata() -> Result<RowGroupMetaDataPtr> {
+    let schema_desc = {
+      //create dsp id type, int32, int32
+      let dsp_id = Rc::new(Type::primitive_type_builder("dsp_id", PhysicalType::INT32)
+        .with_logical_type(LogicalType::INT_32)
+        .build()?);
+
+      //create logtime type, timestamp, int64
+      let logtime = Rc::new(Type::primitive_type_builder("logtime", PhysicalType::INT64)
+        .with_logical_type(LogicalType::TIMESTAMP_MILLIS)
+        .build()?);
+
+      //create adspace id type, utf8, byte array
+      let adspace_id = Rc::new(Type::primitive_type_builder("adspace_id", PhysicalType::BYTE_ARRAY)
+        .with_logical_type(LogicalType::UTF8)
+        .build()?);
+
+      let struct_type = Rc::new(Type::group_type_builder("")
+        .with_fields(&mut vec![dsp_id, logtime, adspace_id])
+        .build()?);
+
+      Rc::new(SchemaDescriptor::new(struct_type))
+    };
+
+    let row_group = {
+
+      // dsp id column chunk
+      let dsp_id_column_chunk = {
+        let stat = Statistics::new(None, None, None, None, Some(6i32.to_bytes().to_vec()),
+          Some(4i32.to_bytes().to_vec()));
+
+        let metadata = ColumnMetaData::new(ParquetType::INT32, vec![], vec!["dsp_id".to_string()],
+          CompressionCodec::UNCOMPRESSED, 10, 10 , 10, None, 0, None, None, stat, None);
+
+        ColumnChunk::new(None, 1i64, Some(metadata), None, None, None, None)
+      };
+
+      // logtime column chunk
+      let logtime_column_chunk = {
+        let stat = Statistics::new(None, None, None, None, Some(8i64.to_bytes().to_vec()),
+          Some(1i64.to_bytes().to_vec()));
+
+        let metadata = ColumnMetaData::new(ParquetType::INT64, vec![], vec!["logtime".to_string()],
+          CompressionCodec::UNCOMPRESSED, 10, 10 , 10, None, 0, None, None, stat, None);
+
+        ColumnChunk::new(None, 2i64, Some(metadata), None, None, None, None)
+      };
+
+      // adspace id column chunk
+      let adspace_id_column_chunk = {
+        let metadata = ColumnMetaData::new(ParquetType::INT64, vec![],
+          vec!["adspace_id".to_string()], CompressionCodec::UNCOMPRESSED, 10, 10 , 10, None, 0,
+          None, None, None, None);
+
+        ColumnChunk::new(None, 3i64, Some(metadata), None, None, None, None)
+      };
+
+      RowGroup::new(vec![dsp_id_column_chunk, logtime_column_chunk, adspace_id_column_chunk],
+        10, 2, None)
+    };
+
+    Ok(Rc::new(RowGroupMetaData::from_thrift(schema_desc, row_group)?))
+  }
+
+//  fn make_literal_expression_default() -> Expression {
+//    let mut cv = ColumnValue::new();
+//    cv.set_i64_value(4);
+//
+//    make_literal_expression(cv)
+//  }
+//
+//  fn make_literal_expression(column_value: ColumnValue, column_) -> Expression {
+//    let mut literal = LiteralExpression::new();
+//    literal.set_value(column_value);
+//
+//    let mut expr = Expression::new();
+//    expr.set_literal(literal);
+//    expr.set_expression_type(ExpressionType::LITERAL);
+//
+//    expr
+//  }
+//
+//  fn make_column_ref_expression() -> Expression {
+//    let mut cr = ColumnRef::new();
+//    cr.set_name("a".to_string());
+//
+//    let mut expr = Expression::new();
+//    expr.set_column(cr);
+//    expr.set_expression_type(ExpressionType::COLUMN_REF);
+//
+//    expr
+//  }
+
+  #[test]
+  fn test_filter_non_scalar_func() {
+    let row_group = create_row_group_metadata().unwrap();
+
+    let literal_expr = Expr::Literal(LiteralExpr::new(
+      ColumnType::INT32,
+      Datum::Int32(4),
+      "a".to_string()).unwrap());
+    assert_eq!(true, literal_expr.filter(row_group.clone()));
+
+    let column_ref_expr = Expr::ColumnRef(ColumnRefExpr::new(
+      "a".to_string(),
+      ColumnType::INT32,
+      "a".to_string()));
+    assert_eq!(true, column_ref_expr.filter(row_group.clone()));
+  }
+
+  #[test]
+  fn test_filter_gt_func() {
+    // in this row group 4 <= dsp_id <= 6
+    let row_group = create_row_group_metadata().unwrap();
+
+    let dsp_id_expr = Expr::ColumnRef(ColumnRefExpr::new(
+      "dsp_id".to_string(),
+      ColumnType::INT32,
+      "dsp_id".to_string()));
+
+
+    // dsp_id > 3 need to scan this group
+    let literal_3_expr = Expr::Literal(LiteralExpr::new(
+      ColumnType::INT32,
+      Datum::Int32(3),
+      "a".to_string()).unwrap());
+
+    let gt_dsp_id_expr = Expr::ScalarFunc(ScalarFuncExpr::new(
+      ColumnType::BOOL,
+      ScalarFuncId::GT_INT32,
+      vec![dsp_id_expr, literal_3_expr],
+      "a".to_string()).unwrap());
+    assert_eq!(true, gt_dsp_id_expr.filter(row_group.clone()));
+
+  }
+//
+//  #[test]
+//  fn test_filter_and_func_all_true() {
+//    let row_group = create_row_group_metadata().unwrap();
+//
+//    let literal_expr = make_literal_expression();
+//    let column_ref_expr = make_column_ref_expression();
+//
+//    let and_expr = {
+//      let mut scalar_func = ScalarFunction::new();
+//      scalar_func.set_func_id(ScalarFuncId::AND);
+//      scalar_func.mut_children().push(literal_expr);
+//      scalar_func.mut_children().push(column_ref_expr);
+//
+//      let mut expr = Expression::new();
+//      expr.set_scalar_func(scalar_func);
+//      expr.set_expression_type(ExpressionType::SCALAR_FUNCTION);
+//
+//      Expr::new(&expr).unwrap()
+//    };
+//
+//    assert_eq!(true, and_expr.filter(row_group.clone()));
+//  }
+//
+//  #[test]
+//  fn test_filter_or_func() {
+//    let row_group = create_row_group_metadata().unwrap();
+//
+//    let literal_expr = make_literal_expression();
+//    let column_ref_expr = make_column_ref_expression();
+//
+//    let or_expr = {
+//      let mut scalar_func = ScalarFunction::new();
+//      scalar_func.set_func_id(ScalarFuncId::OR);
+//      scalar_func.mut_children().push(literal_expr);
+//      scalar_func.mut_children().push(column_ref_expr);
+//
+//      let mut expr = Expression::new();
+//      expr.set_scalar_func(scalar_func);
+//      expr.set_expression_type(ExpressionType::SCALAR_FUNCTION);
+//
+//      Expr::new(&expr).unwrap()
+//    };
+//
+//    assert_eq!(true, or_expr.filter(row_group.clone()));
+//  }
+
+
+}
 
 
 

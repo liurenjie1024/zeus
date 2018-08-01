@@ -22,6 +22,7 @@ error-chain = "0.12.0"
 arrow = "0.1.0"
 byteorder = "1.2.1"
 parquet = "0.3.0"
+parquet-format = "2.4.0"
 
 [lib]
 name="zeus"
