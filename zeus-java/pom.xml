@@ -12,6 +12,8 @@
         <module>zeus-client</module>
         <module>zeus-batch</module>
         <module>zeus-proto</module>
+        <module>zeus-util</module>
+        <module>zeus-common</module>
     </modules>
 
     <properties>
@@ -100,6 +102,11 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java-util</artifactId>
                 <version>${protobuf.version}</version>
             </dependency>
             <dependency>

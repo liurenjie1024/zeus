@@ -1,4 +1,4 @@
-package io.github.zeus.utils
+package io.github.zeus.common
 
 object AutoManageResources {
   implicit class ImplicitManagedResource[A <: AutoCloseable](resource: => A)

@@ -25,16 +25,20 @@ pub struct ZeusServer {
 
 impl ZeusServer {
   pub fn new(config: Arc<ZeusConfig>) -> Result<ZeusServer> {
-    let catalog_manager = load_catalog_manager(&*config)?;
-    let storage_manager = Arc::new(StorageManager::load(&*config, catalog_manager.clone())?);
-    let query_scheduler = build_scheduler("query", &*config)?;
-
-    let context = ServerContext::new(storage_manager, catalog_manager, query_scheduler);
+    let context = ZeusServer::create_server_context(config.clone())?;
 
     Ok(ZeusServer {
       server: ZeusServer::create_grpc_server(&config.server, context.clone())?,
       context,
     })
+  }
+
+  pub fn create_server_context(config: Arc<ZeusConfig>) -> Result<ServerContext> {
+    let catalog_manager = load_catalog_manager(&*config)?;
+    let storage_manager = Arc::new(StorageManager::load(&*config, catalog_manager.clone())?);
+    let query_scheduler = build_scheduler("query", &*config)?;
+
+    Ok(ServerContext::new(storage_manager, catalog_manager, query_scheduler))
   }
 
   fn create_grpc_server(

@@ -1,0 +1,57 @@
+{
+  "plan": {
+    "planId": "65dc0a6b-2c47-433d-a800-66a36d94347a",
+    "root": {
+      "nodeId": 0,
+      "children": [
+        {
+          "nodeId": 0,
+          "children": [],
+          "planNodeType": "SCAN_NODE",
+          "scanNode": {
+            "dbId": 1,
+            "tableId": 1,
+            "columns": [
+              1,
+              15
+            ],
+            "filters": []
+          }
+        }
+      ],
+      "planNodeType": "AGGREGATE_NODE",
+      "aggNode": {
+        "groupBy": [
+          {
+            "expressionType": "COLUMN_REF",
+            "column": {
+              "name": "advertiserId"
+            },
+            "alias": "advertiserId",
+            "fieldType": "INT32"
+          }
+        ],
+        "aggFunc": [
+          {
+            "expressionType": "AGG_FUNCTION",
+            "aggFunc": {
+              "funcId": "SUM_INT64",
+              "children": [
+                {
+                  "expressionType": "COLUMN_REF",
+                  "column": {
+                    "name": "fee"
+                  },
+                  "alias": "fee",
+                  "fieldType": "INT64"
+                }
+              ]
+            },
+            "alias": "EXPR$1",
+            "fieldType": "INT64"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 
 use std::path::PathBuf;
 
+use zeus::test_utils::file_in_project_dir;
 use zeus::server::config::*;
 
 #[test]
@@ -31,8 +32,3 @@ fn test_read_config() {
   assert_eq!(zeus_config, config_file.ok().unwrap());
 }
 
-fn file_in_project_dir(path: &str) -> PathBuf {
-  let mut p = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-  p.push(path);
-  p
-}

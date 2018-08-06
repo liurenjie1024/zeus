@@ -4,7 +4,7 @@ import java.io.{FileOutputStream, PrintWriter}
 import java.sql.DriverManager
 
 import io.github.zeus.integrationtest.{Command, SqlElement}
-import io.github.zeus.utils.AutoManageResources._
+import io.github.zeus.common.AutoManageResources._
 import io.github.zeus.utils.template.TemplateEngine
 import org.slf4j.{Logger, LoggerFactory}
 

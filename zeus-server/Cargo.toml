@@ -29,3 +29,10 @@ name="zeus"
 
 [[bin]]
 name="zeus-server"
+
+[dev-dependencies]
+criterion = "0.2"
+
+[[bench]]
+name = "aggregations"
+harness = false
