@@ -104,4 +104,8 @@ impl Storage for SimpleTable {
 
     Ok(Box::new(CombinedBlockInputStream::new(streams?)))
   }
+
+  fn get_row_count(&self) -> Result<i64> {
+    Ok(9)
+  }
 }

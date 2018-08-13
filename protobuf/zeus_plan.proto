@@ -12,6 +12,7 @@ enum PlanNodeType {
     AGGREGATE_NODE = 3;
     TOPN_NODE = 4;
     LIMIT_NODE = 5;
+    GET_ROW_NUM_NODE = 6;
 }
 
 message ScanNode {
@@ -52,6 +53,12 @@ message LimitNode {
     int32 limit = 1;
 }
 
+message GetRowNumNode {
+    int32 db_id = 1;
+    int32 table_id = 2;
+    string alias = 3;
+}
+
 message PlanNode {
     int32 node_id = 1;
     repeated PlanNode children = 2;
@@ -63,4 +70,5 @@ message PlanNode {
     AggregationNode agg_node = 7;
     TopNNode topn_node = 8;
     LimitNode limit_node = 9;
+    GetRowNumNode get_row_num_node = 10;
 }

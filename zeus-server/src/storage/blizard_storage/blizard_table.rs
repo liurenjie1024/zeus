@@ -60,4 +60,12 @@ impl Storage for BlizardTable {
 
     Ok(Box::new(CombinedBlockInputStream::new(streams?)))
   }
+
+  fn get_row_count(&self) -> Result<i64> {
+    self.segments.iter()
+      .map(BlizardSegment::get_row_count)
+      .try_fold(0i64, |x, y| -> Result<i64> {
+        Ok(x + y?)
+      })
+  }
 }

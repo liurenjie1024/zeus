@@ -27,7 +27,7 @@ struct AggExpr {
   field_type: ColumnType
 }
 
-pub struct AggExecNode {
+pub struct HashAggExecNode {
   group_bys: Vec<Expr>,
   aggs: Vec<AggExpr>,
   data: HashMap<Vec<Datum>, Vec<Box<AggFunc>>>,
@@ -35,7 +35,14 @@ pub struct AggExecNode {
   executed: bool
 }
 
-impl ExecNode for AggExecNode {
+struct SimpleAggExecNode {
+  aggs: Vec<AggExpr>,
+  data: Vec<Box<dyn AggFunc>>,
+  input: Box<ExecNode>,
+  executed: bool
+}
+
+impl ExecNode for HashAggExecNode {
   fn open(&mut self, context: &mut ExecContext) -> Result<()> {
     self.input.open(context)
   }
@@ -157,6 +164,62 @@ impl ExecNode for AggExecNode {
   }
 }
 
+impl ExecNode for SimpleAggExecNode {
+  fn open(&mut self, context: &mut ExecContext) -> Result<()> {
+    self.input.open(context)
+  }
+
+  fn next(&mut self) -> Result<Block> {
+    if self.executed {
+      return Err(ErrorKind::EOF.into())
+    }
+
+    self.executed = true;
+    let eval_context = EvalContext::default();
+
+    loop {
+      let input_block = self.input.next()?;
+
+      let agg_blocks = self.aggs.iter()
+        .try_fold(Vec::new(), |mut blocks, agg| -> Result<Vec<Block>> {
+          blocks.push(agg.eval(&eval_context, &input_block)?);
+          Ok(blocks)
+        })?;
+      
+      self.data.iter_mut()
+        .zip(agg_blocks)
+        .try_for_each(|t| {
+          let agg_func = t.0;
+          let agg_block = t.1;
+          agg_func.aggregate_all(&agg_block)
+        })?;
+
+      if input_block.is_eof() {
+        break;
+      }
+    }
+
+    let columns = self.data.iter_mut()
+      .map(|agg| agg.collect())
+      .zip(self.aggs.iter())
+      .try_fold(Vec::new(), |mut columns, t| -> Result<Vec<Column>> {
+        let agg_result = t.0?;
+        let agg_expr = t.1;
+        let c = ColumnBuilder::new_vec(agg_expr.field_type, vec![agg_result])
+          .set_name(agg_expr.alias.to_string())
+          .build();
+        columns.push(c);
+        Ok(columns)
+      })?;
+
+    Ok(Block::new(columns, true))
+  }
+
+  fn close(&mut self) -> Result<()> {
+    self.input.close()
+  }
+}
+
 impl AggExpr {
   fn new(expr: &Expression) -> Result<AggExpr> {
     ensure!(expr.get_expression_type() == ExpressionType::AGG_FUNCTION,
@@ -196,7 +259,7 @@ impl AggExpr {
   }
 }
 
-impl AggExecNode {
+impl HashAggExecNode {
   pub fn new(plan_node: &PlanNode, _server_context: &ServerContext, mut children: Vec<Box<ExecNode>>)
     -> Result<Box<ExecNode>> {
     ensure!(plan_node.get_plan_node_type() == PlanNodeType::AGGREGATE_NODE,
@@ -220,13 +283,26 @@ impl AggExecNode {
         Ok(res)
       })?;
 
-    Ok(box AggExecNode {
-      group_bys,
-      aggs,
-      data: HashMap::new(),
-      input,
-      executed: false
-    })
+    if group_bys.is_empty() {
+      let data = aggs.iter()
+        .map(|e| agg_func::func_of(e.agg_func_id))
+        .collect::<Vec<Box<dyn AggFunc>>>();
+
+      Ok(box SimpleAggExecNode {
+        aggs,
+        data,
+        input,
+        executed: false
+      })
+    } else {
+      Ok(box HashAggExecNode {
+        group_bys,
+        aggs,
+        data: HashMap::new(),
+        input,
+        executed: false
+      })
+    }
   }
 }
 
@@ -242,7 +318,7 @@ mod tests {
   use exec::Block;
   use exec::ExecNode;
   use exec::ExecContext;
-  use super::AggExecNode;
+  use super::HashAggExecNode;
   use rpc::zeus_plan::{PlanNode, PlanNodeType};
   use rpc::zeus_plan::AggregationNode;
   use rpc::zeus_expr::AggFuncId;
@@ -281,7 +357,7 @@ mod tests {
     }
   }
 
-  fn create_agg_plan_node() -> PlanNode {
+  fn create_hash_agg_plan_node() -> PlanNode {
     // create expression of c
     let expr_c = ExpressionBuilder::new_column_ref("c", ColumnType::STRING)
       .build();
@@ -327,43 +403,91 @@ mod tests {
     plan_node
   }
 
+  fn create_simple_agg_plan_node() -> PlanNode {
+    // create expression sum(a)
+    let expr_sum_a = {
+      let expr_a = ExpressionBuilder::new_column_ref("a", ColumnType::INT8)
+        .build();
+
+      let expr = ExpressionBuilder::new_agg_func("sum(a)", ColumnType::INT8, AggFuncId::SUM_INT32)
+        .add_children(expr_a)
+        .build();
+
+      expr
+    };
+
+
+    // create expression sum(b)
+    let expr_sum_b = {
+      let expr_b = ExpressionBuilder::new_column_ref("b", ColumnType::INT64)
+        .build();
+
+      let expr = ExpressionBuilder::new_agg_func("sum(b)", ColumnType::INT64, AggFuncId::SUM_INT32)
+        .add_children(expr_b)
+        .build();
+
+      expr
+    };
+
+
+    let mut agg_node = AggregationNode::new();
+    agg_node.mut_agg_func().push(expr_sum_a);
+    agg_node.mut_agg_func().push(expr_sum_b);
+
+    let mut plan_node = PlanNode::new();
+    plan_node.set_node_id(1);
+    plan_node.set_plan_node_type(PlanNodeType::AGGREGATE_NODE);
+    plan_node.set_agg_node(agg_node);
+
+    plan_node
+  }
+
   #[test]
-  fn test_create_agg_exec_node() {
-    let plan_node = create_agg_plan_node();
+  fn test_create_hash_agg_exec_node() {
+    let plan_node = create_hash_agg_plan_node();
     let server_context = ServerContext::default();
     let children = vec![create_memory_block()];
 
-    assert!(AggExecNode::new(&plan_node, &server_context, children).is_ok());
+    assert!(HashAggExecNode::new(&plan_node, &server_context, children).is_ok());
+  }
+
+  #[test]
+  fn test_create_simple_agg_exec_node() {
+    let plan_node = create_simple_agg_plan_node();
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    assert!(HashAggExecNode::new(&plan_node, &server_context, children).is_ok());
   }
 
   #[test]
   fn test_create_agg_exec_node_wrong_type() {
-    let mut plan_node = create_agg_plan_node();
+    let mut plan_node = create_hash_agg_plan_node();
     plan_node.set_plan_node_type(PlanNodeType::SCAN_NODE);
 
     let server_context = ServerContext::default();
     let children = vec![create_memory_block()];
 
-    assert!(AggExecNode::new(&plan_node, &server_context, children).is_err());
+    assert!(HashAggExecNode::new(&plan_node, &server_context, children).is_err());
   }
 
   #[test]
   fn test_create_agg_exec_node_wrong_children() {
-    let plan_node = create_agg_plan_node();
+    let plan_node = create_hash_agg_plan_node();
 
     let server_context = ServerContext::default();
     let children = vec![create_memory_block(), create_memory_block()];
 
-    assert!(AggExecNode::new(&plan_node, &server_context, children).is_err());
+    assert!(HashAggExecNode::new(&plan_node, &server_context, children).is_err());
   }
 
   #[test]
-  fn test_execute_agg_exec_node() {
-    let plan_node = create_agg_plan_node();
+  fn test_execute_hash_agg_exec_node() {
+    let plan_node = create_hash_agg_plan_node();
     let server_context = ServerContext::default();
     let children = vec![create_memory_block()];
 
-    let mut agg_node = AggExecNode::new(&plan_node, &server_context, children).unwrap();
+    let mut agg_node = HashAggExecNode::new(&plan_node, &server_context, children).unwrap();
     let mut exec_context = ExecContext::default();
 
     assert!(agg_node.open(&mut exec_context).is_ok());
@@ -384,6 +508,49 @@ mod tests {
       vec![Datum::UTF8("love".to_string()), Datum::Int8(6i8), Datum::Int64(10i64)],
       vec![Datum::UTF8("rust".to_string()), Datum::Int8(2i8), Datum::Int64(4i64)],
       vec![Datum::UTF8("java".to_string()), Datum::Int8(6i8), Datum::Int64(8i64)],
+    ].into_iter().for_each(|r| {
+      expected_result.insert(r);
+    });
+
+    let mut result = HashSet::new();
+    ret.iter()
+      .for_each(|r| {
+        result.insert(r.clone());
+      });
+
+    assert_eq!(expected_result, result);
+    assert!(ret.eof);
+
+
+    // Second block
+    let ret = agg_node.next();
+    assert!(ret.is_err());
+  }
+
+  #[test]
+  fn test_execute_simple_agg_exec_node() {
+    let plan_node = create_simple_agg_plan_node();
+    let server_context = ServerContext::default();
+    let children = vec![create_memory_block()];
+
+    let mut agg_node = HashAggExecNode::new(&plan_node, &server_context, children).unwrap();
+    let mut exec_context = ExecContext::default();
+
+    assert!(agg_node.open(&mut exec_context).is_ok());
+
+    // First block
+    let ret = agg_node.next();
+    assert!(ret.is_ok());
+
+    let ret = ret.unwrap();
+    assert_eq!(1, ret.len());
+    assert_eq!(2, ret.columns.len());
+    assert_eq!(Some("sum(a)"), ret.columns[0].name());
+    assert_eq!(Some("sum(b)"), ret.columns[1].name());
+
+    let mut expected_result = HashSet::new();
+    vec![
+      vec![Datum::Int8(14i8), Datum::Int64(22i64)],
     ].into_iter().for_each(|r| {
       expected_result.insert(r);
     });

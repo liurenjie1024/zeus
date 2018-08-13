@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * Created by liurenjie on 24/01/2018.
  */
-public class ZeusClientImpl implements ZeusClient {
+public class ZeusClientImpl extends AbstractZeusClient {
   private static final Logger logger = LoggerFactory.getLogger(ZeusClientImpl.class);
 
   private final ZeusCatalog catalog;
@@ -42,12 +42,9 @@ public class ZeusClientImpl implements ZeusClient {
     this.dataRpcClient = dataRpcClient;
   }
 
-
-  public Optional<ZeusDBSchema > getDBSchema(String db) {
-    return catalog.getDbSchemasList()
-        .stream()
-        .filter(s -> s.getName().equals(db))
-        .findFirst();
+  @Override
+  public ZeusCatalog getCatalog() {
+    return catalog;
   }
 
   public QueryResult query(QueryPlan plan) {
@@ -57,62 +54,6 @@ public class ZeusClientImpl implements ZeusClient {
   }
 
   @Override
-  public ResultMetadata getResultMeta(QueryPlan plan) {
-    return getResultMeta(plan.getRoot());
-  }
-
-  private ResultMetadata getResultMeta(PlanNode planNode) {
-    switch (planNode.getPlanNodeType()) {
-      case SCAN_NODE:
-        return resultMetaOf(planNode.getScanNode());
-      case PROJECT_NODE:
-        return resultMetaOf(planNode.getProjectNode());
-      case AGGREGATE_NODE:
-        return resultMetaOf(planNode.getAggNode());
-      case FILTER_NODE:
-      case TOPN_NODE:
-      case LIMIT_NODE:
-        return getResultMeta(planNode.getChildren(0));
-      default:
-          throw new IllegalArgumentException("Unrecognized node type: " + planNode.getPlanNodeType());
-    }
-  }
-
-  private ResultMetadata resultMetaOf(ScanNode scanNode) {
-    ZeusTableSchema tableSchema = catalog.getDbSchemasList().stream()
-        .filter(db -> db.getId() == scanNode.getDbId())
-        .findFirst()
-        .map(db ->  db.getTablesOrThrow(scanNode.getTableId()))
-        .orElseThrow(
-            () -> CatalogNotFoundException.tableIdNotFound(scanNode.getDbId(), scanNode.getTableId()));
-
-    List<ColumnMeta> columnMetas = scanNode.getColumnsList().stream()
-        .map(columnId -> tableSchema.getColumnsOrThrow(columnId))
-        .map(column -> new ColumnMeta(column.getName(), column.getColumnType()))
-        .collect(Collectors.toList());
-
-    return new ResultMetadata(columnMetas);
-  }
-
-  private ResultMetadata resultMetaOf(ProjectNode projectNode) {
-    List<ColumnMeta> columnMetas = projectNode.getItemsList().stream()
-        .map(ColumnMeta::from)
-        .collect(Collectors.toList());
-
-    return new ResultMetadata(columnMetas);
-  }
-
-  private ResultMetadata resultMetaOf(AggregationNode node) {
-    List<ColumnMeta> columnMetas = Arrays.asList(node.getGroupByList(), node.getAggFuncList())
-        .stream()
-        .flatMap(List::stream)
-        .map(ColumnMeta::from)
-        .collect(Collectors.toList());
-
-    return new ResultMetadata(columnMetas);
-  }
-
-
   public void close() throws Exception {
     dataChannel.shutdownNow();
   }

@@ -1,6 +1,3 @@
-
-use std::path::PathBuf;
-
 use zeus::test_utils::file_in_project_dir;
 use zeus::server::config::*;
 

@@ -5,6 +5,7 @@ pub mod project_node;
 pub mod limit_node;
 pub mod topn_node;
 pub mod expression;
+pub mod get_row_num_node;
 
 
 use std::boxed::Box;
@@ -28,8 +29,9 @@ use self::table_scan_node::TableScanNode;
 use self::limit_node::LimitExecNode;
 use self::filter_node::FilterExecNode;
 use self::project_node::ProjectExecNode;
-use self::agg_node::AggExecNode;
+use self::agg_node::HashAggExecNode;
 use self::topn_node::TopNExecNode;
+use self::get_row_num_node::GetRowNumExecNode;
 
 #[derive(Debug)]
 pub struct Block {
@@ -204,8 +206,9 @@ impl PlanNode {
       PlanNodeType::LIMIT_NODE => LimitExecNode::new(&self, server_context, children),
       PlanNodeType::FILTER_NODE => FilterExecNode::new(&self, server_context, children),
       PlanNodeType::PROJECT_NODE => ProjectExecNode::new(&self, server_context, children),
-      PlanNodeType::AGGREGATE_NODE => AggExecNode::new(&self, server_context, children),
-      PlanNodeType::TOPN_NODE => TopNExecNode::new(&self, server_context, children)
+      PlanNodeType::AGGREGATE_NODE => HashAggExecNode::new(&self, server_context, children),
+      PlanNodeType::TOPN_NODE => TopNExecNode::new(&self, server_context, children),
+      PlanNodeType::GET_ROW_NUM_NODE => GetRowNumExecNode::new(&self, server_context, children)
     }
   }
 }

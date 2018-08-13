@@ -8,6 +8,7 @@ use util::errors::*;
 
 pub trait AggFunc: Send {
   fn aggregate(&mut self, args: &Block, pos: usize) -> Result<()>;
+  fn aggregate_all(&mut self, args: &Block) -> Result<()>;
   fn collect(&mut self) -> Result<Datum>;
 }
 

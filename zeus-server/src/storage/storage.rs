@@ -16,4 +16,5 @@ pub trait Storage: Send + Sync {
     &self,
     scan_context: &ScanContext,
   ) -> Result<Box<BlockInputStream>>;
+  fn get_row_count(&self) -> Result<i64>;
 }

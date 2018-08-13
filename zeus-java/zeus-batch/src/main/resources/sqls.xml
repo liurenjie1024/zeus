@@ -4,6 +4,11 @@
         select count(*) from {{tableName}}
         ]]>
     </sql>
+    <sql name="q2">
+        <![CDATA[
+        select sum(fee), max(realFee), min(numOfClick) from {{tableName}}
+        ]]>
+    </sql>
     <sql name="q3">
         <![CDATA[
         select advertiserId, sum(fee) from {{tableName}} group by advertiserId having sum(fee) > 0
@@ -16,7 +21,11 @@
     </sql>
     <sql name="q5">
         <![CDATA[
-        select advertiserId, fee from logs.realtimelog where `timestamp` > 1531791601000 and `timestamp` < 1531791642000 order by advertiserId, fee
+        select advertiserId, fee
+        from {{tableName}}
+        where `timestamp` > 1531791601000
+        and `timestamp` < 1531791642000
+        order by advertiserId, fee
         ]]>
     </sql>
 </sqls>

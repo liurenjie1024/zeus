@@ -85,6 +85,14 @@ impl BlizardSegment {
       column_types,
     }))
   }
+
+  pub fn get_row_count(&self) -> Result<i64> {
+    let reader: Box<dyn ParquetFileReader> = box {
+      ParquetSerializedFileReader::try_from(self.data_path.as_path())?
+    };
+
+    Ok(reader.metadata().file_metadata().num_rows())
+  }
 }
 
 impl BlockInputStream for FileSegmentBlockInputStream {

@@ -1,3 +1,5 @@
+use std::iter::Iterator;
+
 use exec::Block;
 use storage::column::vec_column_data::Datum;
 use super::AggFunc;
@@ -17,6 +19,11 @@ impl AggFunc for Reducer {
       .and_then(|c| c.get(pos))
       .ok_or_else(|| ErrorKind::IndexOutOfBound(pos, args.len()).into())
       .and_then(|d| self.do_aggregate(&d))
+  }
+
+  fn aggregate_all(&mut self, args: &Block) -> Result<()> {
+    (0..args.len())
+      .try_for_each(|idx| self.aggregate(args, idx))
   }
 
   fn collect(&mut self) -> Result<Datum> {
