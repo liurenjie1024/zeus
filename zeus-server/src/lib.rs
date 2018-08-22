@@ -33,4 +33,5 @@ pub mod server;
 pub mod storage;
 pub mod util;
 pub mod catalog;
+pub mod exec2;
 pub mod test_utils;

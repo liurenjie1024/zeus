@@ -2,6 +2,7 @@ use std::convert::Into;
 
 use rpc::zeus_expr::AggFuncId;
 use rpc::zeus_data::StatusCode;
+use arrow::error::ArrowError;
 
 use storage;
 use scheduler;
@@ -48,6 +49,8 @@ error_chain! {
       display("Aggregator {:?} has no data", agg_func_id)
     }
     EOF {
+    }
+    Arrow(error: ArrowError){
     }
   }
 }

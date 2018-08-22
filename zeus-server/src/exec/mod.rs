@@ -176,7 +176,7 @@ impl Default for ExecContext {
   }
 }
 
-pub trait ExecNode: 'static {
+pub trait ExecNode {
   fn open(
     &mut self,
     context: &mut ExecContext,
@@ -189,8 +189,6 @@ pub struct DAGExecutor {
   root: Box<ExecNode>,
   sender: Sender<Result<Rows>>,
 }
-
-unsafe impl Send for DAGExecutor {}
 
 
 impl PlanNode {
