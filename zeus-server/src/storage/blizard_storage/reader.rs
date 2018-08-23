@@ -2,11 +2,15 @@ use std::vec::Vec;
 use std::sync::Arc;
 use std::slice;
 use std::mem;
+use std::path::Path;
+use std::fs::File;
 
+use parquet::file::reader::SerializedFileReader;
 use parquet::file::reader::FileReader as ParquetFileReader;
 use parquet::basic::LogicalType as ParquetLogicalType;
 use parquet::basic::Type as ParquetPhysicalType;
 use parquet::schema::types::Type as ParquetType;
+use parquet::schema::types::ColumnDescriptor;
 use parquet::file::reader::RowGroupReader;
 use parquet::data_type::DataType as ParquetDataType;
 use parquet::data_type::BoolType as ParquetBoolType;
@@ -32,10 +36,21 @@ use arrow::array::BinaryArray;
 
 use util::errors::*;
 
-struct ParquetReader<R>
+pub(super) struct ParquetReader<R>
   where R: ParquetFileReader
 {
   reader: R
+}
+
+impl ParquetReader<SerializedFileReader> {
+  pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
+    let file = File::open(path)?;
+    let reader = SerializedFileReader::new(file)?;
+
+    Ok(Self {
+      reader
+    })
+  }
 }
 
 impl<R> ParquetReader<R>
@@ -57,8 +72,8 @@ impl<R> ParquetReader<R>
 
   pub fn read_schema(&self) -> Result<Schema> {
     let fields = self.reader.metadata().file_metadata()
-      .schema()
-      .get_fields()
+      .schema_descr()
+      .columns()
       .iter()
       .try_fold(Vec::new(), |mut fields, parquet_type| -> Result<Vec<Field>> {
         let data_type = parquet_to_arrow_type(&**parquet_type)?;
@@ -73,7 +88,7 @@ impl<R> ParquetReader<R>
     Ok(self.reader.get_row_group(idx)?)
   }
 
-  pub fn read_row_group(&self, row_group_idx: usize, column_indices: Vec<usize>)
+  pub fn read_row_group(&self, row_group_idx: usize, column_indices: &[usize])
     -> Result<RecordBatch> {
     let row_group = self.get_row_group(row_group_idx)?;
     let file_schema = self.read_schema()?;
@@ -85,7 +100,6 @@ impl<R> ParquetReader<R>
         let field = &file_schema.columns()[column_idx];
         let reader = row_group.get_column_reader(column_idx)?;
         let data_type = field.data_type();
-
 
         let arr = match data_type {
           DataType::Boolean =>
@@ -163,25 +177,16 @@ fn read_utf8_array(row_num: usize, mut reader: ColumnReader) -> Result<Arc<dyn A
   Ok(Arc::new(BinaryArray::from(str_refs)))
 }
 
-fn parquet_to_arrow_type(parquet_type: &ParquetType) -> Result<DataType> {
-  match parquet_type {
-    ParquetType::PrimitiveType {
-      ref basic_info,
-      ref physical_type,
-      ..
-    } => {
-      match physical_type {
-        ParquetPhysicalType::BOOLEAN => Ok(DataType::Boolean),
-        ParquetPhysicalType::INT32 => Ok(DataType::Int32),
-        ParquetPhysicalType::INT64 => Ok(DataType::Int64),
-        ParquetPhysicalType::FLOAT => Ok(DataType::Float32),
-        ParquetPhysicalType::DOUBLE => Ok(DataType::Float64),
-        ParquetPhysicalType::BYTE_ARRAY if basic_info.logical_type() == ParquetLogicalType::UINT_8 =>
+fn parquet_to_arrow_type(column_desc: &ColumnDescriptor) -> Result<DataType> {
+  match column_desc.physical_type() {
+    ParquetPhysicalType::BOOLEAN => Ok(DataType::Boolean),
+    ParquetPhysicalType::INT32 => Ok(DataType::Int32),
+    ParquetPhysicalType::INT64 => Ok(DataType::Int64),
+    ParquetPhysicalType::FLOAT => Ok(DataType::Float32),
+    ParquetPhysicalType::DOUBLE => Ok(DataType::Float64),
+    ParquetPhysicalType::BYTE_ARRAY if column_desc.logical_type() == ParquetLogicalType::UTF8 =>
           Ok(DataType::Utf8),
-        _ => bail!("Unable to convert physical type {:?}", parquet_type)
-      }
-    },
-    _ => bail!("Unable to convert physical type {:?}", parquet_type)
+    _ => bail!("Unable to convert column {:?}", column_desc.path().string())
   }
 }
 

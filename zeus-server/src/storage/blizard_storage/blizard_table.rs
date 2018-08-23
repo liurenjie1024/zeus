@@ -8,6 +8,7 @@ use super::super::block_input_stream::BlockInputStream;
 use super::blizard_segment::BlizardSegment;
 use storage::block_input_stream::CombinedBlockInputStream;
 use server::config::ZeusConfig;
+use exec2::exec::ExecNode as ExecNode2;
 use util::errors::*;
 
 const DATA_FILE_SUFFIX: &'static str = "parquet";
@@ -59,6 +60,10 @@ impl Storage for BlizardTable {
       });
 
     Ok(Box::new(CombinedBlockInputStream::new(streams?)))
+  }
+
+  fn scan2(&self, scan_context: &ScanContext) -> Result<Box<ExecNode2>> {
+    unimplemented!()
   }
 
   fn get_row_count(&self) -> Result<i64> {

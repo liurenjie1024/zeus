@@ -4,6 +4,7 @@ use util::errors::*;
 use rpc::zeus_plan::ScanNode;
 use storage::BlockInputStream;
 use catalog::CatalogManager;
+use exec2::exec::ExecNode as ExecNode2;
 
 pub struct ScanContext<'a> {
   pub scan_node: &'a ScanNode,
@@ -16,5 +17,6 @@ pub trait Storage: Send + Sync {
     &self,
     scan_context: &ScanContext,
   ) -> Result<Box<BlockInputStream>>;
+  fn scan2(&self, scan_context: &ScanContext) -> Result<Box<ExecNode2>>;
   fn get_row_count(&self) -> Result<i64>;
 }

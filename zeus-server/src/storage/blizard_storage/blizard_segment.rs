@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::vec::Vec;
 use std::convert::TryFrom;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use parquet::file::reader::FileReader as ParquetFileReader;
 use parquet::file::reader::SerializedFileReader as ParquetSerializedFileReader;
@@ -22,15 +23,20 @@ use storage::ErrorKind as DBErrorKind;
 use rpc::zeus_meta::ColumnType;
 use util::errors::*;
 
+#[derive(Clone, Debug)]
 pub(super) struct BlizardSegment {
-  data_path: PathBuf,
+  data_path: Arc<PathBuf>,
 }
 
 impl BlizardSegment {
   pub fn open<P: AsRef<Path>>(path: &P) -> Result<BlizardSegment> {
     Ok(BlizardSegment {
-      data_path: path.as_ref().to_path_buf(),
+      data_path: Arc::new(path.as_ref().to_path_buf()),
     })
+  }
+
+  pub fn get_path(&self) -> &Path {
+    self.data_path.as_path()
   }
 }
 

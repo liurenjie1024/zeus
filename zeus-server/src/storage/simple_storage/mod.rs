@@ -15,6 +15,7 @@ use storage::ScanContext;
 use storage::BlockInputStream;
 use storage::block_input_stream::CombinedBlockInputStream;
 use self::simple_file_segment::SimpleFileSegment;
+use exec2::exec::ExecNode as ExecNode2;
 
 #[allow(dead_code)]
 const TABLE_PLAYLIST_FILE: &'static str = "table.pl";
@@ -103,6 +104,10 @@ impl Storage for SimpleTable {
       });
 
     Ok(Box::new(CombinedBlockInputStream::new(streams?)))
+  }
+
+  fn scan2(&self, scan_context: &ScanContext) -> Result<Box<ExecNode2>> {
+    unimplemented!()
   }
 
   fn get_row_count(&self) -> Result<i64> {
