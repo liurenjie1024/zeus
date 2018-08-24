@@ -1,10 +1,10 @@
-use std::path::Path;
 use std::vec::Vec;
-use std::fs::File;
+use std::rc::Rc;
 
 use exec2::exec::ExecNode;
 use exec2::exec::ExecContext;
 use exec2::block::Block;
+use exec2::exec::ExecPhase;
 use super::blizard_segment::BlizardSegment;
 use super::reader::ParquetReader;
 
@@ -17,30 +17,35 @@ use util::errors::*;
 
 type BlizardReader = ParquetReader<ParquetFileReader>;
 
-struct BlizardScanNode {
+pub(super) struct BlizardScanNode {
+  exec_phase: ExecPhase,
   filter: Option<Expr>,
   segments: Vec<BlizardSegment>,
   cur_segment_idx: usize,
   cur_block_idx: usize,
   projections: Vec<String>,
   column_indices: Vec<usize>,
-  cur_reader: Option<BlizardReader>
+  cur_reader: Option<Rc<BlizardReader>>
 }
 
 
 
 impl ExecNode for BlizardScanNode {
-  fn open(&mut self, ctx: ExecContext) -> Result<()> {
+  fn open(&mut self, _ctx: &ExecContext) -> Result<()> {
+    ensure!(self.exec_phase == ExecPhase::UnInited, "Phase must uninited to open!");
     self.cur_segment_idx = 0;
     self.cur_block_idx = 0;
     self.create_reader()?;
     self.init_column_indices()?;
+    self.exec_phase = ExecPhase::Opened;
     Ok(())
   }
 
   fn next(&mut self) -> Result<Block> {
+    ensure!(self.exec_phase == ExecPhase::Opened, "Phase must opened to execute!");
     let reader = self.check_reader()?;
 
+    let mut result = Block::empty();
     // Loop until we find the first block
     loop {
       debug!("Reading parquet file: {:?}, row group: {:?}.",
@@ -55,33 +60,70 @@ impl ExecNode for BlizardScanNode {
         row_num);
 
       let need_scan = self.filter
+        .as_ref()
         .map(|e| e.filter(row_group_metadata.clone()))
         .unwrap_or(true);
 
+      let eof = self.is_eof()?;
+
       if need_scan {
-        let block = reader.read_row_group(self.cur_block_idx, self.column_indices.as_slice())?;
-        let is_eof = self.is_eof()?;
+        let records = reader.read_row_group(self.cur_block_idx, self.column_indices.as_slice())?;
 
-
+        result = Block::new(Some(records), eof);
+        if !eof {
+          self.move_to_next_block()?;
+        } else {
+          self.clear_reader();
+        }
+        break;
+      } else {
+        if eof {
+          self.clear_reader();
+          break;
+        } else {
+          self.move_to_next_block()?;
+        }
       }
     }
+
+    Ok(result)
   }
 
   fn close(&mut self) -> Result<()> {
-    unimplemented!()
+    ensure!(self.exec_phase==ExecPhase::Opened, "Phase must opened to close!");
+    self.clear_reader();
+    Ok(())
   }
 }
 
 impl BlizardScanNode {
+  pub fn new(filter: Option<Expr>, segments: Vec<BlizardSegment>, projections: Vec<String>)
+    -> BlizardScanNode {
+    BlizardScanNode {
+      exec_phase: ExecPhase::UnInited,
+      filter,
+      segments,
+      cur_segment_idx: 0usize,
+      cur_block_idx: 0usize,
+      projections,
+      column_indices: Vec::new(),
+      cur_reader: None
+    }
+  }
+
   fn create_reader(&mut self) -> Result<()> {
     let cur_path = self.segments[self.cur_segment_idx].get_path();
-    self.cur_reader = Some(BlizardReader::open(cur_path)?);
+    self.cur_reader = Some(Rc::new(BlizardReader::open(cur_path)?));
     Ok(())
   }
 
-  fn check_reader(&self) -> Result<&BlizardReader> {
+  fn check_reader(&self) -> Result<Rc<BlizardReader>> {
     ensure!(self.cur_reader.is_some(), "Reader should not be empty");
-    Ok(self.cur_reader.as_ref().unwrap())
+    Ok(self.cur_reader.as_ref().map(|r| r.clone()).unwrap())
+  }
+
+  fn clear_reader(&mut self) {
+    self.cur_reader = None
   }
 
   fn init_column_indices(&mut self) -> Result<()> {
@@ -118,7 +160,14 @@ impl BlizardScanNode {
       .and_then(|r| r.num_of_row_groups())
       .map(|n| (self.cur_block_idx+1) == n)?;
 
-    if is_last_block
+    if is_last_block {
+      self.cur_segment_idx += 1;
+      self.cur_block_idx = 0;
+      self.create_reader()
+    } else {
+      self.cur_block_idx += 1;
+      Ok(())
+    }
   }
 }
 

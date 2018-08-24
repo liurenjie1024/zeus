@@ -106,7 +106,7 @@ impl Storage for SimpleTable {
     Ok(Box::new(CombinedBlockInputStream::new(streams?)))
   }
 
-  fn scan2(&self, scan_context: &ScanContext) -> Result<Box<ExecNode2>> {
+  fn scan2(&self, _scan_context: &ScanContext) -> Result<Box<ExecNode2>> {
     unimplemented!()
   }
 

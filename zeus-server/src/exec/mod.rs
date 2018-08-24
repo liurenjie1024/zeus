@@ -192,11 +192,11 @@ pub struct DAGExecutor {
 
 
 impl PlanNode {
-  pub fn to(&self, server_context: &ServerContext) -> Result<Box<ExecNode>> {
+  pub fn to_exec_node(&self, server_context: &ServerContext) -> Result<Box<ExecNode>> {
     let children = self.get_children()
       .iter()
       .try_fold(Vec::new(), |mut res, plan_node| -> Result<Vec<Box<ExecNode>>> {
-        res.push(plan_node.to(server_context)?);
+        res.push(plan_node.to_exec_node(server_context)?);
         Ok(res)
       })?;
     match self.get_plan_node_type() {
@@ -219,7 +219,7 @@ impl DAGExecutor {
   ) -> Task
   {
     let task_body = box move || {
-      let root_result = query_request.get_plan().get_root().to(&server_context);
+      let root_result = query_request.get_plan().get_root().to_exec_node(&server_context);
 
       match root_result {
         Ok(root) => {

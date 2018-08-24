@@ -9,7 +9,6 @@ use parquet::file::reader::SerializedFileReader;
 use parquet::file::reader::FileReader as ParquetFileReader;
 use parquet::basic::LogicalType as ParquetLogicalType;
 use parquet::basic::Type as ParquetPhysicalType;
-use parquet::schema::types::Type as ParquetType;
 use parquet::schema::types::ColumnDescriptor;
 use parquet::file::reader::RowGroupReader;
 use parquet::data_type::DataType as ParquetDataType;
@@ -20,7 +19,6 @@ use parquet::data_type::FloatType as ParquetFloatType;
 use parquet::data_type::DoubleType as ParquetDoubleType;
 use parquet::data_type::ByteArrayType as ParquetByteArrayType;
 use parquet::column::reader::ColumnReader;
-use parquet::column::reader::ColumnReaderImpl;
 use parquet::column::reader::get_typed_column_reader;
 use arrow::datatypes::Schema;
 use arrow::datatypes::DataType;
@@ -56,12 +54,14 @@ impl ParquetReader<SerializedFileReader> {
 impl<R> ParquetReader<R>
   where R: ParquetFileReader
 {
+  #[allow(dead_code)]
   pub fn new(reader: R) -> ParquetReader<R> {
     ParquetReader {
       reader
     }
   }
 
+  #[allow(dead_code)]
   pub fn num_rows(&self) -> Result<usize> {
     Ok(self.reader.metadata().file_metadata().num_rows() as usize)
   }
@@ -151,7 +151,7 @@ fn read_primitive_column<P, T>(row_num: usize, reader: ColumnReader, arrow_type:
   Ok(Arc::new(PrimitiveArray::<T>::from(array_data)))
 }
 
-fn read_utf8_array(row_num: usize, mut reader: ColumnReader) -> Result<Arc<dyn Array>> {
+fn read_utf8_array(row_num: usize, reader: ColumnReader) -> Result<Arc<dyn Array>> {
   //TODO: Read utf8 is slow, optimize this
   let mut vec = Vec::with_capacity(row_num);
   vec.resize_default(row_num);

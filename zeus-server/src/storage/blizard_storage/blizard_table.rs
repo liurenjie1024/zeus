@@ -1,13 +1,17 @@
-use std::collections::LinkedList;
 use std::path::PathBuf;
+use std::vec::Vec;
+use std::sync::Arc;
 use std::fs;
 
 use super::super::storage::Storage;
 use super::super::storage::ScanContext;
 use super::super::block_input_stream::BlockInputStream;
 use super::blizard_segment::BlizardSegment;
+use super::blizard_scan_node::BlizardScanNode;
+use catalog::table_schema::TableSchema;
 use storage::block_input_stream::CombinedBlockInputStream;
 use server::config::ZeusConfig;
+use exec::expression::Expr;
 use exec2::exec::ExecNode as ExecNode2;
 use util::errors::*;
 
@@ -15,7 +19,7 @@ const DATA_FILE_SUFFIX: &'static str = "parquet";
 
 pub struct BlizardTable {
   table_id: i32,
-  segments: LinkedList<BlizardSegment>
+  segments: Vec<BlizardSegment>
 }
 
 unsafe impl Sync for BlizardTable {}
@@ -30,9 +34,9 @@ impl BlizardTable {
       .filter_map(|e| e.ok())
       .filter(|e| e.file_type().map(|t| t.is_file()).unwrap_or(false))
       .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some(DATA_FILE_SUFFIX))
-      .try_fold(LinkedList::new(), |mut segments, entry| -> Result<LinkedList<BlizardSegment>> {
+      .try_fold(Vec::new(), |mut segments, entry| -> Result<Vec<BlizardSegment>> {
         let segment = BlizardSegment::open(&entry.path())?;
-        segments.push_back(segment);
+        segments.push(segment);
         Ok(segments)
       })?;
 
@@ -62,8 +66,26 @@ impl Storage for BlizardTable {
     Ok(Box::new(CombinedBlockInputStream::new(streams?)))
   }
 
-  fn scan2(&self, scan_context: &ScanContext) -> Result<Box<ExecNode2>> {
-    unimplemented!()
+  fn scan2(&self, scan_context: &ScanContext) -> Result<Box<dyn ExecNode2>> {
+    let filter = scan_context.scan_node.get_filters()
+      .first()
+      .map_or(Ok(None), |e| Expr::new(e).map(|x| Some(x)))?;
+
+    let schema: Arc<TableSchema> = scan_context.catalog_manager
+      .get_table_schema(self.table_id)
+      .map_or_else(|| Err(ErrorKind::TableIdNotFound(self.table_id)), |t| Ok(t))?;
+
+    let projections =  scan_context.scan_node.get_columns()
+      .iter()
+      .try_fold(Vec::new(), |mut column_names, column| -> Result<Vec<String>> {
+        let column_name = schema.get_column_schema(*column)
+          .map_or_else(|| Err(ErrorKind::ColumnIdNotFound(*column)),
+            |t| Ok(t.get_name()))?;
+        column_names.push(column_name);
+        Ok(column_names)
+      })?;
+
+    Ok(box BlizardScanNode::new(filter, self.segments.clone(), projections))
   }
 
   fn get_row_count(&self) -> Result<i64> {

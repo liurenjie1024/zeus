@@ -36,6 +36,14 @@ error_chain! {
       description("invalid column name")
       display("invalid column name: '{}'", column_name)
     }
+    TableIdNotFound(id: i32) {
+      description("Table id not found")
+      display("Table id [{}] not found", id)
+    }
+    ColumnIdNotFound(id: i32) {
+      description("Column id not found")
+      display("Column id [{}] not found", id)
+    }
     UnableToCompare (msg: String) {
     }
     BlockTypeNotMatch(msg: String) {

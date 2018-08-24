@@ -4,6 +4,8 @@
 #![feature(try_from)]
 #![feature(vec_resize_default)]
 #![feature(int_to_from_bytes)]
+#![feature(rc_downcast)]
+#![feature(get_type_id)]
 #![recursion_limit="128"]
 
 extern crate bytes;
