@@ -10,7 +10,6 @@ use storage::ScanContext;
 use util::errors::*;
 
 pub(super) struct TableScanExecNode {
-  inner: Box<dyn ExecNode>
 }
 
 impl TableScanExecNode {

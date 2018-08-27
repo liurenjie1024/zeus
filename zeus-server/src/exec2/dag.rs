@@ -30,6 +30,7 @@ impl PlanNode {
         res.push(plan_node.to_exec_node2(server_context)?);
         Ok(res)
       })?;
+
     match self.get_plan_node_type() {
       PlanNodeType::SCAN_NODE => TableScanExecNode::new(&self, server_context, children),
       plan_node_type => bail!("Unimplemented plan node type: {:?}", plan_node_type)
@@ -84,40 +85,21 @@ impl DAGExecutor {
 
     let mut rows = Rows::new();
 
-//    loop {
-//      let block = self.root.next()?;
-//
-//      if !block.is_empty() {
-//        let mut column_iterators: Vec<ColumnValueIter> =
-//          block.columns.iter().map(|c| c.column_value_iter()).collect();
-//
-//        loop {
-//          let mut incomplete = 0usize;
-//          let mut row = RowResult::new();
-//          for column_iter in &mut column_iterators {
-//            match column_iter.next() {
-//              Some(t) => row.columns.push(t),
-//              None => {
-//                incomplete += 1;
-//              },
-//            }
-//          }
-//
-//          if 0 == incomplete {
-//            rows.push(row);
-//          } else {
-//            if incomplete < column_iterators.len() {
-//              warn!("Block incomplete, there are {} columns incomplete.", incomplete);
-//            }
-//            break;
-//          }
-//        }
-//      }
-//
-//      if block.eof() {
-//        break;
-//      }
-//    }
+    loop {
+      let block = self.root.next()?;
+
+      let mut block_rows = block.iter()
+        .try_fold(Rows::new(), |mut rows, r| -> Result<Rows> {
+          rows.push(r?);
+          Ok(rows)
+        })?;
+
+      rows.append(&mut block_rows);
+
+      if block.eof() {
+        break
+      }
+    }
 
     Ok(rows)
   }
