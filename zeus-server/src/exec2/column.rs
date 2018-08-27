@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::any::Any;
+use std::convert::TryFrom;
 
 use arrow::array::Array;
 use arrow::array::PrimitiveArray;
@@ -9,35 +10,51 @@ use arrow::datatypes::ArrowPrimitiveType;
 
 use rpc::zeus_meta::ColumnValue;
 use util::errors::*;
-
-pub trait Column {
-  fn get_column_value(&self, idx: usize) -> Result<ColumnValue>;
+pub enum Column<'a> {
+  Bool(PrimitiveColumn<'a, bool>),
+  Int32(PrimitiveColumn<'a, i32>),
+  Int64(PrimitiveColumn<'a, i64>),
+  Float(PrimitiveColumn<'a, f32>),
+  Double(PrimitiveColumn<'a, f64>),
+  Utf8(Utf8Column<'a>)
 }
 
-pub fn to_column(array: Arc<Array>) -> Result<Arc<Column>> {
+impl<'a> Column<'a> {
+  pub fn get_column_value(&self, idx: usize) -> Result<ColumnValue> {
+    match self {
+      Column::Bool(inner) => inner.get_column_value(idx),
+      Column::Int32(inner) => inner.get_column_value(idx),
+      Column::Int64(inner) => inner.get_column_value(idx),
+      Column::Float(inner) => inner.get_column_value(idx),
+      Column::Double(inner) => inner.get_column_value(idx),
+      Column::Utf8(inner) => inner.get_column_value(idx)
+    }
+  }
+}
+
+
+pub fn to_column(array: &Array) -> Result<Column> {
   let c = match array.data_type() {
-    DataType::Boolean => PrimitiveColumn::<bool>::new(array.clone()),
-//    DataType::Int32 => PrimitiveColumn::<i32>::new(array),
-//    DataType::Int64 => PrimitiveColumn::<i64>::new(array),
-//    DataType::Float32 => PrimitiveColumn::<f32>::new(array),
-//    DataType::Float64 => PrimitiveColumn::<f64>::new(array),
+    DataType::Boolean => Column::Bool(PrimitiveColumn::try_from(array)?),
+    DataType::Int32 => Column::Int32(PrimitiveColumn::try_from(array)?),
+    DataType::Int64 => Column::Int64(PrimitiveColumn::try_from(array)?),
+    DataType::Float32 => Column::Float(PrimitiveColumn::try_from(array)?),
+    DataType::Float64 => Column::Double(PrimitiveColumn::try_from(array)?),
+    DataType::Utf8 => Column::Utf8(Utf8Column::try_from(array)?),
     dt => bail!("Unrecoginized data type {:?}", dt)
   };
-  bail!("Failed")
+  Ok(c)
 }
 
-
-
-
-
-
-struct PrimitiveColumn<T: ArrowPrimitiveType + Into<ColumnValue>> {
-  array: Arc<PrimitiveArray<T>>
+pub struct PrimitiveColumn<'a, T>
+  where T: ArrowPrimitiveType
+{
+  array: &'a PrimitiveArray<T>
 }
 
 macro_rules! def_primitive_column {
   ($native_ty: ident) => {
-    impl Column for PrimitiveColumn<$native_ty> {
+    impl<'a> PrimitiveColumn<'a, $native_ty> {
       fn get_column_value(&self, idx: usize) -> Result<ColumnValue> {
         let idx = idx as i64;
         if idx>=0 && idx<self.array.len() {
@@ -48,15 +65,15 @@ macro_rules! def_primitive_column {
       }
     }
 
-    impl PrimitiveColumn<$native_ty> {
-      pub fn new(array: Arc<dyn Any>) -> Result<Arc<Column>> {
-        let arr = array.downcast::<PrimitiveArray<$native_ty>>()
-          .map_err(|| format!("Unable to convert type {:?}", array.get_type_id()))?;
-
-        Ok(Arc::new(Self {
-          array: arr
-        }))
-
+    impl<'a> TryFrom<&'a Array> for PrimitiveColumn<'a, $native_ty> {
+      type Error = Error;
+      fn try_from(array: &'a Array) -> Result<Self> {
+        let data_type = array.data_type();
+        array.as_any().downcast_ref::<PrimitiveArray<$native_ty>>()
+          .ok_or_else(|| format!("Unable to convert data type {:?}", data_type).into())
+          .map(|array| Self {
+            array
+          })
       }
     }
   };
@@ -108,11 +125,11 @@ impl Into<ColumnValue> for f64 {
   }
 }
 
-struct Utf8Column {
-  array: BinaryArray
+pub struct Utf8Column<'a> {
+  array: &'a BinaryArray
 }
 
-impl Column for Utf8Column {
+impl<'a> Utf8Column<'a> {
   fn get_column_value(&self, idx: usize) -> Result<ColumnValue> {
     let idx = idx as i64;
     if idx>=0 && idx<self.array.len() {
@@ -122,5 +139,17 @@ impl Column for Utf8Column {
     } else {
       bail!("{} out of range.", idx)
     }
+  }
+}
+
+impl<'a> TryFrom<&'a Array> for Utf8Column<'a> {
+  type Error = Error;
+  fn try_from(array: &'a Array) -> Result<Self> {
+    array.as_any()
+      .downcast_ref::<BinaryArray>()
+      .ok_or_else(|| "Only binary array can convert to utf8 column".into())
+      .map(|array| Self {
+        array
+      })
   }
 }
