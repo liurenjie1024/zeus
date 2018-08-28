@@ -32,6 +32,8 @@ use arrow::datatypes::ArrowPrimitiveType;
 use arrow::array::PrimitiveArray;
 use arrow::array::BinaryArray;
 
+use exec2::block::RecordBatchBuilder;
+
 use util::errors::*;
 
 pub(super) struct ParquetReader<R>
@@ -190,53 +192,5 @@ fn parquet_to_arrow_type(column_desc: &ColumnDescriptor) -> Result<DataType> {
   }
 }
 
-struct RecordBatchBuilder {
-  fields: Vec<Field>,
-  arrays: Vec<Arc<Array>>
-}
-
-impl RecordBatchBuilder {
-  pub fn new() -> Self {
-    RecordBatchBuilder {
-      fields: Vec::new(),
-      arrays: Vec::new()
-    }
-  }
-
-  pub fn add_field(mut self, field: Field) -> Self {
-    self.fields.push(field);
-    self
-  }
-
-  pub fn add_column(mut self, array: Arc<Array>) -> Self {
-    self.arrays.push(array);
-    self
-  }
-
-  pub fn build(self) -> Result<RecordBatch> {
-    self.sanity_check()
-      .map(|s| {
-        let schema = Arc::new(Schema::new(s.fields));
-        RecordBatch::new(schema, s.arrays)
-      })
-  }
-
-  fn sanity_check(self) -> Result<Self> {
-    ensure!(self.fields.len() == self.arrays.len(),
-    "Number of fileds {} does not match with number of columns {}", self.fields.len(),
-    self.arrays.len());
-    ensure!(self.fields.len() > 0, "Record batch can't be empty!");
-    ensure!(self.arrays[0].len() > 0, "Row num can't be zero");
-
-    let row_num = self.arrays[0].len();
-
-    for arr in &self.arrays {
-      ensure!(arr.len() == row_num, "Column length {} does not match with row num {}", arr.len(),
-        row_num)
-    }
-
-    Ok(self)
-  }
-}
 
 

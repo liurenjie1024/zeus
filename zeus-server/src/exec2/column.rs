@@ -1,5 +1,3 @@
-use std::sync::Arc;
-use std::any::Any;
 use std::convert::TryFrom;
 
 use arrow::array::Array;
