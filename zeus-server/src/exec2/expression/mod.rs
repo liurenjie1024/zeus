@@ -1,3 +1,5 @@
+mod aggr;
+
 use std::default::Default;
 
 use super::block::Block;
@@ -5,13 +7,18 @@ use rpc::zeus_meta::ColumnValue;
 use rpc::zeus_expr::Expression;
 use rpc::zeus_expr::ExpressionType;
 use rpc::zeus_expr::ScalarFuncId;
+use rpc::zeus_expr::AggFuncId;
 use rpc::zeus_meta::ColumnType;
 use util::errors::*;
+
+pub use self::aggr::AggregationFunction;
+
 
 pub enum Expr {
   Literal(LiteralExpr),
   ColumnRef(ColumnRefExpr),
-  ScalarFunc(ScalarFuncExpr)
+  ScalarFunc(ScalarFuncExpr),
+  Aggregation(AggregationExpr)
 }
 
 pub struct LiteralExpr {
@@ -29,6 +36,13 @@ pub struct ColumnRefExpr {
 pub struct ScalarFuncExpr {
   column_type: ColumnType,
   id: ScalarFuncId,
+  args: Vec<Expr>,
+  alias: String
+}
+
+pub struct AggregationExpr {
+  column_type: ColumnType,
+  id: AggFuncId,
   args: Vec<Expr>,
   alias: String
 }
@@ -70,7 +84,22 @@ impl Expr {
           column_type: rpc_expr.get_field_type()
         }))
       },
-      ExpressionType::AGG_FUNCTION => bail!("Aggregation Function can't be constructed from expr")
+      ExpressionType::AGG_FUNCTION => {
+        let args = rpc_expr.get_agg_func().get_children()
+          .iter()
+          .try_fold(Vec::new(), |mut res, expr| -> Result<Vec<Expr>> {
+            res.push(Expr::new(expr)?);
+            Ok(res)
+          })?;
+
+        Ok(Expr::Aggregation(AggregationExpr {
+          id: rpc_expr.get_agg_func().get_func_id(),
+          args,
+          alias: rpc_expr.get_alias().to_string(),
+          column_type: rpc_expr.get_field_type()
+        }))
+
+      }
     }
   }
 
@@ -82,7 +111,8 @@ impl Expr {
       Expr::ScalarFunc(ref scalar_func) => unimplemented!(),
       Expr::ColumnRef(ref column) => {
         input.get_column_by_name(column.column_name.as_str())
-      }
+      },
+      Expr::Aggregation(ref aggr) => unimplemented!()
     }
   }
 
@@ -90,7 +120,8 @@ impl Expr {
     match self {
       Expr::Literal(literal) => literal.alias.as_str(),
       Expr::ColumnRef(column) => column.alias.as_str(),
-      Expr::ScalarFunc(scalar_func) => scalar_func.alias.as_str()
+      Expr::ScalarFunc(scalar_func) => scalar_func.alias.as_str(),
+      Expr::Aggregation(aggr) => aggr.alias.as_str(),
     }
   }
 
@@ -98,7 +129,8 @@ impl Expr {
     match self {
       Expr::Literal(literal) => literal.column_type,
       Expr::ColumnRef(column) => column.column_type,
-      Expr::ScalarFunc(scalar_func) => scalar_func.column_type
+      Expr::ScalarFunc(scalar_func) => scalar_func.column_type,
+      Expr::Aggregation(aggr) => aggr.column_type,
     }
   }
 }
