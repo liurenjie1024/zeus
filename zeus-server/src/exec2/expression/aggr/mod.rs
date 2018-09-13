@@ -2,6 +2,7 @@ use std::alloc::Layout;
 
 use arrow::array::Array;
 
+use super::AggregationExpr;
 use exec2::column::ColumnBuilder;
 
 pub trait AggregationFunction {
@@ -12,3 +13,4 @@ pub trait AggregationFunction {
   unsafe fn aggregate_all(&self, buf: *mut u8, input: &Array);
   unsafe fn collect(&mut self, buf: *mut u8, column: &mut ColumnBuilder);
 }
+

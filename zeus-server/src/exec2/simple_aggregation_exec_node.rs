@@ -7,6 +7,7 @@ use super::exec::ExecNode;
 use super::exec::ExecContext;
 use super::expression::AggregationFunction;
 use super::block::Block;
+use super::expression::EvalContext;
 
 use util::errors::*;
 
@@ -27,15 +28,33 @@ impl ExecNode for SimpleAggregationExecNode {
   }
 
   fn next(&mut self) -> Result<Block> {
+    let eval_context = EvalContext::default();
+
     loop {
       let input = self.child.next()?;
 
-      self.expression_with_data.iter()
-        .for_each(|d| {
-          let expr_array = d.expression
+      if !input.is_empty() {
+        self.expression_with_data.iter()
+          .for_each(|d| {
+            let expr_array = d.expression.args_slice()
+              .first()
+              .ok_or_else(|| "Children can't be empty!")
+              .and_then(|e| e.eval(&eval_context, &input))
+              .and_then(|b| b.get_column(0usize))?;
 
-        })
+            unsafe {
+              d.function.aggregate_all(d.data, &*expr_array);
+            }
+          });
+      }
+
+      if input.eof() {
+        break;
+      }
     }
+
+    let schemas = self.expression_with_data.iter()
+      .map(|e| )
   }
 
   fn close(&mut self) -> Result<()> {

@@ -69,6 +69,12 @@ impl Block {
       }
     }
   }
+
+  pub fn get_column(&self, idx: usize) -> Result<Arc<Array>> {
+    self.records
+      .map(|r| r.column(idx).clone())
+      .ok_or_else(|| format!("Index {} for column does not exist.", idx))
+  }
 }
 
 struct BlockRowIterator<'a> {

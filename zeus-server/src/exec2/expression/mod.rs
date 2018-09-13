@@ -2,6 +2,9 @@ mod aggr;
 
 use std::default::Default;
 
+use arrow::datatypes::Field;
+use arrow::datatypes::DataType;
+
 use super::block::Block;
 use rpc::zeus_meta::ColumnValue;
 use rpc::zeus_expr::Expression;
@@ -179,3 +182,34 @@ impl LiteralExpr {
     })
   }
 }
+
+impl AggregationExpr {
+  pub fn args_slice(&self) -> &[Expr] {
+    self.args.as_slice()
+  }
+
+  pub fn to_field(&self) -> Field {
+    Field::new(
+      self.alias.as_str(),
+      self.column_type.to_arrow_data_type(),
+      false)
+  }
+}
+
+impl ColumnType {
+  pub fn to_arrow_data_type(&self) -> DataType {
+    match self {
+      ColumnType::BOOL => DataType::Boolean,
+      ColumnType::INT8 => DataType::Int8,
+      ColumnType::INT16 => DataType::Int16,
+      ColumnType::INT32 => DataType::Int32,
+      ColumnType::INT64 => DataType::Int64,
+      ColumnType::FLOAT4 => DataType::Float32,
+      ColumnType::FLOAT8 => DataType::Float64,
+      ColumnType::TIMESTAMP => DataType::Int64,
+      ColumnType::STRING => DataType::Utf8
+    }
+  }
+}
+
+
