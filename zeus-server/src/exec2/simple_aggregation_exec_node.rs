@@ -2,6 +2,8 @@ use std::vec::Vec;
 use std::alloc::alloc;
 use std::ptr;
 
+use arrow::datatypes::Field;
+
 use super::expression::AggregationExpr;
 use super::exec::ExecNode;
 use super::exec::ExecContext;
@@ -54,11 +56,18 @@ impl ExecNode for SimpleAggregationExecNode {
     }
 
     let schemas = self.expression_with_data.iter()
-      .map(|e| )
+      .map(|e| e.expression.to_field())
+      .collect::<Vec<Field>>();
+
+
   }
 
   fn close(&mut self) -> Result<()> {
     unimplemented!()
   }
+}
+
+impl ExpressionWithData {
+  pub fn create_column_builder(&self) -> 
 }
 
