@@ -68,6 +68,6 @@ impl ExecNode for SimpleAggregationExecNode {
 }
 
 impl ExpressionWithData {
-  pub fn create_column_builder(&self) -> 
+  pub fn create_column_builder(&self) ->
 }
 
