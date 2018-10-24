@@ -3,6 +3,8 @@ use std::alloc::alloc;
 use std::ptr;
 
 use arrow::datatypes::Field;
+use arrow::datatypes::Schema;
+use arrow::array::ArrayRef;
 
 use super::expression::AggregationExpr;
 use super::exec::ExecNode;
@@ -10,6 +12,7 @@ use super::exec::ExecContext;
 use super::expression::AggregationFunction;
 use super::block::Block;
 use super::expression::EvalContext;
+use exec2::column::to_column_builder;
 
 use util::errors::*;
 
@@ -55,10 +58,9 @@ impl ExecNode for SimpleAggregationExecNode {
       }
     }
 
-    let schemas = self.expression_with_data.iter()
+    let fields = self.expression_with_data.iter()
       .map(|e| e.expression.to_field())
       .collect::<Vec<Field>>();
-
 
   }
 
@@ -68,6 +70,14 @@ impl ExecNode for SimpleAggregationExecNode {
 }
 
 impl ExpressionWithData {
-  pub fn create_column_builder(&self) ->
+  fn to_array(&mut self) -> Result<ArrayRef> {
+    let mut column_builder = to_column_builder(
+      self.expression.column_type().to_arrow_data_type())?;
+
+    unsafe {
+      self.function.collect(self.data, &mut *column_builder);
+      Ok(column_builder.into_array())
+    }
+  }
 }
 

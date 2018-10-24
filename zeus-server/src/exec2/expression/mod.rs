@@ -194,6 +194,10 @@ impl AggregationExpr {
       self.column_type.to_arrow_data_type(),
       false)
   }
+
+  pub fn column_type(&self) -> ColumnType {
+    self.column_type
+  }
 }
 
 impl ColumnType {

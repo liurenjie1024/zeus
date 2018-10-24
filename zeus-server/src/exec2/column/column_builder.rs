@@ -16,6 +16,19 @@ pub trait ColumnBuilder {
   unsafe fn into_array(self) -> Arc<Array>;
 }
 
+pub fn to_column_builder(data_type: DataType) -> Result<Box<ColumnBuilder>> {
+  match data_type {
+    DataType::Boolean => Ok(box PrimitiveColumnBuffer::<bool>::new(data_type)),
+    DataType::Int8 => Ok(box PrimitiveColumnBuffer::<i8>::new(data_type)),
+    DataType::Int16 => Ok(box PrimitiveColumnBuffer::<i16>::new(data_type)),
+    DataType::Int32 => Ok(box PrimitiveColumnBuffer::<i32>::new(data_type)),
+    DataType::Int64 => Ok(box PrimitiveColumnBuffer::<i64>::new(data_type)),
+    DataType::Float32 => Ok(box PrimitiveColumnBuffer::<f32>::new(data_type)),
+    DataType::Float64 => Ok(box PrimitiveColumnBuffer::<f64>::new(data_type)),
+    dt => bail!("Unable to create column builder for data type: {}", dt)
+  }
+}
+
 struct PrimitiveColumnBuffer<T>
   where T: ArrowPrimitiveType
 {
